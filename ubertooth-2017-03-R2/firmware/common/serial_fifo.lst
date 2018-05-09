@@ -1,0 +1,336 @@
+ARM GAS  /tmp/ccWhtglZ.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"serial_fifo.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.fifo_init,"ax",%progbits
+  19              		.align	1
+  20              		.global	fifo_init
+  21              		.thumb
+  22              		.thumb_func
+  24              	fifo_init:
+  25              	.LFB0:
+  26              		.file 1 "../common/serial_fifo.c"
+   1:../common/serial_fifo.c **** /*
+   2:../common/serial_fifo.c **** 	LPCUSB, an USB device driver for LPC microcontrollers	
+   3:../common/serial_fifo.c **** 	Copyright (C) 2006 Bertrik Sikken (bertrik@sikken.nl)
+   4:../common/serial_fifo.c **** 
+   5:../common/serial_fifo.c **** 	Redistribution and use in source and binary forms, with or without
+   6:../common/serial_fifo.c **** 	modification, are permitted provided that the following conditions are met:
+   7:../common/serial_fifo.c **** 
+   8:../common/serial_fifo.c **** 	1. Redistributions of source code must retain the above copyright
+   9:../common/serial_fifo.c **** 	   notice, this list of conditions and the following disclaimer.
+  10:../common/serial_fifo.c **** 	2. Redistributions in binary form must reproduce the above copyright
+  11:../common/serial_fifo.c **** 	   notice, this list of conditions and the following disclaimer in the
+  12:../common/serial_fifo.c **** 	   documentation and/or other materials provided with the distribution.
+  13:../common/serial_fifo.c **** 	3. The name of the author may not be used to endorse or promote products
+  14:../common/serial_fifo.c **** 	   derived from this software without specific prior written permission.
+  15:../common/serial_fifo.c **** 
+  16:../common/serial_fifo.c **** 	THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+  17:../common/serial_fifo.c **** 	IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+  18:../common/serial_fifo.c **** 	OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+  19:../common/serial_fifo.c **** 	IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
+  20:../common/serial_fifo.c **** 	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+  21:../common/serial_fifo.c **** 	NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  22:../common/serial_fifo.c **** 	DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  23:../common/serial_fifo.c **** 	THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  24:../common/serial_fifo.c **** 	(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+  25:../common/serial_fifo.c **** 	THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  26:../common/serial_fifo.c **** */
+  27:../common/serial_fifo.c **** 
+  28:../common/serial_fifo.c **** #include "type.h"
+  29:../common/serial_fifo.c **** #include "serial_fifo.h"
+  30:../common/serial_fifo.c **** 
+  31:../common/serial_fifo.c **** void fifo_init(fifo_t *fifo, U8 *buf)
+  32:../common/serial_fifo.c **** {
+ARM GAS  /tmp/ccWhtglZ.s 			page 2
+
+
+  27              		.loc 1 32 0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31              		@ link register save eliminated.
+  32              	.LVL0:
+  33:../common/serial_fifo.c **** 	fifo->head = 0;
+  33              		.loc 1 33 0
+  34 0000 0023     		movs	r3, #0
+  35 0002 0360     		str	r3, [r0]
+  34:../common/serial_fifo.c **** 	fifo->tail = 0;
+  36              		.loc 1 34 0
+  37 0004 4360     		str	r3, [r0, #4]
+  35:../common/serial_fifo.c **** 	fifo->buf = buf;
+  38              		.loc 1 35 0
+  39 0006 8160     		str	r1, [r0, #8]
+  40 0008 7047     		bx	lr
+  41              		.cfi_endproc
+  42              	.LFE0:
+  44              		.section	.text.fifo_put,"ax",%progbits
+  45              		.align	1
+  46              		.global	fifo_put
+  47              		.thumb
+  48              		.thumb_func
+  50              	fifo_put:
+  51              	.LFB1:
+  36:../common/serial_fifo.c **** }
+  37:../common/serial_fifo.c **** 
+  38:../common/serial_fifo.c **** 
+  39:../common/serial_fifo.c **** BOOL fifo_put(fifo_t *fifo, U8 c)
+  40:../common/serial_fifo.c **** {
+  52              		.loc 1 40 0
+  53              		.cfi_startproc
+  54              		@ args = 0, pretend = 0, frame = 0
+  55              		@ frame_needed = 0, uses_anonymous_args = 0
+  56              	.LVL1:
+  57 0000 10B5     		push	{r4, lr}
+  58              		.cfi_def_cfa_offset 8
+  59              		.cfi_offset 4, -8
+  60              		.cfi_offset 14, -4
+  41:../common/serial_fifo.c **** 	int next;
+  42:../common/serial_fifo.c **** 	
+  43:../common/serial_fifo.c **** 	// check if FIFO has room
+  44:../common/serial_fifo.c **** 	next = (fifo->head + 1) % VCOM_FIFO_SIZE;
+  61              		.loc 1 44 0
+  62 0002 0268     		ldr	r2, [r0]
+  63 0004 094B     		ldr	r3, .L7
+  64 0006 541C     		adds	r4, r2, #1
+  65 0008 2340     		ands	r3, r3, r4
+  66 000a 002B     		cmp	r3, #0
+  67 000c 03DA     		bge	.L3
+  68 000e 013B     		subs	r3, r3, #1
+  69 0010 63F07F03 		orn	r3, r3, #127
+  70 0014 0133     		adds	r3, r3, #1
+  71              	.L3:
+  72              	.LVL2:
+  45:../common/serial_fifo.c **** 	if (next == fifo->tail) {
+ARM GAS  /tmp/ccWhtglZ.s 			page 3
+
+
+  73              		.loc 1 45 0
+  74 0016 4468     		ldr	r4, [r0, #4]
+  75 0018 A342     		cmp	r3, r4
+  76 001a 04D0     		beq	.L5
+  46:../common/serial_fifo.c **** 		// full
+  47:../common/serial_fifo.c **** 		return FALSE;
+  48:../common/serial_fifo.c **** 	}
+  49:../common/serial_fifo.c **** 	
+  50:../common/serial_fifo.c **** 	fifo->buf[fifo->head] = c;
+  77              		.loc 1 50 0
+  78 001c 8468     		ldr	r4, [r0, #8]
+  79 001e A154     		strb	r1, [r4, r2]
+  51:../common/serial_fifo.c **** 	fifo->head = next;
+  80              		.loc 1 51 0
+  81 0020 0360     		str	r3, [r0]
+  52:../common/serial_fifo.c **** 	
+  53:../common/serial_fifo.c **** 	return TRUE;
+  82              		.loc 1 53 0
+  83 0022 0120     		movs	r0, #1
+  84              	.LVL3:
+  85 0024 10BD     		pop	{r4, pc}
+  86              	.LVL4:
+  87              	.L5:
+  47:../common/serial_fifo.c **** 	}
+  88              		.loc 1 47 0
+  89 0026 0020     		movs	r0, #0
+  90              	.LVL5:
+  54:../common/serial_fifo.c **** }
+  91              		.loc 1 54 0
+  92 0028 10BD     		pop	{r4, pc}
+  93              	.L8:
+  94 002a 00BF     		.align	2
+  95              	.L7:
+  96 002c 7F000080 		.word	-2147483521
+  97              		.cfi_endproc
+  98              	.LFE1:
+ 100              		.section	.text.fifo_get,"ax",%progbits
+ 101              		.align	1
+ 102              		.global	fifo_get
+ 103              		.thumb
+ 104              		.thumb_func
+ 106              	fifo_get:
+ 107              	.LFB2:
+  55:../common/serial_fifo.c **** 
+  56:../common/serial_fifo.c **** 
+  57:../common/serial_fifo.c **** BOOL fifo_get(fifo_t *fifo, U8 *pc)
+  58:../common/serial_fifo.c **** {
+ 108              		.loc 1 58 0
+ 109              		.cfi_startproc
+ 110              		@ args = 0, pretend = 0, frame = 0
+ 111              		@ frame_needed = 0, uses_anonymous_args = 0
+ 112              		@ link register save eliminated.
+ 113              	.LVL6:
+  59:../common/serial_fifo.c **** 	int next;
+  60:../common/serial_fifo.c **** 	
+  61:../common/serial_fifo.c **** 	// check if FIFO has data
+  62:../common/serial_fifo.c **** 	if (fifo->head == fifo->tail) {
+ARM GAS  /tmp/ccWhtglZ.s 			page 4
+
+
+ 114              		.loc 1 62 0
+ 115 0000 90E80C00 		ldmia	r0, {r2, r3}
+ 116 0004 9A42     		cmp	r2, r3
+ 117 0006 0ED0     		beq	.L12
+ 118              	.LVL7:
+  63:../common/serial_fifo.c **** 		return FALSE;
+  64:../common/serial_fifo.c **** 	}
+  65:../common/serial_fifo.c **** 	
+  66:../common/serial_fifo.c **** 	next = (fifo->tail + 1) % VCOM_FIFO_SIZE;
+  67:../common/serial_fifo.c **** 	
+  68:../common/serial_fifo.c **** 	*pc = fifo->buf[fifo->tail];
+ 119              		.loc 1 68 0
+ 120 0008 8268     		ldr	r2, [r0, #8]
+ 121 000a D25C     		ldrb	r2, [r2, r3]	@ zero_extendqisi2
+ 122 000c 0A70     		strb	r2, [r1]
+  66:../common/serial_fifo.c **** 	
+ 123              		.loc 1 66 0
+ 124 000e 5A1C     		adds	r2, r3, #1
+ 125 0010 064B     		ldr	r3, .L13
+ 126              	.LVL8:
+ 127 0012 1340     		ands	r3, r3, r2
+ 128 0014 002B     		cmp	r3, #0
+ 129 0016 03DA     		bge	.L11
+ 130 0018 013B     		subs	r3, r3, #1
+ 131 001a 63F07F03 		orn	r3, r3, #127
+ 132 001e 0133     		adds	r3, r3, #1
+ 133              	.L11:
+  69:../common/serial_fifo.c **** 	fifo->tail = next;
+ 134              		.loc 1 69 0
+ 135 0020 4360     		str	r3, [r0, #4]
+  70:../common/serial_fifo.c **** 
+  71:../common/serial_fifo.c **** 	return TRUE;
+ 136              		.loc 1 71 0
+ 137 0022 0120     		movs	r0, #1
+ 138              	.LVL9:
+ 139 0024 7047     		bx	lr
+ 140              	.LVL10:
+ 141              	.L12:
+  63:../common/serial_fifo.c **** 	}
+ 142              		.loc 1 63 0
+ 143 0026 0020     		movs	r0, #0
+ 144              	.LVL11:
+  72:../common/serial_fifo.c **** }
+ 145              		.loc 1 72 0
+ 146 0028 7047     		bx	lr
+ 147              	.L14:
+ 148 002a 00BF     		.align	2
+ 149              	.L13:
+ 150 002c 7F000080 		.word	-2147483521
+ 151              		.cfi_endproc
+ 152              	.LFE2:
+ 154              		.section	.text.fifo_avail,"ax",%progbits
+ 155              		.align	1
+ 156              		.global	fifo_avail
+ 157              		.thumb
+ 158              		.thumb_func
+ 160              	fifo_avail:
+ARM GAS  /tmp/ccWhtglZ.s 			page 5
+
+
+ 161              	.LFB3:
+  73:../common/serial_fifo.c **** 
+  74:../common/serial_fifo.c **** 
+  75:../common/serial_fifo.c **** int fifo_avail(fifo_t *fifo)
+  76:../common/serial_fifo.c **** {
+ 162              		.loc 1 76 0
+ 163              		.cfi_startproc
+ 164              		@ args = 0, pretend = 0, frame = 0
+ 165              		@ frame_needed = 0, uses_anonymous_args = 0
+ 166              		@ link register save eliminated.
+ 167              	.LVL12:
+  77:../common/serial_fifo.c **** 	return (VCOM_FIFO_SIZE + fifo->head - fifo->tail) % VCOM_FIFO_SIZE;
+ 168              		.loc 1 77 0
+ 169 0000 0368     		ldr	r3, [r0]
+ 170 0002 4268     		ldr	r2, [r0, #4]
+ 171 0004 8033     		adds	r3, r3, #128
+ 172 0006 0548     		ldr	r0, .L17
+ 173              	.LVL13:
+ 174 0008 9B1A     		subs	r3, r3, r2
+ 175 000a 1840     		ands	r0, r0, r3
+ 176 000c 0028     		cmp	r0, #0
+ 177 000e 03DA     		bge	.L16
+ 178 0010 0138     		subs	r0, r0, #1
+ 179 0012 60F07F00 		orn	r0, r0, #127
+ 180 0016 0130     		adds	r0, r0, #1
+ 181              	.L16:
+  78:../common/serial_fifo.c **** }
+ 182              		.loc 1 78 0
+ 183 0018 7047     		bx	lr
+ 184              	.L18:
+ 185 001a 00BF     		.align	2
+ 186              	.L17:
+ 187 001c 7F000080 		.word	-2147483521
+ 188              		.cfi_endproc
+ 189              	.LFE3:
+ 191              		.section	.text.fifo_free,"ax",%progbits
+ 192              		.align	1
+ 193              		.global	fifo_free
+ 194              		.thumb
+ 195              		.thumb_func
+ 197              	fifo_free:
+ 198              	.LFB4:
+  79:../common/serial_fifo.c **** 
+  80:../common/serial_fifo.c **** 
+  81:../common/serial_fifo.c **** int fifo_free(fifo_t *fifo)
+  82:../common/serial_fifo.c **** {
+ 199              		.loc 1 82 0
+ 200              		.cfi_startproc
+ 201              		@ args = 0, pretend = 0, frame = 0
+ 202              		@ frame_needed = 0, uses_anonymous_args = 0
+ 203              	.LVL14:
+ 204 0000 08B5     		push	{r3, lr}
+ 205              		.cfi_def_cfa_offset 8
+ 206              		.cfi_offset 3, -8
+ 207              		.cfi_offset 14, -4
+  83:../common/serial_fifo.c **** 	return (VCOM_FIFO_SIZE - 1 - fifo_avail(fifo));
+ 208              		.loc 1 83 0
+ARM GAS  /tmp/ccWhtglZ.s 			page 6
+
+
+ 209 0002 FFF7FEFF 		bl	fifo_avail
+ 210              	.LVL15:
+  84:../common/serial_fifo.c **** }
+ 211              		.loc 1 84 0
+ 212 0006 C0F17F00 		rsb	r0, r0, #127
+ 213 000a 08BD     		pop	{r3, pc}
+ 214              		.cfi_endproc
+ 215              	.LFE4:
+ 217              		.text
+ 218              	.Letext0:
+ 219              		.file 2 "../common/serial_fifo.h"
+ 220              		.file 3 "../common/lpcusb/target/type.h"
+ARM GAS  /tmp/ccWhtglZ.s 			page 7
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 serial_fifo.c
+     /tmp/ccWhtglZ.s:19     .text.fifo_init:0000000000000000 $t
+     /tmp/ccWhtglZ.s:24     .text.fifo_init:0000000000000000 fifo_init
+     /tmp/ccWhtglZ.s:45     .text.fifo_put:0000000000000000 $t
+     /tmp/ccWhtglZ.s:50     .text.fifo_put:0000000000000000 fifo_put
+     /tmp/ccWhtglZ.s:96     .text.fifo_put:000000000000002c $d
+     /tmp/ccWhtglZ.s:101    .text.fifo_get:0000000000000000 $t
+     /tmp/ccWhtglZ.s:106    .text.fifo_get:0000000000000000 fifo_get
+     /tmp/ccWhtglZ.s:150    .text.fifo_get:000000000000002c $d
+     /tmp/ccWhtglZ.s:155    .text.fifo_avail:0000000000000000 $t
+     /tmp/ccWhtglZ.s:160    .text.fifo_avail:0000000000000000 fifo_avail
+     /tmp/ccWhtglZ.s:187    .text.fifo_avail:000000000000001c $d
+     /tmp/ccWhtglZ.s:192    .text.fifo_free:0000000000000000 $t
+     /tmp/ccWhtglZ.s:197    .text.fifo_free:0000000000000000 fifo_free
+                     .debug_frame:0000000000000010 $d
+
+NO UNDEFINED SYMBOLS

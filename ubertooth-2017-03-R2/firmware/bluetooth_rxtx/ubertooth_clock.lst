@@ -1,0 +1,261 @@
+ARM GAS  /tmp/ccABmLVF.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"ubertooth_clock.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.clkn_stop,"ax",%progbits
+  19              		.align	1
+  20              		.global	clkn_stop
+  21              		.thumb
+  22              		.thumb_func
+  24              	clkn_stop:
+  25              	.LFB0:
+  26              		.file 1 "ubertooth_clock.c"
+   1:ubertooth_clock.c **** /*
+   2:ubertooth_clock.c ****  * Copyright 2015 Hannes Ellinger
+   3:ubertooth_clock.c ****  *
+   4:ubertooth_clock.c ****  * This file is part of Project Ubertooth.
+   5:ubertooth_clock.c ****  *
+   6:ubertooth_clock.c ****  * This program is free software; you can redistribute it and/or modify
+   7:ubertooth_clock.c ****  * it under the terms of the GNU General Public License as published by
+   8:ubertooth_clock.c ****  * the Free Software Foundation; either version 2, or (at your option)
+   9:ubertooth_clock.c ****  * any later version.
+  10:ubertooth_clock.c ****  *
+  11:ubertooth_clock.c ****  * This program is distributed in the hope that it will be useful,
+  12:ubertooth_clock.c ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  13:ubertooth_clock.c ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  14:ubertooth_clock.c ****  * GNU General Public License for more details.
+  15:ubertooth_clock.c ****  *
+  16:ubertooth_clock.c ****  * You should have received a copy of the GNU General Public License
+  17:ubertooth_clock.c ****  * along with this program; see the file COPYING.  If not, write to
+  18:ubertooth_clock.c ****  * the Free Software Foundation, Inc., 51 Franklin Street,
+  19:ubertooth_clock.c ****  * Boston, MA 02110-1301, USA.
+  20:ubertooth_clock.c ****  */
+  21:ubertooth_clock.c **** 
+  22:ubertooth_clock.c **** #include "ubertooth_clock.h"
+  23:ubertooth_clock.c **** #include "ubertooth.h"
+  24:ubertooth_clock.c **** 
+  25:ubertooth_clock.c **** void clkn_stop()
+  26:ubertooth_clock.c **** {
+  27              		.loc 1 26 0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31              		@ link register save eliminated.
+  27:ubertooth_clock.c **** 	/* stop and reset the timer to zero */
+ARM GAS  /tmp/ccABmLVF.s 			page 2
+
+
+  28:ubertooth_clock.c **** 	T0TCR = TCR_Counter_Reset;
+  32              		.loc 1 28 0
+  33 0000 0A4B     		ldr	r3, .L2
+  34 0002 0222     		movs	r2, #2
+  35 0004 1A60     		str	r2, [r3]
+  29:ubertooth_clock.c **** 
+  30:ubertooth_clock.c **** 	clkn = 0;
+  36              		.loc 1 30 0
+  37 0006 0A4A     		ldr	r2, .L2+4
+  38 0008 0023     		movs	r3, #0
+  39 000a 1360     		str	r3, [r2]
+  31:ubertooth_clock.c **** 	last_hop = 0;
+  40              		.loc 1 31 0
+  41 000c 094A     		ldr	r2, .L2+8
+  42 000e 1360     		str	r3, [r2]
+  32:ubertooth_clock.c **** 
+  33:ubertooth_clock.c **** 	clkn_offset = 0;
+  43              		.loc 1 33 0
+  44 0010 094A     		ldr	r2, .L2+12
+  45 0012 1360     		str	r3, [r2]
+  34:ubertooth_clock.c **** 	clk100ns_offset = 0;
+  46              		.loc 1 34 0
+  47 0014 094A     		ldr	r2, .L2+16
+  48 0016 1380     		strh	r3, [r2]	@ movhi
+  35:ubertooth_clock.c **** 
+  36:ubertooth_clock.c **** 	clk_drift_ppm = 0;
+  49              		.loc 1 36 0
+  50 0018 094A     		ldr	r2, .L2+20
+  51 001a 1380     		strh	r3, [r2]	@ movhi
+  37:ubertooth_clock.c **** 	clk_drift_correction = 0;
+  52              		.loc 1 37 0
+  53 001c 094A     		ldr	r2, .L2+24
+  54 001e 1380     		strh	r3, [r2]	@ movhi
+  38:ubertooth_clock.c **** 
+  39:ubertooth_clock.c **** 	clkn_last_drift_fix = 0;
+  55              		.loc 1 39 0
+  56 0020 094A     		ldr	r2, .L2+28
+  57 0022 1360     		str	r3, [r2]
+  40:ubertooth_clock.c **** 	clkn_next_drift_fix = 0;
+  58              		.loc 1 40 0
+  59 0024 094A     		ldr	r2, .L2+32
+  60 0026 1360     		str	r3, [r2]
+  61 0028 7047     		bx	lr
+  62              	.L3:
+  63 002a 00BF     		.align	2
+  64              	.L2:
+  65 002c 04400040 		.word	1073758212
+  66 0030 00000000 		.word	clkn
+  67 0034 00000000 		.word	last_hop
+  68 0038 00000000 		.word	clkn_offset
+  69 003c 00000000 		.word	clk100ns_offset
+  70 0040 00000000 		.word	clk_drift_ppm
+  71 0044 00000000 		.word	clk_drift_correction
+  72 0048 00000000 		.word	clkn_last_drift_fix
+  73 004c 00000000 		.word	clkn_next_drift_fix
+  74              		.cfi_endproc
+  75              	.LFE0:
+ARM GAS  /tmp/ccABmLVF.s 			page 3
+
+
+  77              		.section	.text.clkn_start,"ax",%progbits
+  78              		.align	1
+  79              		.global	clkn_start
+  80              		.thumb
+  81              		.thumb_func
+  83              	clkn_start:
+  84              	.LFB1:
+  41:ubertooth_clock.c **** }
+  42:ubertooth_clock.c **** 
+  43:ubertooth_clock.c **** void clkn_start()
+  44:ubertooth_clock.c **** {
+  85              		.loc 1 44 0
+  86              		.cfi_startproc
+  87              		@ args = 0, pretend = 0, frame = 0
+  88              		@ frame_needed = 0, uses_anonymous_args = 0
+  89              		@ link register save eliminated.
+  45:ubertooth_clock.c **** 	/* start timer */
+  46:ubertooth_clock.c **** 	T0TCR = TCR_Counter_Enable;
+  90              		.loc 1 46 0
+  91 0000 014B     		ldr	r3, .L5
+  92 0002 0122     		movs	r2, #1
+  93 0004 1A60     		str	r2, [r3]
+  94 0006 7047     		bx	lr
+  95              	.L6:
+  96              		.align	2
+  97              	.L5:
+  98 0008 04400040 		.word	1073758212
+  99              		.cfi_endproc
+ 100              	.LFE1:
+ 102              		.section	.text.clkn_init,"ax",%progbits
+ 103              		.align	1
+ 104              		.global	clkn_init
+ 105              		.thumb
+ 106              		.thumb_func
+ 108              	clkn_init:
+ 109              	.LFB2:
+  47:ubertooth_clock.c **** }
+  48:ubertooth_clock.c **** 
+  49:ubertooth_clock.c **** void clkn_init()
+  50:ubertooth_clock.c **** {
+ 110              		.loc 1 50 0
+ 111              		.cfi_startproc
+ 112              		@ args = 0, pretend = 0, frame = 0
+ 113              		@ frame_needed = 0, uses_anonymous_args = 0
+ 114 0000 08B5     		push	{r3, lr}
+ 115              		.cfi_def_cfa_offset 8
+ 116              		.cfi_offset 3, -8
+ 117              		.cfi_offset 14, -4
+  51:ubertooth_clock.c **** 	/*
+  52:ubertooth_clock.c **** 	 * Because these are reset defaults, we're assuming TIMER0 is powered on
+  53:ubertooth_clock.c **** 	 * and in timer mode.  The TIMER0 peripheral clock should have been set by
+  54:ubertooth_clock.c **** 	 * clock_start().
+  55:ubertooth_clock.c **** 	 */
+  56:ubertooth_clock.c **** 
+  57:ubertooth_clock.c **** 	clkn_stop();
+ 118              		.loc 1 57 0
+ 119 0002 FFF7FEFF 		bl	clkn_stop
+ARM GAS  /tmp/ccABmLVF.s 			page 4
+
+
+ 120              	.LVL0:
+  58:ubertooth_clock.c **** 
+  59:ubertooth_clock.c **** #ifdef TC13BADGE
+  60:ubertooth_clock.c **** 	/*
+  61:ubertooth_clock.c **** 	 * The peripheral clock has a period of 33.3ns.  3 pclk periods makes one
+  62:ubertooth_clock.c **** 	 * CLK100NS period (100 ns).
+  63:ubertooth_clock.c **** 	 */
+  64:ubertooth_clock.c **** 	T0PR = 2;
+  65:ubertooth_clock.c **** #else
+  66:ubertooth_clock.c **** 	/*
+  67:ubertooth_clock.c **** 	 * The peripheral clock has a period of 20ns.  5 pclk periods
+  68:ubertooth_clock.c **** 	 * makes one CLK100NS period (100 ns).
+  69:ubertooth_clock.c **** 	 */
+  70:ubertooth_clock.c **** 	T0PR = 4;
+ 121              		.loc 1 70 0
+ 122 0006 064B     		ldr	r3, .L8
+ 123 0008 0422     		movs	r2, #4
+ 124 000a 1A60     		str	r2, [r3]
+  71:ubertooth_clock.c **** #endif
+  72:ubertooth_clock.c **** 	/* 3125 * 100 ns = 312.5 us, the Bluetooth clock (CLKN). */
+  73:ubertooth_clock.c **** 	T0MR0 = 3124;
+ 125              		.loc 1 73 0
+ 126 000c 02F54362 		add	r2, r2, #3120
+ 127 0010 DA60     		str	r2, [r3, #12]
+  74:ubertooth_clock.c **** 	T0MCR = TMCR_MR0R | TMCR_MR0I;
+ 128              		.loc 1 74 0
+ 129 0012 0322     		movs	r2, #3
+ 130 0014 9A60     		str	r2, [r3, #8]
+  75:ubertooth_clock.c **** 	ISER0 = ISER0_ISE_TIMER0;
+ 131              		.loc 1 75 0
+ 132 0016 034B     		ldr	r3, .L8+4
+ 133 0018 0222     		movs	r2, #2
+ 134 001a 1A60     		str	r2, [r3]
+ 135 001c 08BD     		pop	{r3, pc}
+ 136              	.L9:
+ 137 001e 00BF     		.align	2
+ 138              	.L8:
+ 139 0020 0C400040 		.word	1073758220
+ 140 0024 00E100E0 		.word	-536813312
+ 141              		.cfi_endproc
+ 142              	.LFE2:
+ 144              		.comm	clkn_next_drift_fix,4,4
+ 145              		.comm	clkn_last_drift_fix,4,4
+ 146              		.comm	clk_drift_correction,2,2
+ 147              		.comm	clk_drift_ppm,2,2
+ 148              		.comm	clk100ns_offset,2,2
+ 149              		.comm	clkn_offset,4,4
+ 150              		.comm	last_hop,4,4
+ 151              		.comm	clkn,4,4
+ 152              		.text
+ 153              	.Letext0:
+ 154              		.file 2 "/usr/lib/gcc/arm-none-eabi/4.8.2/include/stdint-gcc.h"
+ 155              		.file 3 "ubertooth_clock.h"
+ARM GAS  /tmp/ccABmLVF.s 			page 5
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 ubertooth_clock.c
+     /tmp/ccABmLVF.s:19     .text.clkn_stop:0000000000000000 $t
+     /tmp/ccABmLVF.s:24     .text.clkn_stop:0000000000000000 clkn_stop
+     /tmp/ccABmLVF.s:65     .text.clkn_stop:000000000000002c $d
+                            *COM*:0000000000000004 clkn
+                            *COM*:0000000000000004 last_hop
+                            *COM*:0000000000000004 clkn_offset
+                            *COM*:0000000000000002 clk100ns_offset
+                            *COM*:0000000000000002 clk_drift_ppm
+                            *COM*:0000000000000002 clk_drift_correction
+                            *COM*:0000000000000004 clkn_last_drift_fix
+                            *COM*:0000000000000004 clkn_next_drift_fix
+     /tmp/ccABmLVF.s:78     .text.clkn_start:0000000000000000 $t
+     /tmp/ccABmLVF.s:83     .text.clkn_start:0000000000000000 clkn_start
+     /tmp/ccABmLVF.s:98     .text.clkn_start:0000000000000008 $d
+     /tmp/ccABmLVF.s:103    .text.clkn_init:0000000000000000 $t
+     /tmp/ccABmLVF.s:108    .text.clkn_init:0000000000000000 clkn_init
+     /tmp/ccABmLVF.s:139    .text.clkn_init:0000000000000020 $d
+                     .debug_frame:0000000000000010 $d
+
+NO UNDEFINED SYMBOLS

@@ -1,0 +1,1 @@
+/usr/bin/cc      CMakeFiles/ubertooth-dump.dir/ubertooth-dump.c.o  -o ubertooth-dump -rdynamic ../../libubertooth/src/libubertooth.so.1.0 -lusb-1.0 /usr/local/lib/libbtbb.so -lbluetooth -Wl,-rpath,/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/libubertooth/src:/usr/local/lib: 

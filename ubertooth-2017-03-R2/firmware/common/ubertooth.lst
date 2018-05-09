@@ -1,0 +1,2786 @@
+ARM GAS  /tmp/cc5HFuYs.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"ubertooth.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.spi_delay,"ax",%progbits
+  19              		.align	1
+  20              		.thumb
+  21              		.thumb_func
+  23              	spi_delay:
+  24              	.LFB15:
+  25              		.file 1 "../common/ubertooth.c"
+   1:../common/ubertooth.c **** /*
+   2:../common/ubertooth.c ****  * Copyright 2010, 2011 Michael Ossmann
+   3:../common/ubertooth.c ****  *
+   4:../common/ubertooth.c ****  * This file is part of Project Ubertooth.
+   5:../common/ubertooth.c ****  *
+   6:../common/ubertooth.c ****  * This program is free software; you can redistribute it and/or modify
+   7:../common/ubertooth.c ****  * it under the terms of the GNU General Public License as published by
+   8:../common/ubertooth.c ****  * the Free Software Foundation; either version 2, or (at your option)
+   9:../common/ubertooth.c ****  * any later version.
+  10:../common/ubertooth.c ****  *
+  11:../common/ubertooth.c ****  * This program is distributed in the hope that it will be useful,
+  12:../common/ubertooth.c ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  13:../common/ubertooth.c ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  14:../common/ubertooth.c ****  * GNU General Public License for more details.
+  15:../common/ubertooth.c ****  *
+  16:../common/ubertooth.c ****  * You should have received a copy of the GNU General Public License
+  17:../common/ubertooth.c ****  * along with this program; see the file COPYING.  If not, write to
+  18:../common/ubertooth.c ****  * the Free Software Foundation, Inc., 51 Franklin Street,
+  19:../common/ubertooth.c ****  * Boston, MA 02110-1301, USA.
+  20:../common/ubertooth.c ****  */
+  21:../common/ubertooth.c **** 
+  22:../common/ubertooth.c **** #include "ubertooth.h"
+  23:../common/ubertooth.c **** 
+  24:../common/ubertooth.c **** #define IAP_LOCATION 0x1FFF1FF1
+  25:../common/ubertooth.c **** const IAP_ENTRY iap_entry = (IAP_ENTRY)IAP_LOCATION;
+  26:../common/ubertooth.c **** 
+  27:../common/ubertooth.c **** /* delay a number of seconds while on internal oscillator (4 MHz) */
+  28:../common/ubertooth.c **** void wait(u8 seconds)
+  29:../common/ubertooth.c **** {
+  30:../common/ubertooth.c **** 	wait_us(seconds * 1000000);
+  31:../common/ubertooth.c **** }
+  32:../common/ubertooth.c **** 
+  33:../common/ubertooth.c **** /* delay a number of milliseconds while on internal oscillator (4 MHz) */
+ARM GAS  /tmp/cc5HFuYs.s 			page 2
+
+
+  34:../common/ubertooth.c **** void wait_ms(u32 ms)
+  35:../common/ubertooth.c **** {
+  36:../common/ubertooth.c **** 	wait_us(ms * 1000);
+  37:../common/ubertooth.c **** }
+  38:../common/ubertooth.c **** 
+  39:../common/ubertooth.c **** /* efficiently reverse the bits of a 32-bit word */
+  40:../common/ubertooth.c **** u32 rbit(u32 value) {
+  41:../common/ubertooth.c ****   u32 result = 0;
+  42:../common/ubertooth.c ****   asm("rbit %0, %1" : "=r" (result) : "r" (value));
+  43:../common/ubertooth.c ****   return result;
+  44:../common/ubertooth.c **** }
+  45:../common/ubertooth.c **** 
+  46:../common/ubertooth.c **** /* delay a number of microseconds while on internal oscillator (4 MHz) */
+  47:../common/ubertooth.c **** /* we only have a resolution of 1000/400, so to the nearest 2.5        */
+  48:../common/ubertooth.c **** static volatile u32 wait_us_counter;
+  49:../common/ubertooth.c **** void wait_us(u32 us)
+  50:../common/ubertooth.c **** {
+  51:../common/ubertooth.c **** 	/* This is binary multiply by ~0.3999, i.e, multiply by
+  52:../common/ubertooth.c **** 	   0.011011011b. The loop also contains 6 instructions at -Os, so
+  53:../common/ubertooth.c **** 	   why this factor works is not at all related to the comment
+  54:../common/ubertooth.c **** 	   above ;-) */
+  55:../common/ubertooth.c **** 	wait_us_counter =
+  56:../common/ubertooth.c **** 		(us>>2) + (us>>3) + (us>>6) + (us>>7) + (us>>10) + (us>>11);
+  57:../common/ubertooth.c **** 	while(--wait_us_counter);
+  58:../common/ubertooth.c **** }
+  59:../common/ubertooth.c **** 
+  60:../common/ubertooth.c **** 
+  61:../common/ubertooth.c **** /*
+  62:../common/ubertooth.c ****  * This should be called very early by every firmware in order to ensure safe
+  63:../common/ubertooth.c ****  * operating conditions for the CC2400.
+  64:../common/ubertooth.c ****  */
+  65:../common/ubertooth.c **** void gpio_init()
+  66:../common/ubertooth.c **** {
+  67:../common/ubertooth.c **** 	/* 
+  68:../common/ubertooth.c **** 	 * Set all pins for GPIO.  This shouldn't be necessary after a reset, but
+  69:../common/ubertooth.c **** 	 * we might get called at other times.
+  70:../common/ubertooth.c **** 	 */
+  71:../common/ubertooth.c **** 	all_pins_off();
+  72:../common/ubertooth.c **** 
+  73:../common/ubertooth.c **** 	/* set certain pins as outputs, all others inputs */
+  74:../common/ubertooth.c **** #ifdef UBERTOOTH_ZERO
+  75:../common/ubertooth.c **** 	FIO0DIR = PIN_USRLED;
+  76:../common/ubertooth.c **** 	FIO1DIR = (PIN_CC3V3 | PIN_RX | PIN_TX | PIN_CSN |
+  77:../common/ubertooth.c **** 			PIN_SCLK | PIN_MOSI | PIN_CC1V8 | PIN_BTGR);
+  78:../common/ubertooth.c **** 	FIO2DIR = PIN_SSEL0;
+  79:../common/ubertooth.c **** 	FIO3DIR = 0;
+  80:../common/ubertooth.c **** 	FIO4DIR = (PIN_RXLED | PIN_TXLED);
+  81:../common/ubertooth.c **** #endif
+  82:../common/ubertooth.c **** #ifdef UBERTOOTH_ONE
+  83:../common/ubertooth.c **** 	FIO0DIR = 0;
+  84:../common/ubertooth.c **** 	FIO1DIR = (PIN_USRLED | PIN_RXLED | PIN_TXLED | PIN_CC3V3 |
+  85:../common/ubertooth.c **** 			PIN_RX | PIN_CC1V8 | PIN_BTGR);
+  86:../common/ubertooth.c **** 	FIO2DIR = (PIN_CSN | PIN_SCLK | PIN_MOSI | PIN_PAEN | PIN_HGM);
+  87:../common/ubertooth.c **** 	FIO3DIR = 0;
+  88:../common/ubertooth.c **** 	FIO4DIR = (PIN_TX | PIN_SSEL1);
+  89:../common/ubertooth.c **** #endif
+  90:../common/ubertooth.c **** #ifdef TC13BADGE
+ARM GAS  /tmp/cc5HFuYs.s 			page 3
+
+
+  91:../common/ubertooth.c **** 	/*
+  92:../common/ubertooth.c **** 	 * Leave all the CC2400 pins configured as inputs until cc2400_init() is
+  93:../common/ubertooth.c **** 	 * called so that we don't interfere with the R8C's control of the CC2400.
+  94:../common/ubertooth.c **** 	 */
+  95:../common/ubertooth.c **** 	FIO0DIR = 0;
+  96:../common/ubertooth.c **** 	FIO1DIR = PIN_R8C_CTL;
+  97:../common/ubertooth.c **** 	FIO2DIR = 0;
+  98:../common/ubertooth.c **** 	FIO3DIR = 0;
+  99:../common/ubertooth.c **** 	FIO4DIR = 0;
+ 100:../common/ubertooth.c **** #endif
+ 101:../common/ubertooth.c **** 
+ 102:../common/ubertooth.c **** 	/* set all outputs low */
+ 103:../common/ubertooth.c **** 	FIO0PIN = 0;
+ 104:../common/ubertooth.c **** 	FIO1PIN = 0;
+ 105:../common/ubertooth.c **** 	FIO2PIN = 0;
+ 106:../common/ubertooth.c **** 	FIO3PIN = 0;
+ 107:../common/ubertooth.c **** 	FIO4PIN = 0;
+ 108:../common/ubertooth.c **** 
+ 109:../common/ubertooth.c **** #ifdef TC13BADGE
+ 110:../common/ubertooth.c **** 	/* R8C_CTL is active low */
+ 111:../common/ubertooth.c **** 	R8C_CTL_SET;
+ 112:../common/ubertooth.c **** #endif
+ 113:../common/ubertooth.c **** }
+ 114:../common/ubertooth.c **** 
+ 115:../common/ubertooth.c **** void all_pins_off(void)
+ 116:../common/ubertooth.c **** {
+ 117:../common/ubertooth.c **** 	/* configure all pins for GPIO */
+ 118:../common/ubertooth.c **** 	PINSEL0 = 0;
+ 119:../common/ubertooth.c **** 	PINSEL1 = 0;
+ 120:../common/ubertooth.c **** 	PINSEL2 = 0;
+ 121:../common/ubertooth.c **** 	PINSEL3 = 0;
+ 122:../common/ubertooth.c **** 	PINSEL4 = 0;
+ 123:../common/ubertooth.c **** 	PINSEL7 = 0;
+ 124:../common/ubertooth.c **** 	PINSEL9 = 0;
+ 125:../common/ubertooth.c **** 	PINSEL10 = 0;
+ 126:../common/ubertooth.c **** 
+ 127:../common/ubertooth.c **** 	/* configure all pins as inputs */
+ 128:../common/ubertooth.c **** 	FIO0DIR = 0;
+ 129:../common/ubertooth.c **** 	FIO1DIR = 0;
+ 130:../common/ubertooth.c **** 	FIO2DIR = 0;
+ 131:../common/ubertooth.c **** 	FIO3DIR = 0;
+ 132:../common/ubertooth.c **** 	FIO4DIR = 0;
+ 133:../common/ubertooth.c **** 
+ 134:../common/ubertooth.c **** 	/* pull-up on every pin */
+ 135:../common/ubertooth.c **** 	PINMODE0 = 0;
+ 136:../common/ubertooth.c **** 	PINMODE1 = 0;
+ 137:../common/ubertooth.c **** 	PINMODE2 = 0;
+ 138:../common/ubertooth.c **** 	PINMODE3 = 0;
+ 139:../common/ubertooth.c **** 	PINMODE4 = 0;
+ 140:../common/ubertooth.c **** 	PINMODE7 = 0;
+ 141:../common/ubertooth.c **** 	PINMODE9 = 0;
+ 142:../common/ubertooth.c **** 
+ 143:../common/ubertooth.c **** 	/* set all outputs low */
+ 144:../common/ubertooth.c **** 	FIO0PIN = 0;
+ 145:../common/ubertooth.c **** 	FIO1PIN = 0;
+ 146:../common/ubertooth.c **** 	FIO2PIN = 0;
+ 147:../common/ubertooth.c **** 	FIO3PIN = 0;
+ARM GAS  /tmp/cc5HFuYs.s 			page 4
+
+
+ 148:../common/ubertooth.c **** 	FIO4PIN = 0;
+ 149:../common/ubertooth.c **** }
+ 150:../common/ubertooth.c **** 
+ 151:../common/ubertooth.c **** /*
+ 152:../common/ubertooth.c ****  * Every application that uses the main oscillator (including any that use both
+ 153:../common/ubertooth.c ****  * USB and the CC2400) should start with this.
+ 154:../common/ubertooth.c ****  */
+ 155:../common/ubertooth.c **** void ubertooth_init()
+ 156:../common/ubertooth.c **** {
+ 157:../common/ubertooth.c **** 	gpio_init();
+ 158:../common/ubertooth.c **** 	cc2400_init();
+ 159:../common/ubertooth.c **** 	clock_start();
+ 160:../common/ubertooth.c **** }
+ 161:../common/ubertooth.c **** 
+ 162:../common/ubertooth.c **** /* configure SSP for CC2400's secondary serial data interface */
+ 163:../common/ubertooth.c **** void dio_ssp_init()
+ 164:../common/ubertooth.c **** {
+ 165:../common/ubertooth.c **** #ifdef UBERTOOTH_ZERO
+ 166:../common/ubertooth.c **** 	/* set P0.15 as SCK0 */
+ 167:../common/ubertooth.c **** 	PINSEL0 = (PINSEL0 & ~(3 << 30)) | (2 << 30);
+ 168:../common/ubertooth.c **** 
+ 169:../common/ubertooth.c **** 	/* set P1.16 as SSEL0 */
+ 170:../common/ubertooth.c **** 	PINSEL1 = (PINSEL1 & ~(3 << 0)) | (2 << 0);
+ 171:../common/ubertooth.c **** 
+ 172:../common/ubertooth.c **** 	/* set P1.17 as MISO0 */
+ 173:../common/ubertooth.c **** 	PINSEL1 = (PINSEL1 & ~(3 << 2)) | (2 << 2);
+ 174:../common/ubertooth.c **** 
+ 175:../common/ubertooth.c **** 	/* set P1.18 as MOSI0 */
+ 176:../common/ubertooth.c **** 	PINSEL1 = (PINSEL1 & ~(3 << 4)) | (2 << 4);
+ 177:../common/ubertooth.c **** #endif
+ 178:../common/ubertooth.c **** #if defined UBERTOOTH_ONE || defined TC13BADGE
+ 179:../common/ubertooth.c **** 	/* set P0.7 as SCK1 */
+ 180:../common/ubertooth.c **** 	PINSEL0 = (PINSEL0 & ~(3 << 14)) | (2 << 14);
+ 181:../common/ubertooth.c **** 
+ 182:../common/ubertooth.c **** 	/* set P0.6 as SSEL1 */
+ 183:../common/ubertooth.c **** 	PINSEL0 = (PINSEL0 & ~(3 << 12)) | (2 << 12);
+ 184:../common/ubertooth.c **** 
+ 185:../common/ubertooth.c **** 	/* set P0.8 as MISO1 */
+ 186:../common/ubertooth.c **** 	PINSEL0 = (PINSEL0 & ~(3 << 16)) | (2 << 16);
+ 187:../common/ubertooth.c **** 
+ 188:../common/ubertooth.c **** 	/* set P0.9 as MOSI1 */
+ 189:../common/ubertooth.c **** 	PINSEL0 = (PINSEL0 & ~(3 << 18)) | (2 << 18);
+ 190:../common/ubertooth.c **** #endif
+ 191:../common/ubertooth.c **** 
+ 192:../common/ubertooth.c **** 	/*
+ 193:../common/ubertooth.c **** 	 * DIO_SSEL is a GPIO output connected directly to the SSEL input on the
+ 194:../common/ubertooth.c **** 	 * microcontroller for the CC2400's un-buffered (DIO/DCLK) serial
+ 195:../common/ubertooth.c **** 	 * interface.  Since the CC2400 doesn't have a slave select output, we
+ 196:../common/ubertooth.c **** 	 * control it with this.  DIO_SSEL should already be configured by
+ 197:../common/ubertooth.c **** 	 * gpio_init().  We set it high by default because it is an active low
+ 198:../common/ubertooth.c **** 	 * signal.
+ 199:../common/ubertooth.c **** 	 */
+ 200:../common/ubertooth.c **** 	DIO_SSEL_SET;
+ 201:../common/ubertooth.c **** 
+ 202:../common/ubertooth.c **** 	/* configure DIO_SSP */
+ 203:../common/ubertooth.c **** 	DIO_SSP_CR0 = (0x7 /* 8 bit transfer */ | SSPCR0_CPOL | SSPCR0_CPHA);
+ 204:../common/ubertooth.c **** 	DIO_SSP_CR1 = (SSPCR1_MS | SSPCR1_SOD);
+ARM GAS  /tmp/cc5HFuYs.s 			page 5
+
+
+ 205:../common/ubertooth.c **** }
+ 206:../common/ubertooth.c **** 
+ 207:../common/ubertooth.c **** void atest_init()
+ 208:../common/ubertooth.c **** {
+ 209:../common/ubertooth.c **** 	/*
+ 210:../common/ubertooth.c **** 	 * ADC can optionally be configured for ATEST1 and ATEST2, but for now we
+ 211:../common/ubertooth.c **** 	 * set them as floating inputs.
+ 212:../common/ubertooth.c **** 	 */
+ 213:../common/ubertooth.c **** 
+ 214:../common/ubertooth.c **** 	/* P0.25 is ATEST1, P0.26 is ATEST2 */
+ 215:../common/ubertooth.c **** 	PINSEL1 &= ~((0x3 << 20) | (0x3 << 18)); // set as GPIO
+ 216:../common/ubertooth.c **** 	FIO0DIR &= ~(0x3 << 25); // set as input
+ 217:../common/ubertooth.c **** 	PINMODE1 |= (0x5 << 19); // no pull-up/pull-down
+ 218:../common/ubertooth.c **** 	PINMODE1 &= ~(0x5 << 18); // no pull-up/pull-down
+ 219:../common/ubertooth.c **** }
+ 220:../common/ubertooth.c **** 
+ 221:../common/ubertooth.c **** void cc2400_init()
+ 222:../common/ubertooth.c **** {
+ 223:../common/ubertooth.c **** #ifdef TC13BADGE
+ 224:../common/ubertooth.c **** 	/* request CC2400 control from the R8C */
+ 225:../common/ubertooth.c **** 	r8c_takeover();
+ 226:../common/ubertooth.c **** 
+ 227:../common/ubertooth.c **** 	/* configure output pins for CC2400 control */
+ 228:../common/ubertooth.c **** 	FIO0DIR = 0;
+ 229:../common/ubertooth.c **** 	FIO1DIR = (PIN_CC3V3 | PIN_CC1V8 | PIN_CSN | PIN_SCLK | PIN_MOSI |
+ 230:../common/ubertooth.c **** 			PIN_R8C_CTL);
+ 231:../common/ubertooth.c **** 	FIO2DIR = (PIN_CSN | PIN_SCLK | PIN_MOSI);
+ 232:../common/ubertooth.c **** 	FIO3DIR = 0;
+ 233:../common/ubertooth.c **** 	FIO4DIR = PIN_SSEL1;
+ 234:../common/ubertooth.c **** 
+ 235:../common/ubertooth.c **** 	/* set all outputs low */
+ 236:../common/ubertooth.c **** 	FIO0PIN = 0;
+ 237:../common/ubertooth.c **** 	FIO1PIN = 0; /* assuming we have already asserted R8C_CTL low */
+ 238:../common/ubertooth.c **** 	FIO2PIN = 0;
+ 239:../common/ubertooth.c **** 	FIO3PIN = 0;
+ 240:../common/ubertooth.c **** 	FIO4PIN = 0;
+ 241:../common/ubertooth.c **** #else
+ 242:../common/ubertooth.c **** 	atest_init();
+ 243:../common/ubertooth.c **** #endif
+ 244:../common/ubertooth.c **** 
+ 245:../common/ubertooth.c **** 	/* activate 1V8 supply for CC2400 */
+ 246:../common/ubertooth.c **** 	CC1V8_SET;
+ 247:../common/ubertooth.c **** 	wait_us(50);
+ 248:../common/ubertooth.c **** 
+ 249:../common/ubertooth.c **** 	/* CSN (slave select) is active low */
+ 250:../common/ubertooth.c **** 	CSN_SET;
+ 251:../common/ubertooth.c **** 
+ 252:../common/ubertooth.c **** 	/* activate 3V3 supply for CC2400 IO */
+ 253:../common/ubertooth.c **** 	CC3V3_SET;
+ 254:../common/ubertooth.c **** 
+ 255:../common/ubertooth.c **** 	/* initialise various cc2400 settings - see datasheet pg63 */
+ 256:../common/ubertooth.c **** 	cc2400_set(MANAND,  0x7fff);
+ 257:../common/ubertooth.c **** }
+ 258:../common/ubertooth.c **** 
+ 259:../common/ubertooth.c **** /*
+ 260:../common/ubertooth.c ****  * This is a single SPI transaction of variable length, usually 8 or 24 bits.
+ 261:../common/ubertooth.c ****  * The CC2400 also supports longer transactions (e.g. for the FIFO), but we
+ARM GAS  /tmp/cc5HFuYs.s 			page 6
+
+
+ 262:../common/ubertooth.c ****  * haven't implemented anything longer than 32 bits.
+ 263:../common/ubertooth.c ****  *
+ 264:../common/ubertooth.c ****  * We're bit-banging because:
+ 265:../common/ubertooth.c ****  *
+ 266:../common/ubertooth.c ****  * 1. We're using one SPI peripheral for the CC2400's unbuffered data
+ 267:../common/ubertooth.c ****  *    interace.
+ 268:../common/ubertooth.c ****  * 2. We're saving the second SPI peripheral for an expansion port.
+ 269:../common/ubertooth.c ****  * 3. The CC2400 needs CSN held low for the entire transaction which the
+ 270:../common/ubertooth.c ****  *    LPC17xx SPI peripheral won't do without some workaround anyway.
+ 271:../common/ubertooth.c ****  */
+ 272:../common/ubertooth.c **** u32 cc2400_spi(u8 len, u32 data)
+ 273:../common/ubertooth.c **** {
+ 274:../common/ubertooth.c **** 	u32 msb = 1 << (len - 1);
+ 275:../common/ubertooth.c **** 
+ 276:../common/ubertooth.c **** 	/* start transaction by dropping CSN */
+ 277:../common/ubertooth.c **** 	CSN_CLR;
+ 278:../common/ubertooth.c **** 
+ 279:../common/ubertooth.c **** 	while (len--) {
+ 280:../common/ubertooth.c **** 		if (data & msb)
+ 281:../common/ubertooth.c **** 			MOSI_SET;
+ 282:../common/ubertooth.c **** 		else
+ 283:../common/ubertooth.c **** 			MOSI_CLR;
+ 284:../common/ubertooth.c **** 		data <<= 1;
+ 285:../common/ubertooth.c **** 
+ 286:../common/ubertooth.c **** 		SCLK_SET;
+ 287:../common/ubertooth.c **** 		if (MISO)
+ 288:../common/ubertooth.c **** 			data |= 1;
+ 289:../common/ubertooth.c **** 
+ 290:../common/ubertooth.c **** 		SCLK_CLR;
+ 291:../common/ubertooth.c **** 	}
+ 292:../common/ubertooth.c **** 
+ 293:../common/ubertooth.c **** 	/* end transaction by raising CSN */
+ 294:../common/ubertooth.c **** 	CSN_SET;
+ 295:../common/ubertooth.c **** 
+ 296:../common/ubertooth.c **** 	return data;
+ 297:../common/ubertooth.c **** }
+ 298:../common/ubertooth.c **** 
+ 299:../common/ubertooth.c **** /* read 16 bit value from a register */
+ 300:../common/ubertooth.c **** u16 cc2400_get(u8 reg)
+ 301:../common/ubertooth.c **** {
+ 302:../common/ubertooth.c **** 	u32 in;
+ 303:../common/ubertooth.c **** 
+ 304:../common/ubertooth.c **** 	u32 out = (reg | 0x80) << 16;
+ 305:../common/ubertooth.c **** 	in = cc2400_spi(24, out);
+ 306:../common/ubertooth.c **** 	return in & 0xFFFF;
+ 307:../common/ubertooth.c **** }
+ 308:../common/ubertooth.c **** 
+ 309:../common/ubertooth.c **** /* write 16 bit value to a register */
+ 310:../common/ubertooth.c **** void cc2400_set(u8 reg, u16 val)
+ 311:../common/ubertooth.c **** {
+ 312:../common/ubertooth.c **** 	u32 out = (reg << 16) | val;
+ 313:../common/ubertooth.c **** 	cc2400_spi(24, out);
+ 314:../common/ubertooth.c **** }
+ 315:../common/ubertooth.c **** 
+ 316:../common/ubertooth.c **** /* read 8 bit value from a register */
+ 317:../common/ubertooth.c **** u8 cc2400_get8(u8 reg)
+ 318:../common/ubertooth.c **** {
+ARM GAS  /tmp/cc5HFuYs.s 			page 7
+
+
+ 319:../common/ubertooth.c **** 	u16 in;
+ 320:../common/ubertooth.c **** 
+ 321:../common/ubertooth.c **** 	u16 out = (reg | 0x80) << 8;
+ 322:../common/ubertooth.c **** 	in = cc2400_spi(16, out);
+ 323:../common/ubertooth.c **** 	return in & 0xFF;
+ 324:../common/ubertooth.c **** }
+ 325:../common/ubertooth.c **** 
+ 326:../common/ubertooth.c **** /* write 8 bit value to a register */
+ 327:../common/ubertooth.c **** void cc2400_set8(u8 reg, u8 val)
+ 328:../common/ubertooth.c **** {
+ 329:../common/ubertooth.c **** 	u32 out = (reg << 8) | val;
+ 330:../common/ubertooth.c **** 	cc2400_spi(16, out);
+ 331:../common/ubertooth.c **** }
+ 332:../common/ubertooth.c **** 
+ 333:../common/ubertooth.c **** static volatile u32 delay_counter;
+ 334:../common/ubertooth.c **** static void spi_delay() {
+  26              		.loc 1 334 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              		@ link register save eliminated.
+ 335:../common/ubertooth.c ****        delay_counter = 10;
+  31              		.loc 1 335 0
+  32 0000 044A     		ldr	r2, .L5
+  33 0002 0A23     		movs	r3, #10
+  34 0004 1360     		str	r3, [r2]
+  35              	.L3:
+ 336:../common/ubertooth.c ****        while (--delay_counter);
+  36              		.loc 1 336 0 discriminator 1
+  37 0006 1368     		ldr	r3, [r2]
+  38 0008 013B     		subs	r3, r3, #1
+  39 000a 1360     		str	r3, [r2]
+  40 000c 002B     		cmp	r3, #0
+  41 000e FAD1     		bne	.L3
+ 337:../common/ubertooth.c **** }
+  42              		.loc 1 337 0
+  43 0010 7047     		bx	lr
+  44              	.L6:
+  45 0012 00BF     		.align	2
+  46              	.L5:
+  47 0014 00000000 		.word	.LANCHOR0
+  48              		.cfi_endproc
+  49              	.LFE15:
+  51              		.section	.text.rbit,"ax",%progbits
+  52              		.align	1
+  53              		.global	rbit
+  54              		.thumb
+  55              		.thumb_func
+  57              	rbit:
+  58              	.LFB2:
+  40:../common/ubertooth.c ****   u32 result = 0;
+  59              		.loc 1 40 0
+  60              		.cfi_startproc
+  61              		@ args = 0, pretend = 0, frame = 0
+  62              		@ frame_needed = 0, uses_anonymous_args = 0
+  63              		@ link register save eliminated.
+  64              	.LVL0:
+ARM GAS  /tmp/cc5HFuYs.s 			page 8
+
+
+  65              	.LVL1:
+  42:../common/ubertooth.c ****   return result;
+  66              		.loc 1 42 0
+  67              	@ 42 "../common/ubertooth.c" 1
+  68 0000 90FAA0F0 		rbit r0, r0
+  69              	@ 0 "" 2
+  70              	.LVL2:
+  44:../common/ubertooth.c **** 
+  71              		.loc 1 44 0
+  72              		.thumb
+  73 0004 7047     		bx	lr
+  74              		.cfi_endproc
+  75              	.LFE2:
+  77              		.section	.text.wait_us,"ax",%progbits
+  78              		.align	1
+  79              		.global	wait_us
+  80              		.thumb
+  81              		.thumb_func
+  83              	wait_us:
+  84              	.LFB3:
+  50:../common/ubertooth.c **** 	/* This is binary multiply by ~0.3999, i.e, multiply by
+  85              		.loc 1 50 0
+  86              		.cfi_startproc
+  87              		@ args = 0, pretend = 0, frame = 0
+  88              		@ frame_needed = 0, uses_anonymous_args = 0
+  89              		@ link register save eliminated.
+  90              	.LVL3:
+  56:../common/ubertooth.c **** 	while(--wait_us_counter);
+  91              		.loc 1 56 0
+  92 0000 8308     		lsrs	r3, r0, #2
+  93 0002 03EBD003 		add	r3, r3, r0, lsr #3
+  94 0006 03EB9013 		add	r3, r3, r0, lsr #6
+  95 000a 03EBD013 		add	r3, r3, r0, lsr #7
+  96 000e 03EB9023 		add	r3, r3, r0, lsr #10
+  55:../common/ubertooth.c **** 		(us>>2) + (us>>3) + (us>>6) + (us>>7) + (us>>10) + (us>>11);
+  97              		.loc 1 55 0
+  98 0012 054A     		ldr	r2, .L11
+  56:../common/ubertooth.c **** 	while(--wait_us_counter);
+  99              		.loc 1 56 0
+ 100 0014 03EBD020 		add	r0, r3, r0, lsr #11
+ 101              	.LVL4:
+  55:../common/ubertooth.c **** 		(us>>2) + (us>>3) + (us>>6) + (us>>7) + (us>>10) + (us>>11);
+ 102              		.loc 1 55 0
+ 103 0018 5060     		str	r0, [r2, #4]
+ 104              	.L10:
+  57:../common/ubertooth.c **** }
+ 105              		.loc 1 57 0 discriminator 1
+ 106 001a 5368     		ldr	r3, [r2, #4]
+ 107 001c 013B     		subs	r3, r3, #1
+ 108 001e 5360     		str	r3, [r2, #4]
+ 109 0020 002B     		cmp	r3, #0
+ 110 0022 FAD1     		bne	.L10
+  58:../common/ubertooth.c **** 
+ 111              		.loc 1 58 0
+ 112 0024 7047     		bx	lr
+ 113              	.L12:
+ 114 0026 00BF     		.align	2
+ARM GAS  /tmp/cc5HFuYs.s 			page 9
+
+
+ 115              	.L11:
+ 116 0028 00000000 		.word	.LANCHOR0
+ 117              		.cfi_endproc
+ 118              	.LFE3:
+ 120              		.section	.text.wait,"ax",%progbits
+ 121              		.align	1
+ 122              		.global	wait
+ 123              		.thumb
+ 124              		.thumb_func
+ 126              	wait:
+ 127              	.LFB0:
+  29:../common/ubertooth.c **** 	wait_us(seconds * 1000000);
+ 128              		.loc 1 29 0
+ 129              		.cfi_startproc
+ 130              		@ args = 0, pretend = 0, frame = 0
+ 131              		@ frame_needed = 0, uses_anonymous_args = 0
+ 132              		@ link register save eliminated.
+ 133              	.LVL5:
+  30:../common/ubertooth.c **** }
+ 134              		.loc 1 30 0
+ 135 0000 014B     		ldr	r3, .L14
+ 136 0002 5843     		muls	r0, r3, r0
+ 137              	.LVL6:
+ 138 0004 FFF7FEBF 		b	wait_us
+ 139              	.LVL7:
+ 140              	.L15:
+ 141              		.align	2
+ 142              	.L14:
+ 143 0008 40420F00 		.word	1000000
+ 144              		.cfi_endproc
+ 145              	.LFE0:
+ 147              		.section	.text.wait_ms,"ax",%progbits
+ 148              		.align	1
+ 149              		.global	wait_ms
+ 150              		.thumb
+ 151              		.thumb_func
+ 153              	wait_ms:
+ 154              	.LFB1:
+  35:../common/ubertooth.c **** 	wait_us(ms * 1000);
+ 155              		.loc 1 35 0
+ 156              		.cfi_startproc
+ 157              		@ args = 0, pretend = 0, frame = 0
+ 158              		@ frame_needed = 0, uses_anonymous_args = 0
+ 159              		@ link register save eliminated.
+ 160              	.LVL8:
+  36:../common/ubertooth.c **** }
+ 161              		.loc 1 36 0
+ 162 0000 4FF47A73 		mov	r3, #1000
+ 163 0004 5843     		muls	r0, r3, r0
+ 164              	.LVL9:
+ 165 0006 FFF7FEBF 		b	wait_us
+ 166              	.LVL10:
+ 167              		.cfi_endproc
+ 168              	.LFE1:
+ 170              		.section	.text.all_pins_off,"ax",%progbits
+ 171              		.align	1
+ 172              		.global	all_pins_off
+ARM GAS  /tmp/cc5HFuYs.s 			page 10
+
+
+ 173              		.thumb
+ 174              		.thumb_func
+ 176              	all_pins_off:
+ 177              	.LFB5:
+ 116:../common/ubertooth.c **** 	/* configure all pins for GPIO */
+ 178              		.loc 1 116 0
+ 179              		.cfi_startproc
+ 180              		@ args = 0, pretend = 0, frame = 0
+ 181              		@ frame_needed = 0, uses_anonymous_args = 0
+ 182              		@ link register save eliminated.
+ 118:../common/ubertooth.c **** 	PINSEL1 = 0;
+ 183              		.loc 1 118 0
+ 184 0000 104A     		ldr	r2, .L18
+ 185 0002 0023     		movs	r3, #0
+ 186 0004 1360     		str	r3, [r2]
+ 119:../common/ubertooth.c **** 	PINSEL2 = 0;
+ 187              		.loc 1 119 0
+ 188 0006 5360     		str	r3, [r2, #4]
+ 120:../common/ubertooth.c **** 	PINSEL3 = 0;
+ 189              		.loc 1 120 0
+ 190 0008 9360     		str	r3, [r2, #8]
+ 121:../common/ubertooth.c **** 	PINSEL4 = 0;
+ 191              		.loc 1 121 0
+ 192 000a D360     		str	r3, [r2, #12]
+ 122:../common/ubertooth.c **** 	PINSEL7 = 0;
+ 193              		.loc 1 122 0
+ 194 000c 1361     		str	r3, [r2, #16]
+ 123:../common/ubertooth.c **** 	PINSEL9 = 0;
+ 195              		.loc 1 123 0
+ 196 000e D361     		str	r3, [r2, #28]
+ 124:../common/ubertooth.c **** 	PINSEL10 = 0;
+ 197              		.loc 1 124 0
+ 198 0010 5362     		str	r3, [r2, #36]
+ 125:../common/ubertooth.c **** 
+ 199              		.loc 1 125 0
+ 200 0012 9362     		str	r3, [r2, #40]
+ 128:../common/ubertooth.c **** 	FIO1DIR = 0;
+ 201              		.loc 1 128 0
+ 202 0014 0C4A     		ldr	r2, .L18+4
+ 203 0016 1360     		str	r3, [r2]
+ 129:../common/ubertooth.c **** 	FIO2DIR = 0;
+ 204              		.loc 1 129 0
+ 205 0018 1362     		str	r3, [r2, #32]
+ 130:../common/ubertooth.c **** 	FIO3DIR = 0;
+ 206              		.loc 1 130 0
+ 207 001a 1364     		str	r3, [r2, #64]
+ 131:../common/ubertooth.c **** 	FIO4DIR = 0;
+ 208              		.loc 1 131 0
+ 209 001c 1366     		str	r3, [r2, #96]
+ 132:../common/ubertooth.c **** 
+ 210              		.loc 1 132 0
+ 211 001e C2F88030 		str	r3, [r2, #128]
+ 135:../common/ubertooth.c **** 	PINMODE1 = 0;
+ 212              		.loc 1 135 0
+ 213 0022 0A4A     		ldr	r2, .L18+8
+ 214 0024 1360     		str	r3, [r2]
+ 136:../common/ubertooth.c **** 	PINMODE2 = 0;
+ARM GAS  /tmp/cc5HFuYs.s 			page 11
+
+
+ 215              		.loc 1 136 0
+ 216 0026 5360     		str	r3, [r2, #4]
+ 137:../common/ubertooth.c **** 	PINMODE3 = 0;
+ 217              		.loc 1 137 0
+ 218 0028 9360     		str	r3, [r2, #8]
+ 138:../common/ubertooth.c **** 	PINMODE4 = 0;
+ 219              		.loc 1 138 0
+ 220 002a D360     		str	r3, [r2, #12]
+ 139:../common/ubertooth.c **** 	PINMODE7 = 0;
+ 221              		.loc 1 139 0
+ 222 002c 1361     		str	r3, [r2, #16]
+ 140:../common/ubertooth.c **** 	PINMODE9 = 0;
+ 223              		.loc 1 140 0
+ 224 002e D361     		str	r3, [r2, #28]
+ 141:../common/ubertooth.c **** 
+ 225              		.loc 1 141 0
+ 226 0030 5362     		str	r3, [r2, #36]
+ 144:../common/ubertooth.c **** 	FIO1PIN = 0;
+ 227              		.loc 1 144 0
+ 228 0032 074A     		ldr	r2, .L18+12
+ 229 0034 1360     		str	r3, [r2]
+ 145:../common/ubertooth.c **** 	FIO2PIN = 0;
+ 230              		.loc 1 145 0
+ 231 0036 1362     		str	r3, [r2, #32]
+ 146:../common/ubertooth.c **** 	FIO3PIN = 0;
+ 232              		.loc 1 146 0
+ 233 0038 1364     		str	r3, [r2, #64]
+ 147:../common/ubertooth.c **** 	FIO4PIN = 0;
+ 234              		.loc 1 147 0
+ 235 003a 1366     		str	r3, [r2, #96]
+ 148:../common/ubertooth.c **** }
+ 236              		.loc 1 148 0
+ 237 003c C2F88030 		str	r3, [r2, #128]
+ 238 0040 7047     		bx	lr
+ 239              	.L19:
+ 240 0042 00BF     		.align	2
+ 241              	.L18:
+ 242 0044 00C00240 		.word	1073922048
+ 243 0048 00C00920 		.word	537509888
+ 244 004c 40C00240 		.word	1073922112
+ 245 0050 14C00920 		.word	537509908
+ 246              		.cfi_endproc
+ 247              	.LFE5:
+ 249              		.section	.text.gpio_init,"ax",%progbits
+ 250              		.align	1
+ 251              		.global	gpio_init
+ 252              		.thumb
+ 253              		.thumb_func
+ 255              	gpio_init:
+ 256              	.LFB4:
+  66:../common/ubertooth.c **** 	/* 
+ 257              		.loc 1 66 0
+ 258              		.cfi_startproc
+ 259              		@ args = 0, pretend = 0, frame = 0
+ 260              		@ frame_needed = 0, uses_anonymous_args = 0
+ 261 0000 08B5     		push	{r3, lr}
+ 262              		.cfi_def_cfa_offset 8
+ARM GAS  /tmp/cc5HFuYs.s 			page 12
+
+
+ 263              		.cfi_offset 3, -8
+ 264              		.cfi_offset 14, -4
+  71:../common/ubertooth.c **** 
+ 265              		.loc 1 71 0
+ 266 0002 FFF7FEFF 		bl	all_pins_off
+ 267              	.LVL11:
+  83:../common/ubertooth.c **** 	FIO1DIR = (PIN_USRLED | PIN_RXLED | PIN_TXLED | PIN_CC3V3 |
+ 268              		.loc 1 83 0
+ 269 0006 0A4A     		ldr	r2, .L21
+ 270 0008 0023     		movs	r3, #0
+  84:../common/ubertooth.c **** 			PIN_RX | PIN_CC1V8 | PIN_BTGR);
+ 271              		.loc 1 84 0
+ 272 000a 4CF21271 		movw	r1, #50962
+  83:../common/ubertooth.c **** 	FIO1DIR = (PIN_USRLED | PIN_RXLED | PIN_TXLED | PIN_CC3V3 |
+ 273              		.loc 1 83 0
+ 274 000e 1360     		str	r3, [r2]
+  84:../common/ubertooth.c **** 			PIN_RX | PIN_CC1V8 | PIN_BTGR);
+ 275              		.loc 1 84 0
+ 276 0010 1162     		str	r1, [r2, #32]
+  86:../common/ubertooth.c **** 	FIO3DIR = 0;
+ 277              		.loc 1 86 0
+ 278 0012 40F2B111 		movw	r1, #433
+ 279 0016 1164     		str	r1, [r2, #64]
+  88:../common/ubertooth.c **** #endif
+ 280              		.loc 1 88 0
+ 281 0018 4FF04051 		mov	r1, #805306368
+  87:../common/ubertooth.c **** 	FIO4DIR = (PIN_TX | PIN_SSEL1);
+ 282              		.loc 1 87 0
+ 283 001c 1366     		str	r3, [r2, #96]
+  88:../common/ubertooth.c **** #endif
+ 284              		.loc 1 88 0
+ 285 001e C2F88010 		str	r1, [r2, #128]
+ 103:../common/ubertooth.c **** 	FIO1PIN = 0;
+ 286              		.loc 1 103 0
+ 287 0022 5361     		str	r3, [r2, #20]
+ 104:../common/ubertooth.c **** 	FIO2PIN = 0;
+ 288              		.loc 1 104 0
+ 289 0024 5363     		str	r3, [r2, #52]
+ 105:../common/ubertooth.c **** 	FIO3PIN = 0;
+ 290              		.loc 1 105 0
+ 291 0026 5365     		str	r3, [r2, #84]
+ 106:../common/ubertooth.c **** 	FIO4PIN = 0;
+ 292              		.loc 1 106 0
+ 293 0028 5367     		str	r3, [r2, #116]
+ 107:../common/ubertooth.c **** 
+ 294              		.loc 1 107 0
+ 295 002a C2F89430 		str	r3, [r2, #148]
+ 296 002e 08BD     		pop	{r3, pc}
+ 297              	.L22:
+ 298              		.align	2
+ 299              	.L21:
+ 300 0030 00C00920 		.word	537509888
+ 301              		.cfi_endproc
+ 302              	.LFE4:
+ 304              		.section	.text.dio_ssp_init,"ax",%progbits
+ 305              		.align	1
+ 306              		.global	dio_ssp_init
+ARM GAS  /tmp/cc5HFuYs.s 			page 13
+
+
+ 307              		.thumb
+ 308              		.thumb_func
+ 310              	dio_ssp_init:
+ 311              	.LFB7:
+ 164:../common/ubertooth.c **** #ifdef UBERTOOTH_ZERO
+ 312              		.loc 1 164 0
+ 313              		.cfi_startproc
+ 314              		@ args = 0, pretend = 0, frame = 0
+ 315              		@ frame_needed = 0, uses_anonymous_args = 0
+ 316              		@ link register save eliminated.
+ 180:../common/ubertooth.c **** 
+ 317              		.loc 1 180 0
+ 318 0000 114B     		ldr	r3, .L24
+ 319 0002 1A68     		ldr	r2, [r3]
+ 320 0004 22F44042 		bic	r2, r2, #49152
+ 321 0008 42F40042 		orr	r2, r2, #32768
+ 322 000c 1A60     		str	r2, [r3]
+ 183:../common/ubertooth.c **** 
+ 323              		.loc 1 183 0
+ 324 000e 1A68     		ldr	r2, [r3]
+ 325 0010 22F44052 		bic	r2, r2, #12288
+ 326 0014 42F40052 		orr	r2, r2, #8192
+ 327 0018 1A60     		str	r2, [r3]
+ 186:../common/ubertooth.c **** 
+ 328              		.loc 1 186 0
+ 329 001a 1A68     		ldr	r2, [r3]
+ 330 001c 22F44032 		bic	r2, r2, #196608
+ 331 0020 42F40032 		orr	r2, r2, #131072
+ 332 0024 1A60     		str	r2, [r3]
+ 189:../common/ubertooth.c **** #endif
+ 333              		.loc 1 189 0
+ 334 0026 1A68     		ldr	r2, [r3]
+ 335 0028 22F44022 		bic	r2, r2, #786432
+ 336 002c 42F40022 		orr	r2, r2, #524288
+ 337 0030 1A60     		str	r2, [r3]
+ 200:../common/ubertooth.c **** 
+ 338              		.loc 1 200 0
+ 339 0032 064B     		ldr	r3, .L24+4
+ 340 0034 4FF08052 		mov	r2, #268435456
+ 341 0038 1A60     		str	r2, [r3]
+ 203:../common/ubertooth.c **** 	DIO_SSP_CR1 = (SSPCR1_MS | SSPCR1_SOD);
+ 342              		.loc 1 203 0
+ 343 003a 054B     		ldr	r3, .L24+8
+ 344 003c C722     		movs	r2, #199
+ 345 003e 1A60     		str	r2, [r3]
+ 204:../common/ubertooth.c **** }
+ 346              		.loc 1 204 0
+ 347 0040 0C22     		movs	r2, #12
+ 348 0042 5A60     		str	r2, [r3, #4]
+ 349 0044 7047     		bx	lr
+ 350              	.L25:
+ 351 0046 00BF     		.align	2
+ 352              	.L24:
+ 353 0048 00C00240 		.word	1073922048
+ 354 004c 98C00920 		.word	537510040
+ 355 0050 00000340 		.word	1073938432
+ 356              		.cfi_endproc
+ARM GAS  /tmp/cc5HFuYs.s 			page 14
+
+
+ 357              	.LFE7:
+ 359              		.section	.text.atest_init,"ax",%progbits
+ 360              		.align	1
+ 361              		.global	atest_init
+ 362              		.thumb
+ 363              		.thumb_func
+ 365              	atest_init:
+ 366              	.LFB8:
+ 208:../common/ubertooth.c **** 	/*
+ 367              		.loc 1 208 0
+ 368              		.cfi_startproc
+ 369              		@ args = 0, pretend = 0, frame = 0
+ 370              		@ frame_needed = 0, uses_anonymous_args = 0
+ 371              		@ link register save eliminated.
+ 215:../common/ubertooth.c **** 	FIO0DIR &= ~(0x3 << 25); // set as input
+ 372              		.loc 1 215 0
+ 373 0000 094B     		ldr	r3, .L27
+ 374 0002 1A68     		ldr	r2, [r3]
+ 375 0004 22F47012 		bic	r2, r2, #3932160
+ 376 0008 1A60     		str	r2, [r3]
+ 216:../common/ubertooth.c **** 	PINMODE1 |= (0x5 << 19); // no pull-up/pull-down
+ 377              		.loc 1 216 0
+ 378 000a 084B     		ldr	r3, .L27+4
+ 379 000c 1A68     		ldr	r2, [r3]
+ 380 000e 22F0C062 		bic	r2, r2, #100663296
+ 381 0012 1A60     		str	r2, [r3]
+ 217:../common/ubertooth.c **** 	PINMODE1 &= ~(0x5 << 18); // no pull-up/pull-down
+ 382              		.loc 1 217 0
+ 383 0014 064B     		ldr	r3, .L27+8
+ 384 0016 1A68     		ldr	r2, [r3]
+ 385 0018 42F42012 		orr	r2, r2, #2621440
+ 386 001c 1A60     		str	r2, [r3]
+ 218:../common/ubertooth.c **** }
+ 387              		.loc 1 218 0
+ 388 001e 1A68     		ldr	r2, [r3]
+ 389 0020 22F4A012 		bic	r2, r2, #1310720
+ 390 0024 1A60     		str	r2, [r3]
+ 391 0026 7047     		bx	lr
+ 392              	.L28:
+ 393              		.align	2
+ 394              	.L27:
+ 395 0028 04C00240 		.word	1073922052
+ 396 002c 00C00920 		.word	537509888
+ 397 0030 44C00240 		.word	1073922116
+ 398              		.cfi_endproc
+ 399              	.LFE8:
+ 401              		.section	.text.cc2400_spi,"ax",%progbits
+ 402              		.align	1
+ 403              		.global	cc2400_spi
+ 404              		.thumb
+ 405              		.thumb_func
+ 407              	cc2400_spi:
+ 408              	.LFB10:
+ 273:../common/ubertooth.c **** 	u32 msb = 1 << (len - 1);
+ 409              		.loc 1 273 0
+ 410              		.cfi_startproc
+ 411              		@ args = 0, pretend = 0, frame = 0
+ARM GAS  /tmp/cc5HFuYs.s 			page 15
+
+
+ 412              		@ frame_needed = 0, uses_anonymous_args = 0
+ 413              	.LVL12:
+ 414 0000 30B5     		push	{r4, r5, lr}
+ 415              		.cfi_def_cfa_offset 12
+ 416              		.cfi_offset 4, -12
+ 417              		.cfi_offset 5, -8
+ 418              		.cfi_offset 14, -4
+ 274:../common/ubertooth.c **** 
+ 419              		.loc 1 274 0
+ 420 0002 0124     		movs	r4, #1
+ 421 0004 431E     		subs	r3, r0, #1
+ 422 0006 9C40     		lsls	r4, r4, r3
+ 423              	.LVL13:
+ 277:../common/ubertooth.c **** 
+ 424              		.loc 1 277 0
+ 425 0008 2022     		movs	r2, #32
+ 426              	.LVL14:
+ 427              	.L33:
+ 279:../common/ubertooth.c **** 		if (data & msb)
+ 428              		.loc 1 279 0
+ 429 000a 0138     		subs	r0, r0, #1
+ 290:../common/ubertooth.c **** 	}
+ 430              		.loc 1 290 0
+ 431 000c 0D4B     		ldr	r3, .L39
+ 279:../common/ubertooth.c **** 		if (data & msb)
+ 432              		.loc 1 279 0
+ 433 000e C0B2     		uxtb	r0, r0
+ 434 0010 FF28     		cmp	r0, #255
+ 290:../common/ubertooth.c **** 	}
+ 435              		.loc 1 290 0
+ 436 0012 1A60     		str	r2, [r3]
+ 437              	.LVL15:
+ 438 0014 0C4B     		ldr	r3, .L39+4
+ 279:../common/ubertooth.c **** 		if (data & msb)
+ 439              		.loc 1 279 0
+ 440 0016 11D0     		beq	.L38
+ 280:../common/ubertooth.c **** 			MOSI_SET;
+ 441              		.loc 1 280 0
+ 442 0018 2142     		tst	r1, r4
+ 283:../common/ubertooth.c **** 		data <<= 1;
+ 443              		.loc 1 283 0
+ 444 001a 08BF     		it	eq
+ 445 001c 094D     		ldreq	r5, .L39
+ 446 001e 4FF00102 		mov	r2, #1
+ 281:../common/ubertooth.c **** 		else
+ 447              		.loc 1 281 0
+ 448 0022 14BF     		ite	ne
+ 449 0024 1A60     		strne	r2, [r3]
+ 283:../common/ubertooth.c **** 		data <<= 1;
+ 450              		.loc 1 283 0
+ 451 0026 2A60     		streq	r2, [r5]
+ 286:../common/ubertooth.c **** 		if (MISO)
+ 452              		.loc 1 286 0
+ 453 0028 1022     		movs	r2, #16
+ 454 002a 1A60     		str	r2, [r3]
+ 287:../common/ubertooth.c **** 			data |= 1;
+ 455              		.loc 1 287 0
+ARM GAS  /tmp/cc5HFuYs.s 			page 16
+
+
+ 456 002c 074B     		ldr	r3, .L39+8
+ 284:../common/ubertooth.c **** 
+ 457              		.loc 1 284 0
+ 458 002e 4900     		lsls	r1, r1, #1
+ 459              	.LVL16:
+ 287:../common/ubertooth.c **** 			data |= 1;
+ 460              		.loc 1 287 0
+ 461 0030 1B68     		ldr	r3, [r3]
+ 462 0032 9B07     		lsls	r3, r3, #30
+ 288:../common/ubertooth.c **** 
+ 463              		.loc 1 288 0
+ 464 0034 48BF     		it	mi
+ 465 0036 41F00101 		orrmi	r1, r1, #1
+ 466              	.LVL17:
+ 467 003a E6E7     		b	.L33
+ 468              	.L38:
+ 294:../common/ubertooth.c **** 
+ 469              		.loc 1 294 0
+ 470 003c 2022     		movs	r2, #32
+ 471 003e 1A60     		str	r2, [r3]
+ 297:../common/ubertooth.c **** 
+ 472              		.loc 1 297 0
+ 473 0040 0846     		mov	r0, r1
+ 474              	.LVL18:
+ 475 0042 30BD     		pop	{r4, r5, pc}
+ 476              	.LVL19:
+ 477              	.L40:
+ 478              		.align	2
+ 479              	.L39:
+ 480 0044 5CC00920 		.word	537509980
+ 481 0048 58C00920 		.word	537509976
+ 482 004c 54C00920 		.word	537509972
+ 483              		.cfi_endproc
+ 484              	.LFE10:
+ 486              		.section	.text.cc2400_init,"ax",%progbits
+ 487              		.align	1
+ 488              		.global	cc2400_init
+ 489              		.thumb
+ 490              		.thumb_func
+ 492              	cc2400_init:
+ 493              	.LFB9:
+ 222:../common/ubertooth.c **** #ifdef TC13BADGE
+ 494              		.loc 1 222 0
+ 495              		.cfi_startproc
+ 496              		@ args = 0, pretend = 0, frame = 0
+ 497              		@ frame_needed = 0, uses_anonymous_args = 0
+ 498 0000 10B5     		push	{r4, lr}
+ 499              		.cfi_def_cfa_offset 8
+ 500              		.cfi_offset 4, -8
+ 501              		.cfi_offset 14, -4
+ 246:../common/ubertooth.c **** 	wait_us(50);
+ 502              		.loc 1 246 0
+ 503 0002 0A4C     		ldr	r4, .L42
+ 242:../common/ubertooth.c **** #endif
+ 504              		.loc 1 242 0
+ 505 0004 FFF7FEFF 		bl	atest_init
+ 506              	.LVL20:
+ARM GAS  /tmp/cc5HFuYs.s 			page 17
+
+
+ 246:../common/ubertooth.c **** 	wait_us(50);
+ 507              		.loc 1 246 0
+ 508 0008 4FF40073 		mov	r3, #512
+ 509 000c 2360     		str	r3, [r4]
+ 247:../common/ubertooth.c **** 
+ 510              		.loc 1 247 0
+ 511 000e 3220     		movs	r0, #50
+ 512 0010 FFF7FEFF 		bl	wait_us
+ 513              	.LVL21:
+ 250:../common/ubertooth.c **** 
+ 514              		.loc 1 250 0
+ 515 0014 064B     		ldr	r3, .L42+4
+ 516 0016 2022     		movs	r2, #32
+ 517 0018 1A60     		str	r2, [r3]
+ 253:../common/ubertooth.c **** 
+ 518              		.loc 1 253 0
+ 519 001a 4FF48043 		mov	r3, #16384
+ 520 001e 2360     		str	r3, [r4]
+ 521              	.LVL22:
+ 522              	.LBB4:
+ 523              	.LBB5:
+ 313:../common/ubertooth.c **** }
+ 524              		.loc 1 313 0
+ 525 0020 1820     		movs	r0, #24
+ 526 0022 0449     		ldr	r1, .L42+8
+ 527              	.LBE5:
+ 528              	.LBE4:
+ 257:../common/ubertooth.c **** 
+ 529              		.loc 1 257 0
+ 530 0024 BDE81040 		pop	{r4, lr}
+ 531              	.LBB7:
+ 532              	.LBB6:
+ 313:../common/ubertooth.c **** }
+ 533              		.loc 1 313 0
+ 534 0028 FFF7FEBF 		b	cc2400_spi
+ 535              	.LVL23:
+ 536              	.L43:
+ 537              		.align	2
+ 538              	.L42:
+ 539 002c 38C00920 		.word	537509944
+ 540 0030 58C00920 		.word	537509976
+ 541 0034 FF7F0D00 		.word	884735
+ 542              	.LBE6:
+ 543              	.LBE7:
+ 544              		.cfi_endproc
+ 545              	.LFE9:
+ 547              		.section	.text.cc2400_get,"ax",%progbits
+ 548              		.align	1
+ 549              		.global	cc2400_get
+ 550              		.thumb
+ 551              		.thumb_func
+ 553              	cc2400_get:
+ 554              	.LFB11:
+ 301:../common/ubertooth.c **** 	u32 in;
+ 555              		.loc 1 301 0
+ 556              		.cfi_startproc
+ 557              		@ args = 0, pretend = 0, frame = 0
+ARM GAS  /tmp/cc5HFuYs.s 			page 18
+
+
+ 558              		@ frame_needed = 0, uses_anonymous_args = 0
+ 559              	.LVL24:
+ 560 0000 08B5     		push	{r3, lr}
+ 561              		.cfi_def_cfa_offset 8
+ 562              		.cfi_offset 3, -8
+ 563              		.cfi_offset 14, -4
+ 564              	.LVL25:
+ 304:../common/ubertooth.c **** 	in = cc2400_spi(24, out);
+ 565              		.loc 1 304 0
+ 566 0002 40F08001 		orr	r1, r0, #128
+ 305:../common/ubertooth.c **** 	return in & 0xFFFF;
+ 567              		.loc 1 305 0
+ 568 0006 0904     		lsls	r1, r1, #16
+ 569 0008 1820     		movs	r0, #24
+ 570              	.LVL26:
+ 571 000a FFF7FEFF 		bl	cc2400_spi
+ 572              	.LVL27:
+ 307:../common/ubertooth.c **** 
+ 573              		.loc 1 307 0
+ 574 000e 80B2     		uxth	r0, r0
+ 575              	.LVL28:
+ 576 0010 08BD     		pop	{r3, pc}
+ 577              		.cfi_endproc
+ 578              	.LFE11:
+ 580              		.section	.text.cc2400_set,"ax",%progbits
+ 581              		.align	1
+ 582              		.global	cc2400_set
+ 583              		.thumb
+ 584              		.thumb_func
+ 586              	cc2400_set:
+ 587              	.LFB12:
+ 311:../common/ubertooth.c **** 	u32 out = (reg << 16) | val;
+ 588              		.loc 1 311 0
+ 589              		.cfi_startproc
+ 590              		@ args = 0, pretend = 0, frame = 0
+ 591              		@ frame_needed = 0, uses_anonymous_args = 0
+ 592              		@ link register save eliminated.
+ 593              	.LVL29:
+ 594              	.LVL30:
+ 312:../common/ubertooth.c **** 	cc2400_spi(24, out);
+ 595              		.loc 1 312 0
+ 596 0000 41EA0041 		orr	r1, r1, r0, lsl #16
+ 597              	.LVL31:
+ 313:../common/ubertooth.c **** }
+ 598              		.loc 1 313 0
+ 599 0004 1820     		movs	r0, #24
+ 600              	.LVL32:
+ 601 0006 FFF7FEBF 		b	cc2400_spi
+ 602              	.LVL33:
+ 603              		.cfi_endproc
+ 604              	.LFE12:
+ 606              		.section	.text.cc2400_get8,"ax",%progbits
+ 607              		.align	1
+ 608              		.global	cc2400_get8
+ 609              		.thumb
+ 610              		.thumb_func
+ 612              	cc2400_get8:
+ARM GAS  /tmp/cc5HFuYs.s 			page 19
+
+
+ 613              	.LFB13:
+ 318:../common/ubertooth.c **** 	u16 in;
+ 614              		.loc 1 318 0
+ 615              		.cfi_startproc
+ 616              		@ args = 0, pretend = 0, frame = 0
+ 617              		@ frame_needed = 0, uses_anonymous_args = 0
+ 618              	.LVL34:
+ 619 0000 08B5     		push	{r3, lr}
+ 620              		.cfi_def_cfa_offset 8
+ 621              		.cfi_offset 3, -8
+ 622              		.cfi_offset 14, -4
+ 623              	.LVL35:
+ 321:../common/ubertooth.c **** 	in = cc2400_spi(16, out);
+ 624              		.loc 1 321 0
+ 625 0002 40F08001 		orr	r1, r0, #128
+ 322:../common/ubertooth.c **** 	return in & 0xFF;
+ 626              		.loc 1 322 0
+ 627 0006 0902     		lsls	r1, r1, #8
+ 628 0008 1020     		movs	r0, #16
+ 629              	.LVL36:
+ 630 000a FFF7FEFF 		bl	cc2400_spi
+ 631              	.LVL37:
+ 324:../common/ubertooth.c **** 
+ 632              		.loc 1 324 0
+ 633 000e C0B2     		uxtb	r0, r0
+ 634              	.LVL38:
+ 635 0010 08BD     		pop	{r3, pc}
+ 636              		.cfi_endproc
+ 637              	.LFE13:
+ 639              		.section	.text.cc2400_set8,"ax",%progbits
+ 640              		.align	1
+ 641              		.global	cc2400_set8
+ 642              		.thumb
+ 643              		.thumb_func
+ 645              	cc2400_set8:
+ 646              	.LFB14:
+ 328:../common/ubertooth.c **** 	u32 out = (reg << 8) | val;
+ 647              		.loc 1 328 0
+ 648              		.cfi_startproc
+ 649              		@ args = 0, pretend = 0, frame = 0
+ 650              		@ frame_needed = 0, uses_anonymous_args = 0
+ 651              		@ link register save eliminated.
+ 652              	.LVL39:
+ 653              	.LVL40:
+ 329:../common/ubertooth.c **** 	cc2400_spi(16, out);
+ 654              		.loc 1 329 0
+ 655 0000 41EA0021 		orr	r1, r1, r0, lsl #8
+ 656              	.LVL41:
+ 330:../common/ubertooth.c **** }
+ 657              		.loc 1 330 0
+ 658 0004 1020     		movs	r0, #16
+ 659              	.LVL42:
+ 660 0006 FFF7FEBF 		b	cc2400_spi
+ 661              	.LVL43:
+ 662              		.cfi_endproc
+ 663              	.LFE14:
+ 665              		.section	.text.cc2400_fifo_write,"ax",%progbits
+ARM GAS  /tmp/cc5HFuYs.s 			page 20
+
+
+ 666              		.align	1
+ 667              		.global	cc2400_fifo_write
+ 668              		.thumb
+ 669              		.thumb_func
+ 671              	cc2400_fifo_write:
+ 672              	.LFB16:
+ 338:../common/ubertooth.c **** 
+ 339:../common/ubertooth.c **** 
+ 340:../common/ubertooth.c **** /* write multiple bytes to SPI */
+ 341:../common/ubertooth.c **** void cc2400_fifo_write(u8 len, u8 *data) {
+ 673              		.loc 1 341 0
+ 674              		.cfi_startproc
+ 675              		@ args = 0, pretend = 0, frame = 0
+ 676              		@ frame_needed = 0, uses_anonymous_args = 0
+ 677              	.LVL44:
+ 678 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 679              		.cfi_def_cfa_offset 24
+ 680              		.cfi_offset 3, -24
+ 681              		.cfi_offset 4, -20
+ 682              		.cfi_offset 5, -16
+ 683              		.cfi_offset 6, -12
+ 684              		.cfi_offset 7, -8
+ 685              		.cfi_offset 14, -4
+ 686              	.LVL45:
+ 342:../common/ubertooth.c **** 	u8 msb = 1 << 7;
+ 343:../common/ubertooth.c **** 	u8 reg = FIFOREG;
+ 344:../common/ubertooth.c **** 	u8 i, j, temp;
+ 345:../common/ubertooth.c **** 
+ 346:../common/ubertooth.c **** 	/* start transaction by dropping CSN */
+ 347:../common/ubertooth.c **** 	CSN_CLR;
+ 687              		.loc 1 347 0
+ 688 0002 214B     		ldr	r3, .L64
+ 689 0004 2022     		movs	r2, #32
+ 690 0006 1A60     		str	r2, [r3]
+ 691              	.LVL46:
+ 692 0008 0823     		movs	r3, #8
+ 343:../common/ubertooth.c **** 	u8 i, j, temp;
+ 693              		.loc 1 343 0
+ 694 000a 7022     		movs	r2, #112
+ 695              	.LVL47:
+ 696              	.L53:
+ 348:../common/ubertooth.c **** 
+ 349:../common/ubertooth.c **** 	for (i = 0; i < 8; ++i) {
+ 350:../common/ubertooth.c **** 		if (reg & msb)
+ 697              		.loc 1 350 0
+ 698 000c 12F0800F 		tst	r2, #128
+ 699 0010 1E4D     		ldr	r5, .L64+4
+ 351:../common/ubertooth.c **** 			MOSI_SET;
+ 352:../common/ubertooth.c **** 		else
+ 353:../common/ubertooth.c **** 			MOSI_CLR;
+ 700              		.loc 1 353 0
+ 701 0012 08BF     		it	eq
+ 702 0014 1C4E     		ldreq	r6, .L64
+ 703 0016 4FF00104 		mov	r4, #1
+ 351:../common/ubertooth.c **** 			MOSI_SET;
+ 704              		.loc 1 351 0
+ 705 001a 14BF     		ite	ne
+ARM GAS  /tmp/cc5HFuYs.s 			page 21
+
+
+ 706 001c 2C60     		strne	r4, [r5]
+ 707              		.loc 1 353 0
+ 708 001e 3460     		streq	r4, [r6]
+ 354:../common/ubertooth.c **** 		reg <<= 1;
+ 355:../common/ubertooth.c **** 		SCLK_SET;
+ 709              		.loc 1 355 0
+ 710 0020 1024     		movs	r4, #16
+ 711 0022 2C60     		str	r4, [r5]
+ 712 0024 013B     		subs	r3, r3, #1
+ 713              	.LVL48:
+ 356:../common/ubertooth.c **** 		SCLK_CLR;
+ 714              		.loc 1 356 0
+ 715 0026 184D     		ldr	r5, .L64
+ 354:../common/ubertooth.c **** 		reg <<= 1;
+ 716              		.loc 1 354 0
+ 717 0028 5200     		lsls	r2, r2, #1
+ 718              	.LVL49:
+ 349:../common/ubertooth.c **** 		if (reg & msb)
+ 719              		.loc 1 349 0
+ 720 002a 13F0FF03 		ands	r3, r3, #255
+ 721              	.LVL50:
+ 354:../common/ubertooth.c **** 		reg <<= 1;
+ 722              		.loc 1 354 0
+ 723 002e D2B2     		uxtb	r2, r2
+ 724              	.LVL51:
+ 725              		.loc 1 356 0
+ 726 0030 2C60     		str	r4, [r5]
+ 349:../common/ubertooth.c **** 		if (reg & msb)
+ 727              		.loc 1 349 0
+ 728 0032 EBD1     		bne	.L53
+ 729              	.LVL52:
+ 730              	.L52:
+ 357:../common/ubertooth.c **** 	}
+ 358:../common/ubertooth.c **** 
+ 359:../common/ubertooth.c **** 	for (i = 0; i < len; ++i) {
+ 731              		.loc 1 359 0 discriminator 1
+ 732 0034 DAB2     		uxtb	r2, r3
+ 733 0036 8242     		cmp	r2, r0
+ 734 0038 17D2     		bcs	.L63
+ 360:../common/ubertooth.c **** 		temp = data[i];
+ 735              		.loc 1 360 0
+ 736 003a CA5C     		ldrb	r2, [r1, r3]	@ zero_extendqisi2
+ 737              	.LVL53:
+ 738 003c 0824     		movs	r4, #8
+ 739              	.LVL54:
+ 740              	.L57:
+ 361:../common/ubertooth.c **** 		for (j = 0; j < 8; ++j) {
+ 362:../common/ubertooth.c **** 			if (temp & msb)
+ 741              		.loc 1 362 0
+ 742 003e 12F0800F 		tst	r2, #128
+ 743 0042 124E     		ldr	r6, .L64+4
+ 363:../common/ubertooth.c **** 				MOSI_SET;
+ 364:../common/ubertooth.c **** 			else
+ 365:../common/ubertooth.c **** 				MOSI_CLR;
+ 744              		.loc 1 365 0
+ 745 0044 08BF     		it	eq
+ 746 0046 104F     		ldreq	r7, .L64
+ARM GAS  /tmp/cc5HFuYs.s 			page 22
+
+
+ 747 0048 4FF00105 		mov	r5, #1
+ 363:../common/ubertooth.c **** 				MOSI_SET;
+ 748              		.loc 1 363 0
+ 749 004c 14BF     		ite	ne
+ 750 004e 3560     		strne	r5, [r6]
+ 751              		.loc 1 365 0
+ 752 0050 3D60     		streq	r5, [r7]
+ 366:../common/ubertooth.c **** 			temp <<= 1;
+ 367:../common/ubertooth.c **** 			SCLK_SET;
+ 753              		.loc 1 367 0
+ 754 0052 1025     		movs	r5, #16
+ 755 0054 3560     		str	r5, [r6]
+ 756 0056 013C     		subs	r4, r4, #1
+ 757              	.LVL55:
+ 368:../common/ubertooth.c **** 			SCLK_CLR;
+ 758              		.loc 1 368 0
+ 759 0058 0B4E     		ldr	r6, .L64
+ 366:../common/ubertooth.c **** 			temp <<= 1;
+ 760              		.loc 1 366 0
+ 761 005a 5200     		lsls	r2, r2, #1
+ 762              	.LVL56:
+ 361:../common/ubertooth.c **** 			if (temp & msb)
+ 763              		.loc 1 361 0
+ 764 005c 14F0FF04 		ands	r4, r4, #255
+ 765              	.LVL57:
+ 366:../common/ubertooth.c **** 			temp <<= 1;
+ 766              		.loc 1 366 0
+ 767 0060 D2B2     		uxtb	r2, r2
+ 768              	.LVL58:
+ 769              		.loc 1 368 0
+ 770 0062 3560     		str	r5, [r6]
+ 361:../common/ubertooth.c **** 			if (temp & msb)
+ 771              		.loc 1 361 0
+ 772 0064 EBD1     		bne	.L57
+ 773              	.LVL59:
+ 774 0066 0133     		adds	r3, r3, #1
+ 775              	.LVL60:
+ 776 0068 E4E7     		b	.L52
+ 777              	.LVL61:
+ 778              	.L63:
+ 359:../common/ubertooth.c **** 		temp = data[i];
+ 779              		.loc 1 359 0
+ 780 006a 0823     		movs	r3, #8
+ 781              	.LVL62:
+ 782              	.L60:
+ 369:../common/ubertooth.c **** 		}
+ 370:../common/ubertooth.c **** 	}
+ 371:../common/ubertooth.c **** 
+ 372:../common/ubertooth.c **** 	// this is necessary to clock in the last byte
+ 373:../common/ubertooth.c **** 	for (i = 0; i < 8; ++i) {
+ 374:../common/ubertooth.c **** 		SCLK_SET;
+ 783              		.loc 1 374 0 discriminator 2
+ 784 006c 074C     		ldr	r4, .L64+4
+ 375:../common/ubertooth.c **** 		SCLK_CLR;
+ 785              		.loc 1 375 0 discriminator 2
+ 786 006e 0649     		ldr	r1, .L64
+ 787 0070 013B     		subs	r3, r3, #1
+ARM GAS  /tmp/cc5HFuYs.s 			page 23
+
+
+ 788              	.LVL63:
+ 374:../common/ubertooth.c **** 		SCLK_CLR;
+ 789              		.loc 1 374 0 discriminator 2
+ 790 0072 1022     		movs	r2, #16
+ 373:../common/ubertooth.c **** 		SCLK_SET;
+ 791              		.loc 1 373 0 discriminator 2
+ 792 0074 13F0FF03 		ands	r3, r3, #255
+ 793              	.LVL64:
+ 374:../common/ubertooth.c **** 		SCLK_CLR;
+ 794              		.loc 1 374 0 discriminator 2
+ 795 0078 2260     		str	r2, [r4]
+ 796              		.loc 1 375 0 discriminator 2
+ 797 007a 0A60     		str	r2, [r1]
+ 373:../common/ubertooth.c **** 		SCLK_SET;
+ 798              		.loc 1 373 0 discriminator 2
+ 799 007c F6D1     		bne	.L60
+ 376:../common/ubertooth.c **** 	}
+ 377:../common/ubertooth.c **** 	
+ 378:../common/ubertooth.c **** 	spi_delay();
+ 800              		.loc 1 378 0
+ 801 007e FFF7FEFF 		bl	spi_delay
+ 802              	.LVL65:
+ 379:../common/ubertooth.c **** 	/* end transaction by raising CSN */
+ 380:../common/ubertooth.c **** 	CSN_SET;
+ 803              		.loc 1 380 0
+ 804 0082 2023     		movs	r3, #32
+ 805 0084 2360     		str	r3, [r4]
+ 806 0086 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 807              	.L65:
+ 808              		.align	2
+ 809              	.L64:
+ 810 0088 5CC00920 		.word	537509980
+ 811 008c 58C00920 		.word	537509976
+ 812              		.cfi_endproc
+ 813              	.LFE16:
+ 815              		.section	.text.cc2400_fifo_read,"ax",%progbits
+ 816              		.align	1
+ 817              		.global	cc2400_fifo_read
+ 818              		.thumb
+ 819              		.thumb_func
+ 821              	cc2400_fifo_read:
+ 822              	.LFB17:
+ 381:../common/ubertooth.c **** }
+ 382:../common/ubertooth.c **** 
+ 383:../common/ubertooth.c **** /* read multiple bytes from SPI */
+ 384:../common/ubertooth.c **** void cc2400_fifo_read(u8 len, u8 *buf) {
+ 823              		.loc 1 384 0
+ 824              		.cfi_startproc
+ 825              		@ args = 0, pretend = 0, frame = 0
+ 826              		@ frame_needed = 0, uses_anonymous_args = 0
+ 827              	.LVL66:
+ 828 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 829              		.cfi_def_cfa_offset 24
+ 830              		.cfi_offset 4, -24
+ 831              		.cfi_offset 5, -20
+ 832              		.cfi_offset 6, -16
+ 833              		.cfi_offset 7, -12
+ARM GAS  /tmp/cc5HFuYs.s 			page 24
+
+
+ 834              		.cfi_offset 8, -8
+ 835              		.cfi_offset 14, -4
+ 836              	.LVL67:
+ 385:../common/ubertooth.c **** 	u8 msb = 1 << 7;
+ 386:../common/ubertooth.c **** 	u8 i, j, temp, reg;
+ 387:../common/ubertooth.c **** 	// Set first bit because it's a read
+ 388:../common/ubertooth.c **** 	reg = 0x80 | FIFOREG;
+ 389:../common/ubertooth.c **** 
+ 390:../common/ubertooth.c **** 	/* start transaction by dropping CSN */
+ 391:../common/ubertooth.c **** 	CSN_CLR;
+ 837              		.loc 1 391 0
+ 838 0004 204B     		ldr	r3, .L79
+ 839 0006 2022     		movs	r2, #32
+ 840 0008 1A60     		str	r2, [r3]
+ 841              	.LVL68:
+ 384:../common/ubertooth.c **** 	u8 msb = 1 << 7;
+ 842              		.loc 1 384 0
+ 843 000a 0746     		mov	r7, r0
+ 844 000c 8846     		mov	r8, r1
+ 845              		.loc 1 391 0
+ 846 000e 0825     		movs	r5, #8
+ 388:../common/ubertooth.c **** 
+ 847              		.loc 1 388 0
+ 848 0010 F023     		movs	r3, #240
+ 849              	.LVL69:
+ 850              	.L71:
+ 392:../common/ubertooth.c **** 
+ 393:../common/ubertooth.c **** 	for (i = 0; i < 8; ++i) {
+ 394:../common/ubertooth.c **** 		if (reg & msb)
+ 851              		.loc 1 394 0
+ 852 0012 13F0800F 		tst	r3, #128
+ 853 0016 1D49     		ldr	r1, .L79+4
+ 395:../common/ubertooth.c **** 			MOSI_SET;
+ 396:../common/ubertooth.c **** 		else
+ 397:../common/ubertooth.c **** 			MOSI_CLR;
+ 854              		.loc 1 397 0
+ 855 0018 08BF     		it	eq
+ 856 001a 1B48     		ldreq	r0, .L79
+ 857 001c 4FF00102 		mov	r2, #1
+ 395:../common/ubertooth.c **** 			MOSI_SET;
+ 858              		.loc 1 395 0
+ 859 0020 14BF     		ite	ne
+ 860 0022 0A60     		strne	r2, [r1]
+ 861              		.loc 1 397 0
+ 862 0024 0260     		streq	r2, [r0]
+ 398:../common/ubertooth.c **** 		reg <<= 1;
+ 399:../common/ubertooth.c **** 		SCLK_SET;
+ 863              		.loc 1 399 0
+ 864 0026 1022     		movs	r2, #16
+ 865 0028 0A60     		str	r2, [r1]
+ 866 002a 013D     		subs	r5, r5, #1
+ 867              	.LVL70:
+ 400:../common/ubertooth.c **** 		SCLK_CLR;
+ 868              		.loc 1 400 0
+ 869 002c 1649     		ldr	r1, .L79
+ 398:../common/ubertooth.c **** 		reg <<= 1;
+ 870              		.loc 1 398 0
+ARM GAS  /tmp/cc5HFuYs.s 			page 25
+
+
+ 871 002e 5B00     		lsls	r3, r3, #1
+ 872              	.LVL71:
+ 393:../common/ubertooth.c **** 		if (reg & msb)
+ 873              		.loc 1 393 0
+ 874 0030 15F0FF05 		ands	r5, r5, #255
+ 875              	.LVL72:
+ 398:../common/ubertooth.c **** 		reg <<= 1;
+ 876              		.loc 1 398 0
+ 877 0034 DBB2     		uxtb	r3, r3
+ 878              	.LVL73:
+ 879              		.loc 1 400 0
+ 880 0036 0A60     		str	r2, [r1]
+ 393:../common/ubertooth.c **** 		if (reg & msb)
+ 881              		.loc 1 393 0
+ 882 0038 EBD1     		bne	.L71
+ 883              	.LVL74:
+ 884              	.L70:
+ 401:../common/ubertooth.c **** 	}
+ 402:../common/ubertooth.c **** 
+ 403:../common/ubertooth.c **** 	for (i = 0; i < len; ++i) {
+ 885              		.loc 1 403 0 discriminator 1
+ 886 003a EBB2     		uxtb	r3, r5
+ 887 003c BB42     		cmp	r3, r7
+ 888 003e 1BD2     		bcs	.L74
+ 889              		.loc 1 403 0 is_stmt 0
+ 890 0040 0826     		movs	r6, #8
+ 891 0042 0024     		movs	r4, #0
+ 892              	.L75:
+ 893              	.LVL75:
+ 404:../common/ubertooth.c **** 		temp = 0;
+ 405:../common/ubertooth.c **** 		for (j = 0; j < 8; ++j) {
+ 406:../common/ubertooth.c **** 			spi_delay();
+ 894              		.loc 1 406 0 is_stmt 1
+ 895 0044 FFF7FEFF 		bl	spi_delay
+ 896              	.LVL76:
+ 407:../common/ubertooth.c **** 			SCLK_SET;
+ 897              		.loc 1 407 0
+ 898 0048 104B     		ldr	r3, .L79+4
+ 899 004a 1022     		movs	r2, #16
+ 900 004c 1A60     		str	r2, [r3]
+ 408:../common/ubertooth.c **** 			temp <<= 1;
+ 409:../common/ubertooth.c **** 			if (MISO)
+ 901              		.loc 1 409 0
+ 902 004e 043B     		subs	r3, r3, #4
+ 903 0050 1B68     		ldr	r3, [r3]
+ 408:../common/ubertooth.c **** 			temp <<= 1;
+ 904              		.loc 1 408 0
+ 905 0052 6400     		lsls	r4, r4, #1
+ 906              	.LVL77:
+ 907              		.loc 1 409 0
+ 908 0054 9A07     		lsls	r2, r3, #30
+ 408:../common/ubertooth.c **** 			temp <<= 1;
+ 909              		.loc 1 408 0
+ 910 0056 E4B2     		uxtb	r4, r4
+ 911              	.LVL78:
+ 410:../common/ubertooth.c **** 				temp |= 1;
+ 912              		.loc 1 410 0
+ARM GAS  /tmp/cc5HFuYs.s 			page 26
+
+
+ 913 0058 48BF     		it	mi
+ 914 005a 44F00104 		orrmi	r4, r4, #1
+ 915              	.LVL79:
+ 916 005e 013E     		subs	r6, r6, #1
+ 917              	.LVL80:
+ 411:../common/ubertooth.c **** 			spi_delay();
+ 918              		.loc 1 411 0
+ 919 0060 FFF7FEFF 		bl	spi_delay
+ 920              	.LVL81:
+ 412:../common/ubertooth.c **** 			SCLK_CLR;
+ 921              		.loc 1 412 0
+ 922 0064 084B     		ldr	r3, .L79
+ 923 0066 1022     		movs	r2, #16
+ 405:../common/ubertooth.c **** 			spi_delay();
+ 924              		.loc 1 405 0
+ 925 0068 16F0FF06 		ands	r6, r6, #255
+ 926              	.LVL82:
+ 927              		.loc 1 412 0
+ 928 006c 1A60     		str	r2, [r3]
+ 405:../common/ubertooth.c **** 			spi_delay();
+ 929              		.loc 1 405 0
+ 930 006e E9D1     		bne	.L75
+ 413:../common/ubertooth.c **** 		}
+ 414:../common/ubertooth.c **** 		buf[i] = temp;
+ 931              		.loc 1 414 0
+ 932 0070 08F80540 		strb	r4, [r8, r5]
+ 933              	.LVL83:
+ 934 0074 0135     		adds	r5, r5, #1
+ 935              	.LVL84:
+ 936 0076 E0E7     		b	.L70
+ 937              	.LVL85:
+ 938              	.L74:
+ 415:../common/ubertooth.c **** 	}
+ 416:../common/ubertooth.c **** 
+ 417:../common/ubertooth.c **** 	/* end transaction by raising CSN */
+ 418:../common/ubertooth.c **** 	spi_delay();
+ 939              		.loc 1 418 0
+ 940 0078 FFF7FEFF 		bl	spi_delay
+ 941              	.LVL86:
+ 419:../common/ubertooth.c **** 	CSN_SET;
+ 942              		.loc 1 419 0
+ 943 007c 034B     		ldr	r3, .L79+4
+ 944 007e 2022     		movs	r2, #32
+ 945 0080 1A60     		str	r2, [r3]
+ 946 0082 BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 947              	.LVL87:
+ 948              	.L80:
+ 949 0086 00BF     		.align	2
+ 950              	.L79:
+ 951 0088 5CC00920 		.word	537509980
+ 952 008c 58C00920 		.word	537509976
+ 953              		.cfi_endproc
+ 954              	.LFE17:
+ 956              		.section	.text.cc2400_status,"ax",%progbits
+ 957              		.align	1
+ 958              		.global	cc2400_status
+ 959              		.thumb
+ARM GAS  /tmp/cc5HFuYs.s 			page 27
+
+
+ 960              		.thumb_func
+ 962              	cc2400_status:
+ 963              	.LFB18:
+ 420:../common/ubertooth.c **** }
+ 421:../common/ubertooth.c **** 
+ 422:../common/ubertooth.c **** /* get the status */
+ 423:../common/ubertooth.c **** u8 cc2400_status()
+ 424:../common/ubertooth.c **** {
+ 964              		.loc 1 424 0
+ 965              		.cfi_startproc
+ 966              		@ args = 0, pretend = 0, frame = 0
+ 967              		@ frame_needed = 0, uses_anonymous_args = 0
+ 968 0000 08B5     		push	{r3, lr}
+ 969              		.cfi_def_cfa_offset 8
+ 970              		.cfi_offset 3, -8
+ 971              		.cfi_offset 14, -4
+ 425:../common/ubertooth.c **** 	return cc2400_spi(8, 0);
+ 972              		.loc 1 425 0
+ 973 0002 0021     		movs	r1, #0
+ 974 0004 0820     		movs	r0, #8
+ 975 0006 FFF7FEFF 		bl	cc2400_spi
+ 976              	.LVL88:
+ 426:../common/ubertooth.c **** }
+ 977              		.loc 1 426 0
+ 978 000a C0B2     		uxtb	r0, r0
+ 979 000c 08BD     		pop	{r3, pc}
+ 980              		.cfi_endproc
+ 981              	.LFE18:
+ 983              		.section	.text.cc2400_strobe,"ax",%progbits
+ 984              		.align	1
+ 985              		.global	cc2400_strobe
+ 986              		.thumb
+ 987              		.thumb_func
+ 989              	cc2400_strobe:
+ 990              	.LFB19:
+ 427:../common/ubertooth.c **** 
+ 428:../common/ubertooth.c **** /* strobe register, return status */
+ 429:../common/ubertooth.c **** u8 cc2400_strobe(u8 reg)
+ 430:../common/ubertooth.c **** {
+ 991              		.loc 1 430 0
+ 992              		.cfi_startproc
+ 993              		@ args = 0, pretend = 0, frame = 0
+ 994              		@ frame_needed = 0, uses_anonymous_args = 0
+ 995              	.LVL89:
+ 996 0000 08B5     		push	{r3, lr}
+ 997              		.cfi_def_cfa_offset 8
+ 998              		.cfi_offset 3, -8
+ 999              		.cfi_offset 14, -4
+ 1000              		.loc 1 430 0
+ 1001 0002 0146     		mov	r1, r0
+ 431:../common/ubertooth.c **** 	return cc2400_spi(8, reg);
+ 1002              		.loc 1 431 0
+ 1003 0004 0820     		movs	r0, #8
+ 1004              	.LVL90:
+ 1005 0006 FFF7FEFF 		bl	cc2400_spi
+ 1006              	.LVL91:
+ 432:../common/ubertooth.c **** }
+ARM GAS  /tmp/cc5HFuYs.s 			page 28
+
+
+ 1007              		.loc 1 432 0
+ 1008 000a C0B2     		uxtb	r0, r0
+ 1009 000c 08BD     		pop	{r3, pc}
+ 1010              		.cfi_endproc
+ 1011              	.LFE19:
+ 1013              		.section	.text.cc2400_reset,"ax",%progbits
+ 1014              		.align	1
+ 1015              		.global	cc2400_reset
+ 1016              		.thumb
+ 1017              		.thumb_func
+ 1019              	cc2400_reset:
+ 1020              	.LFB20:
+ 433:../common/ubertooth.c **** 
+ 434:../common/ubertooth.c **** /*
+ 435:../common/ubertooth.c ****  * Warning: This should only be called when running on the internal oscillator.
+ 436:../common/ubertooth.c ****  * Otherwise use clock_start().
+ 437:../common/ubertooth.c ****  */
+ 438:../common/ubertooth.c **** void cc2400_reset()
+ 439:../common/ubertooth.c **** {
+ 1021              		.loc 1 439 0
+ 1022              		.cfi_startproc
+ 1023              		@ args = 0, pretend = 0, frame = 0
+ 1024              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1025 0000 08B5     		push	{r3, lr}
+ 1026              		.cfi_def_cfa_offset 8
+ 1027              		.cfi_offset 3, -8
+ 1028              		.cfi_offset 14, -4
+ 1029              	.LVL92:
+ 1030              	.LBB12:
+ 1031              	.LBB13:
+ 313:../common/ubertooth.c **** }
+ 1032              		.loc 1 313 0
+ 1033 0002 1820     		movs	r0, #24
+ 1034 0004 0021     		movs	r1, #0
+ 1035 0006 FFF7FEFF 		bl	cc2400_spi
+ 1036              	.LVL93:
+ 1037              	.L85:
+ 1038              	.LBE13:
+ 1039              	.LBE12:
+ 440:../common/ubertooth.c **** 	cc2400_set(MAIN, 0x0000);
+ 441:../common/ubertooth.c **** 	while (cc2400_get(MAIN) != 0x0000);
+ 1040              		.loc 1 441 0 discriminator 1
+ 1041 000a 0020     		movs	r0, #0
+ 1042 000c FFF7FEFF 		bl	cc2400_get
+ 1043              	.LVL94:
+ 1044 0010 0028     		cmp	r0, #0
+ 1045 0012 FAD1     		bne	.L85
+ 1046              	.LVL95:
+ 1047              	.LBB14:
+ 1048              	.LBB15:
+ 313:../common/ubertooth.c **** }
+ 1049              		.loc 1 313 0
+ 1050 0014 1820     		movs	r0, #24
+ 1051 0016 4FF40041 		mov	r1, #32768
+ 1052 001a FFF7FEFF 		bl	cc2400_spi
+ 1053              	.LVL96:
+ 1054              	.L87:
+ARM GAS  /tmp/cc5HFuYs.s 			page 29
+
+
+ 1055              	.LBE15:
+ 1056              	.LBE14:
+ 442:../common/ubertooth.c **** 	cc2400_set(MAIN, 0x8000);
+ 443:../common/ubertooth.c **** 	while (cc2400_get(MAIN) != 0x8000);
+ 1057              		.loc 1 443 0 discriminator 1
+ 1058 001e 0020     		movs	r0, #0
+ 1059 0020 FFF7FEFF 		bl	cc2400_get
+ 1060              	.LVL97:
+ 1061 0024 B0F5004F 		cmp	r0, #32768
+ 1062 0028 F9D1     		bne	.L87
+ 444:../common/ubertooth.c **** }
+ 1063              		.loc 1 444 0
+ 1064 002a 08BD     		pop	{r3, pc}
+ 1065              		.cfi_endproc
+ 1066              	.LFE20:
+ 1068              		.section	.text.clock_start,"ax",%progbits
+ 1069              		.align	1
+ 1070              		.global	clock_start
+ 1071              		.thumb
+ 1072              		.thumb_func
+ 1074              	clock_start:
+ 1075              	.LFB21:
+ 445:../common/ubertooth.c **** 
+ 446:../common/ubertooth.c **** /* activate the CC2400's 16 MHz oscillator and sync LPC175x to it */
+ 447:../common/ubertooth.c **** void clock_start()
+ 448:../common/ubertooth.c **** {
+ 1076              		.loc 1 448 0
+ 1077              		.cfi_startproc
+ 1078              		@ args = 0, pretend = 0, frame = 0
+ 1079              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1080 0000 10B5     		push	{r4, lr}
+ 1081              		.cfi_def_cfa_offset 8
+ 1082              		.cfi_offset 4, -8
+ 1083              		.cfi_offset 14, -4
+ 449:../common/ubertooth.c **** 	/* configure flash accelerator for higher clock rate */
+ 450:../common/ubertooth.c **** 	FLASHCFG = (0x03A | (FLASHTIM << 12));
+ 1084              		.loc 1 450 0
+ 1085 0002 464B     		ldr	r3, .L107
+ 1086 0004 44F23A02 		movw	r2, #16442
+ 1087 0008 1A60     		str	r2, [r3]
+ 451:../common/ubertooth.c **** 
+ 452:../common/ubertooth.c **** 	/* switch to the internal oscillator if necessary */
+ 453:../common/ubertooth.c **** 	CLKSRCSEL = 0;
+ 1088              		.loc 1 453 0
+ 1089 000a 0022     		movs	r2, #0
+ 1090 000c C3F80C21 		str	r2, [r3, #268]
+ 454:../common/ubertooth.c **** 
+ 455:../common/ubertooth.c **** 	/* disconnect PLL0 */
+ 456:../common/ubertooth.c **** 	PLL0CON &= ~PLL0CON_PLLC0;
+ 1091              		.loc 1 456 0
+ 1092 0010 8033     		adds	r3, r3, #128
+ 1093 0012 1A68     		ldr	r2, [r3]
+ 457:../common/ubertooth.c **** 	PLL0FEED_SEQUENCE;
+ 1094              		.loc 1 457 0
+ 1095 0014 AA21     		movs	r1, #170
+ 456:../common/ubertooth.c **** 	PLL0FEED_SEQUENCE;
+ 1096              		.loc 1 456 0
+ARM GAS  /tmp/cc5HFuYs.s 			page 30
+
+
+ 1097 0016 22F00202 		bic	r2, r2, #2
+ 1098 001a 1A60     		str	r2, [r3]
+ 1099              		.loc 1 457 0
+ 1100 001c 404A     		ldr	r2, .L107+4
+ 1101 001e 1160     		str	r1, [r2]
+ 1102 0020 5521     		movs	r1, #85
+ 1103 0022 1160     		str	r1, [r2]
+ 1104              	.L90:
+ 458:../common/ubertooth.c **** 	while (PLL0STAT & PLL0STAT_PLLC0_STAT);
+ 1105              		.loc 1 458 0 discriminator 1
+ 1106 0024 3F4A     		ldr	r2, .L107+8
+ 1107 0026 1268     		ldr	r2, [r2]
+ 1108 0028 9401     		lsls	r4, r2, #6
+ 1109 002a FBD4     		bmi	.L90
+ 459:../common/ubertooth.c **** 
+ 460:../common/ubertooth.c **** 	/* turn off PLL0 */
+ 461:../common/ubertooth.c **** 	PLL0CON &= ~PLL0CON_PLLE0;
+ 1110              		.loc 1 461 0
+ 1111 002c 1A68     		ldr	r2, [r3]
+ 1112 002e 22F00102 		bic	r2, r2, #1
+ 1113 0032 1A60     		str	r2, [r3]
+ 462:../common/ubertooth.c **** 	PLL0FEED_SEQUENCE;
+ 1114              		.loc 1 462 0
+ 1115 0034 3A4B     		ldr	r3, .L107+4
+ 1116 0036 AA22     		movs	r2, #170
+ 1117 0038 1A60     		str	r2, [r3]
+ 1118 003a 5522     		movs	r2, #85
+ 1119 003c 1A60     		str	r2, [r3]
+ 1120              	.L92:
+ 463:../common/ubertooth.c **** 	while (PLL0STAT & PLL0STAT_PLLE0_STAT);
+ 1121              		.loc 1 463 0 discriminator 1
+ 1122 003e 394B     		ldr	r3, .L107+8
+ 1123 0040 1B68     		ldr	r3, [r3]
+ 1124 0042 13F08073 		ands	r3, r3, #16777216
+ 1125 0046 FAD1     		bne	.L92
+ 464:../common/ubertooth.c **** 
+ 465:../common/ubertooth.c **** 	/* temporarily set CPU clock divider to 1 */
+ 466:../common/ubertooth.c **** 	CCLKCFG = 0;
+ 1126              		.loc 1 466 0
+ 1127 0048 374A     		ldr	r2, .L107+12
+ 1128 004a 1360     		str	r3, [r2]
+ 467:../common/ubertooth.c **** 
+ 468:../common/ubertooth.c **** 	/* configure CC2400 oscillator, output carrier sense on GIO6 */
+ 469:../common/ubertooth.c **** 	cc2400_reset();
+ 1129              		.loc 1 469 0
+ 1130 004c FFF7FEFF 		bl	cc2400_reset
+ 1131              	.LVL98:
+ 1132              	.LBB18:
+ 1133              	.LBB19:
+ 313:../common/ubertooth.c **** }
+ 1134              		.loc 1 313 0
+ 1135 0050 1820     		movs	r0, #24
+ 1136 0052 3649     		ldr	r1, .L107+16
+ 1137 0054 FFF7FEFF 		bl	cc2400_spi
+ 1138              	.LVL99:
+ 1139              	.LBE19:
+ 1140              	.LBE18:
+ARM GAS  /tmp/cc5HFuYs.s 			page 31
+
+
+ 470:../common/ubertooth.c **** 	cc2400_set(IOCFG, (GIO_CARRIER_SENSE_N << 9) | (GIO_CLK_16M << 3));
+ 471:../common/ubertooth.c **** 	cc2400_strobe(SXOSCON);
+ 1141              		.loc 1 471 0
+ 1142 0058 6020     		movs	r0, #96
+ 1143 005a FFF7FEFF 		bl	cc2400_strobe
+ 1144              	.LVL100:
+ 1145              	.L94:
+ 472:../common/ubertooth.c **** 	while (!(cc2400_status() & XOSC16M_STABLE));
+ 1146              		.loc 1 472 0 discriminator 1
+ 1147 005e FFF7FEFF 		bl	cc2400_status
+ 1148              	.LVL101:
+ 1149 0062 4006     		lsls	r0, r0, #25
+ 1150 0064 FBD5     		bpl	.L94
+ 473:../common/ubertooth.c **** 
+ 474:../common/ubertooth.c **** 	/* activate main oscillator */
+ 475:../common/ubertooth.c **** 	SCS = SCS_OSCEN;
+ 1151              		.loc 1 475 0
+ 1152 0066 324B     		ldr	r3, .L107+20
+ 1153 0068 2022     		movs	r2, #32
+ 1154 006a 1A60     		str	r2, [r3]
+ 1155              	.L96:
+ 476:../common/ubertooth.c **** 	while (!(SCS & SCS_OSCSTAT));
+ 1156              		.loc 1 476 0 discriminator 1
+ 1157 006c 1A68     		ldr	r2, [r3]
+ 1158 006e 5106     		lsls	r1, r2, #25
+ 1159 0070 FCD5     		bpl	.L96
+ 477:../common/ubertooth.c **** 
+ 478:../common/ubertooth.c **** 	/*
+ 479:../common/ubertooth.c **** 	 * errata sheet says we must select peripheral clock before enabling and
+ 480:../common/ubertooth.c **** 	 * connecting PLL0
+ 481:../common/ubertooth.c ****  	 */
+ 482:../common/ubertooth.c **** #ifdef TC13BADGE
+ 483:../common/ubertooth.c **** 	PCLKSEL0  = (1 << 2); /* TIMER0 at cclk (30 MHz) */
+ 484:../common/ubertooth.c **** #else
+ 485:../common/ubertooth.c **** 	PCLKSEL0  = (2 << 2); /* TIMER0 at cclk/2 (50 MHz) */
+ 1160              		.loc 1 485 0
+ 1161 0072 304B     		ldr	r3, .L107+24
+ 1162 0074 0822     		movs	r2, #8
+ 1163 0076 1A60     		str	r2, [r3]
+ 486:../common/ubertooth.c **** #endif
+ 487:../common/ubertooth.c **** 	PCLKSEL1  = 0;
+ 1164              		.loc 1 487 0
+ 1165 0078 0022     		movs	r2, #0
+ 1166 007a 5A60     		str	r2, [r3, #4]
+ 488:../common/ubertooth.c **** 
+ 489:../common/ubertooth.c **** 	/* switch to main oscillator */
+ 490:../common/ubertooth.c **** 	CLKSRCSEL = 1;
+ 1167              		.loc 1 490 0
+ 1168 007c 0122     		movs	r2, #1
+ 1169 007e 43F89C2C 		str	r2, [r3, #-156]
+ 491:../common/ubertooth.c **** 
+ 492:../common/ubertooth.c **** 	/* configure PLL0 */
+ 493:../common/ubertooth.c **** 	PLL0CFG = (MSEL0 << 0) | (NSEL0 << 16);
+ 1170              		.loc 1 493 0
+ 1171 0082 2D4A     		ldr	r2, .L107+28
+ 490:../common/ubertooth.c **** 
+ 1172              		.loc 1 490 0
+ARM GAS  /tmp/cc5HFuYs.s 			page 32
+
+
+ 1173 0084 9C3B     		subs	r3, r3, #156
+ 1174              		.loc 1 493 0
+ 1175 0086 43F8882C 		str	r2, [r3, #-136]
+ 494:../common/ubertooth.c **** 	PLL0FEED_SEQUENCE;
+ 1176              		.loc 1 494 0
+ 1177 008a AA21     		movs	r1, #170
+ 1178 008c 5522     		movs	r2, #85
+ 495:../common/ubertooth.c **** 
+ 496:../common/ubertooth.c **** 	/* turn on PLL0 */
+ 497:../common/ubertooth.c **** 	PLL0CON |= PLL0CON_PLLE0;
+ 1179              		.loc 1 497 0
+ 1180 008e 2B48     		ldr	r0, .L107+32
+ 494:../common/ubertooth.c **** 	PLL0FEED_SEQUENCE;
+ 1181              		.loc 1 494 0
+ 1182 0090 43F8801C 		str	r1, [r3, #-128]
+ 1183 0094 43F8802C 		str	r2, [r3, #-128]
+ 1184              		.loc 1 497 0
+ 1185 0098 0468     		ldr	r4, [r0]
+ 1186 009a 44F00104 		orr	r4, r4, #1
+ 1187 009e 0460     		str	r4, [r0]
+ 498:../common/ubertooth.c **** 	PLL0FEED_SEQUENCE;
+ 1188              		.loc 1 498 0
+ 1189 00a0 43F8801C 		str	r1, [r3, #-128]
+ 1190 00a4 43F8802C 		str	r2, [r3, #-128]
+ 1191              	.L98:
+ 499:../common/ubertooth.c **** 	while (!(PLL0STAT & PLL0STAT_PLLE0_STAT));
+ 1192              		.loc 1 499 0 discriminator 1
+ 1193 00a8 1E4B     		ldr	r3, .L107+8
+ 1194 00aa 1B68     		ldr	r3, [r3]
+ 1195 00ac DA01     		lsls	r2, r3, #7
+ 1196 00ae FBD5     		bpl	.L98
+ 500:../common/ubertooth.c **** 
+ 501:../common/ubertooth.c **** 	/* set CPU clock divider */
+ 502:../common/ubertooth.c **** 	CCLKCFG = CCLKSEL;
+ 1197              		.loc 1 502 0
+ 1198 00b0 1D4B     		ldr	r3, .L107+12
+ 1199 00b2 0322     		movs	r2, #3
+ 1200 00b4 1A60     		str	r2, [r3]
+ 503:../common/ubertooth.c **** 
+ 504:../common/ubertooth.c **** 	/* connect PLL0 */
+ 505:../common/ubertooth.c **** 	PLL0CON |= PLL0CON_PLLC0;
+ 1201              		.loc 1 505 0
+ 1202 00b6 53F8842C 		ldr	r2, [r3, #-132]
+ 1203 00ba 42F00202 		orr	r2, r2, #2
+ 1204 00be 43F8842C 		str	r2, [r3, #-132]
+ 506:../common/ubertooth.c **** 	PLL0FEED_SEQUENCE;
+ 1205              		.loc 1 506 0
+ 1206 00c2 AA22     		movs	r2, #170
+ 1207 00c4 43F8782C 		str	r2, [r3, #-120]
+ 1208 00c8 5522     		movs	r2, #85
+ 1209 00ca 43F8782C 		str	r2, [r3, #-120]
+ 1210              	.L100:
+ 507:../common/ubertooth.c **** 	while (!(PLL0STAT & PLL0STAT_PLLC0_STAT));
+ 1211              		.loc 1 507 0 discriminator 1
+ 1212 00ce 154B     		ldr	r3, .L107+8
+ 1213 00d0 1B68     		ldr	r3, [r3]
+ 1214 00d2 9B01     		lsls	r3, r3, #6
+ARM GAS  /tmp/cc5HFuYs.s 			page 33
+
+
+ 1215 00d4 FBD5     		bpl	.L100
+ 508:../common/ubertooth.c **** 
+ 509:../common/ubertooth.c **** 	/* configure PLL1 */
+ 510:../common/ubertooth.c **** 	PLL1CFG = (MSEL1 << 0) | (PSEL1 << 5);
+ 1216              		.loc 1 510 0
+ 1217 00d6 1A4B     		ldr	r3, .L107+36
+ 1218 00d8 2222     		movs	r2, #34
+ 1219 00da 1A60     		str	r2, [r3]
+ 511:../common/ubertooth.c **** 	PLL1FEED_SEQUENCE;
+ 1220              		.loc 1 511 0
+ 1221 00dc AA21     		movs	r1, #170
+ 1222 00de 5522     		movs	r2, #85
+ 512:../common/ubertooth.c **** 
+ 513:../common/ubertooth.c **** 	/* turn on PLL1 */
+ 514:../common/ubertooth.c **** 	PLL1CON |= PLL1CON_PLLE1;
+ 1223              		.loc 1 514 0
+ 1224 00e0 1848     		ldr	r0, .L107+40
+ 511:../common/ubertooth.c **** 	PLL1FEED_SEQUENCE;
+ 1225              		.loc 1 511 0
+ 1226 00e2 9960     		str	r1, [r3, #8]
+ 1227 00e4 9A60     		str	r2, [r3, #8]
+ 1228              		.loc 1 514 0
+ 1229 00e6 0468     		ldr	r4, [r0]
+ 1230 00e8 44F00104 		orr	r4, r4, #1
+ 1231 00ec 0460     		str	r4, [r0]
+ 515:../common/ubertooth.c **** 	PLL1FEED_SEQUENCE;
+ 1232              		.loc 1 515 0
+ 1233 00ee 9960     		str	r1, [r3, #8]
+ 1234 00f0 9A60     		str	r2, [r3, #8]
+ 1235              	.L102:
+ 516:../common/ubertooth.c **** 	while (!(PLL1STAT & PLL1STAT_PLLE1_STAT));
+ 1236              		.loc 1 516 0 discriminator 1
+ 1237 00f2 154B     		ldr	r3, .L107+44
+ 1238 00f4 1A68     		ldr	r2, [r3]
+ 1239 00f6 D405     		lsls	r4, r2, #23
+ 1240 00f8 FBD5     		bpl	.L102
+ 1241              	.L104:
+ 517:../common/ubertooth.c **** 	while (!(PLL1STAT & PLL1STAT_PLOCK1));
+ 1242              		.loc 1 517 0
+ 1243 00fa 1A68     		ldr	r2, [r3]
+ 1244 00fc 5005     		lsls	r0, r2, #21
+ 1245 00fe FCD5     		bpl	.L104
+ 518:../common/ubertooth.c **** 
+ 519:../common/ubertooth.c **** 	/* connect PLL1 */
+ 520:../common/ubertooth.c **** 	PLL1CON |= PLL1CON_PLLC1;
+ 1246              		.loc 1 520 0
+ 1247 0100 104B     		ldr	r3, .L107+40
+ 1248 0102 1A68     		ldr	r2, [r3]
+ 1249 0104 42F00202 		orr	r2, r2, #2
+ 1250 0108 1A60     		str	r2, [r3]
+ 521:../common/ubertooth.c **** 	PLL1FEED_SEQUENCE;
+ 1251              		.loc 1 521 0
+ 1252 010a AA22     		movs	r2, #170
+ 1253 010c DA60     		str	r2, [r3, #12]
+ 1254 010e 5522     		movs	r2, #85
+ 1255 0110 DA60     		str	r2, [r3, #12]
+ 1256              	.L106:
+ARM GAS  /tmp/cc5HFuYs.s 			page 34
+
+
+ 522:../common/ubertooth.c **** 	while (!(PLL1STAT & PLL1STAT_PLLC1_STAT));
+ 1257              		.loc 1 522 0 discriminator 1
+ 1258 0112 0D4B     		ldr	r3, .L107+44
+ 1259 0114 1B68     		ldr	r3, [r3]
+ 1260 0116 9905     		lsls	r1, r3, #22
+ 1261 0118 FBD5     		bpl	.L106
+ 523:../common/ubertooth.c **** }
+ 1262              		.loc 1 523 0
+ 1263 011a 10BD     		pop	{r4, pc}
+ 1264              	.L108:
+ 1265              		.align	2
+ 1266              	.L107:
+ 1267 011c 00C00F40 		.word	1074774016
+ 1268 0120 8CC00F40 		.word	1074774156
+ 1269 0124 88C00F40 		.word	1074774152
+ 1270 0128 04C10F40 		.word	1074774276
+ 1271 012c 70150800 		.word	529776
+ 1272 0130 A0C10F40 		.word	1074774432
+ 1273 0134 A8C10F40 		.word	1074774440
+ 1274 0138 18000100 		.word	65560
+ 1275 013c 80C00F40 		.word	1074774144
+ 1276 0140 A4C00F40 		.word	1074774180
+ 1277 0144 A0C00F40 		.word	1074774176
+ 1278 0148 A8C00F40 		.word	1074774184
+ 1279              		.cfi_endproc
+ 1280              	.LFE21:
+ 1282              		.section	.text.ubertooth_init,"ax",%progbits
+ 1283              		.align	1
+ 1284              		.global	ubertooth_init
+ 1285              		.thumb
+ 1286              		.thumb_func
+ 1288              	ubertooth_init:
+ 1289              	.LFB6:
+ 156:../common/ubertooth.c **** 	gpio_init();
+ 1290              		.loc 1 156 0
+ 1291              		.cfi_startproc
+ 1292              		@ args = 0, pretend = 0, frame = 0
+ 1293              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1294 0000 08B5     		push	{r3, lr}
+ 1295              		.cfi_def_cfa_offset 8
+ 1296              		.cfi_offset 3, -8
+ 1297              		.cfi_offset 14, -4
+ 157:../common/ubertooth.c **** 	cc2400_init();
+ 1298              		.loc 1 157 0
+ 1299 0002 FFF7FEFF 		bl	gpio_init
+ 1300              	.LVL102:
+ 158:../common/ubertooth.c **** 	clock_start();
+ 1301              		.loc 1 158 0
+ 1302 0006 FFF7FEFF 		bl	cc2400_init
+ 1303              	.LVL103:
+ 160:../common/ubertooth.c **** 
+ 1304              		.loc 1 160 0
+ 1305 000a BDE80840 		pop	{r3, lr}
+ 159:../common/ubertooth.c **** }
+ 1306              		.loc 1 159 0
+ 1307 000e FFF7FEBF 		b	clock_start
+ 1308              	.LVL104:
+ARM GAS  /tmp/cc5HFuYs.s 			page 35
+
+
+ 1309              		.cfi_endproc
+ 1310              	.LFE6:
+ 1312              		.section	.text.reset,"ax",%progbits
+ 1313              		.align	1
+ 1314              		.global	reset
+ 1315              		.thumb
+ 1316              		.thumb_func
+ 1318              	reset:
+ 1319              	.LFB22:
+ 524:../common/ubertooth.c **** 
+ 525:../common/ubertooth.c **** /* reset the LPC17xx, the cc2400 will be handled by the boot code */
+ 526:../common/ubertooth.c **** void reset()
+ 527:../common/ubertooth.c **** {
+ 1320              		.loc 1 527 0
+ 1321              		.cfi_startproc
+ 1322              		@ args = 0, pretend = 0, frame = 0
+ 1323              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1324 0000 08B5     		push	{r3, lr}
+ 1325              		.cfi_def_cfa_offset 8
+ 1326              		.cfi_offset 3, -8
+ 1327              		.cfi_offset 14, -4
+ 528:../common/ubertooth.c **** 	all_pins_off();
+ 1328              		.loc 1 528 0
+ 1329 0002 FFF7FEFF 		bl	all_pins_off
+ 1330              	.LVL105:
+ 529:../common/ubertooth.c **** 
+ 530:../common/ubertooth.c **** 	/* Enable the watchdog with reset enabled */
+ 531:../common/ubertooth.c **** 	USRLED_CLR;
+ 1331              		.loc 1 531 0
+ 1332 0006 094B     		ldr	r3, .L111
+ 1333 0008 0222     		movs	r2, #2
+ 1334 000a 1A60     		str	r2, [r3]
+ 532:../common/ubertooth.c **** 	WDMOD |= WDMOD_WDEN | WDMOD_WDRESET;
+ 1335              		.loc 1 532 0
+ 1336 000c 4FF08043 		mov	r3, #1073741824
+ 1337 0010 1A68     		ldr	r2, [r3]
+ 1338              	.LBB22:
+ 1339              	.LBB23:
+  30:../common/ubertooth.c **** }
+ 1340              		.loc 1 30 0
+ 1341 0012 0748     		ldr	r0, .L111+4
+ 1342              	.LBE23:
+ 1343              	.LBE22:
+ 1344              		.loc 1 532 0
+ 1345 0014 42F00302 		orr	r2, r2, #3
+ 1346 0018 1A60     		str	r2, [r3]
+ 533:../common/ubertooth.c **** 	WDFEED_SEQUENCE;
+ 1347              		.loc 1 533 0
+ 1348 001a AA22     		movs	r2, #170
+ 1349 001c 9A60     		str	r2, [r3, #8]
+ 1350 001e 5522     		movs	r2, #85
+ 1351 0020 9A60     		str	r2, [r3, #8]
+ 1352              	.LVL106:
+ 534:../common/ubertooth.c **** 	
+ 535:../common/ubertooth.c **** 	/* Set watchdog timeout to 256us (minimum) */
+ 536:../common/ubertooth.c **** 	
+ 537:../common/ubertooth.c **** 	/* sleep for 1s (minimum) */
+ARM GAS  /tmp/cc5HFuYs.s 			page 36
+
+
+ 538:../common/ubertooth.c **** 	wait(1);
+ 539:../common/ubertooth.c **** }
+ 1353              		.loc 1 539 0
+ 1354 0022 BDE80840 		pop	{r3, lr}
+ 1355              	.LBB25:
+ 1356              	.LBB24:
+  30:../common/ubertooth.c **** }
+ 1357              		.loc 1 30 0
+ 1358 0026 FFF7FEBF 		b	wait_us
+ 1359              	.LVL107:
+ 1360              	.L112:
+ 1361 002a 00BF     		.align	2
+ 1362              	.L111:
+ 1363 002c 3CC00920 		.word	537509948
+ 1364 0030 40420F00 		.word	1000000
+ 1365              	.LBE24:
+ 1366              	.LBE25:
+ 1367              		.cfi_endproc
+ 1368              	.LFE22:
+ 1370              		.section	.text.cc2400_tune_rx,"ax",%progbits
+ 1371              		.align	1
+ 1372              		.global	cc2400_tune_rx
+ 1373              		.thumb
+ 1374              		.thumb_func
+ 1376              	cc2400_tune_rx:
+ 1377              	.LFB23:
+ 540:../common/ubertooth.c **** 
+ 541:../common/ubertooth.c **** /* take control of R8C microcontroller and CC2400 on the ToorCon 13 badge */
+ 542:../common/ubertooth.c **** #ifdef TC13BADGE
+ 543:../common/ubertooth.c **** void r8c_takeover(void)
+ 544:../common/ubertooth.c **** {
+ 545:../common/ubertooth.c **** 	/* wait until user presses SW1 while USB is connected */
+ 546:../common/ubertooth.c **** 	while (SW1 || !VBUS) {
+ 547:../common/ubertooth.c **** 		/* turn off power to all peripherals except GPIO */
+ 548:../common/ubertooth.c **** 		PCONP = PCONP_PCGPIO;
+ 549:../common/ubertooth.c **** 
+ 550:../common/ubertooth.c **** 		/* enable interrupt on falling edge of P2.8 (SW1) */
+ 551:../common/ubertooth.c **** 		IO2IntEnF |= (0x1 << 8);
+ 552:../common/ubertooth.c **** 		ISER0 |= ISER0_ISE_EINT3;
+ 553:../common/ubertooth.c **** 
+ 554:../common/ubertooth.c **** 		/* go into power-down mode and wait for interrupt */
+ 555:../common/ubertooth.c **** 		SCB_SCR = SCB_SCR_SLEEPDEEP;
+ 556:../common/ubertooth.c **** 		PCON = (PCON_PM0 | PCON_BOGD);
+ 557:../common/ubertooth.c **** 		asm("WFI");
+ 558:../common/ubertooth.c **** 
+ 559:../common/ubertooth.c **** 		/* disable interrupt */
+ 560:../common/ubertooth.c **** 		IO2IntEnF &= ~(0x1 << 8);
+ 561:../common/ubertooth.c **** 		ICER0 |= ICER0_ICE_EINT3;
+ 562:../common/ubertooth.c **** 
+ 563:../common/ubertooth.c **** 		/* turn power back on for peripherals we use */
+ 564:../common/ubertooth.c **** 		PCONP = (PCONP_PCTIM0 | PCONP_PCSSP1 | PCONP_PCGPIO | PCONP_PCSSP0);
+ 565:../common/ubertooth.c **** 	}
+ 566:../common/ubertooth.c **** 
+ 567:../common/ubertooth.c **** 	/* drop R8C_CTL to let the R8C know we are taking over */
+ 568:../common/ubertooth.c **** 	R8C_CTL_CLR;
+ 569:../common/ubertooth.c **** 
+ 570:../common/ubertooth.c **** 	/* wait for the R8C to acknowledge the takeover */
+ARM GAS  /tmp/cc5HFuYs.s 			page 37
+
+
+ 571:../common/ubertooth.c **** 	while (R8C_ACK);
+ 572:../common/ubertooth.c **** }
+ 573:../common/ubertooth.c **** 
+ 574:../common/ubertooth.c **** /* interrupt handler for SW1 */
+ 575:../common/ubertooth.c **** void EINT3_IRQHandler(void)
+ 576:../common/ubertooth.c **** {
+ 577:../common/ubertooth.c **** 	/* clear interrupt */
+ 578:../common/ubertooth.c **** 	IO2IntClr |= (0x1 << 8);
+ 579:../common/ubertooth.c **** }
+ 580:../common/ubertooth.c **** #endif
+ 581:../common/ubertooth.c **** 
+ 582:../common/ubertooth.c **** /*
+ 583:../common/ubertooth.c ****  * Tune the CC2400 to a frequency in MHz for RX.  The calling function should
+ 584:../common/ubertooth.c ****  * ensure that the CC2400 is in the IDLE state.
+ 585:../common/ubertooth.c ****  */
+ 586:../common/ubertooth.c **** void cc2400_tune_rx(uint16_t channel)
+ 587:../common/ubertooth.c **** {
+ 1378              		.loc 1 587 0
+ 1379              		.cfi_startproc
+ 1380              		@ args = 0, pretend = 0, frame = 0
+ 1381              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1382              		@ link register save eliminated.
+ 1383              	.LVL108:
+ 588:../common/ubertooth.c **** 	cc2400_set(FSDIV, channel - 1);
+ 1384              		.loc 1 588 0
+ 1385 0000 411E     		subs	r1, r0, #1
+ 1386 0002 89B2     		uxth	r1, r1
+ 1387 0004 0220     		movs	r0, #2
+ 1388              	.LVL109:
+ 1389 0006 FFF7FEBF 		b	cc2400_set
+ 1390              	.LVL110:
+ 1391              		.cfi_endproc
+ 1392              	.LFE23:
+ 1394              		.section	.text.cc2400_tune_tx,"ax",%progbits
+ 1395              		.align	1
+ 1396              		.global	cc2400_tune_tx
+ 1397              		.thumb
+ 1398              		.thumb_func
+ 1400              	cc2400_tune_tx:
+ 1401              	.LFB24:
+ 589:../common/ubertooth.c **** }
+ 590:../common/ubertooth.c **** 
+ 591:../common/ubertooth.c **** /*
+ 592:../common/ubertooth.c ****  * Tune the CC2400 to a frequency in MHz for TX.  The calling function should
+ 593:../common/ubertooth.c ****  * ensure that the CC2400 is in the IDLE state.
+ 594:../common/ubertooth.c ****  */
+ 595:../common/ubertooth.c **** void cc2400_tune_tx(uint16_t channel)
+ 596:../common/ubertooth.c **** {
+ 1402              		.loc 1 596 0
+ 1403              		.cfi_startproc
+ 1404              		@ args = 0, pretend = 0, frame = 0
+ 1405              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1406              		@ link register save eliminated.
+ 1407              	.LVL111:
+ 1408              		.loc 1 596 0
+ 1409 0000 0146     		mov	r1, r0
+ 597:../common/ubertooth.c **** 	cc2400_set(FSDIV, channel);
+ARM GAS  /tmp/cc5HFuYs.s 			page 38
+
+
+ 1410              		.loc 1 597 0
+ 1411 0002 0220     		movs	r0, #2
+ 1412              	.LVL112:
+ 1413 0004 FFF7FEBF 		b	cc2400_set
+ 1414              	.LVL113:
+ 1415              		.cfi_endproc
+ 1416              	.LFE24:
+ 1418              		.section	.text.cc2400_hop_rx,"ax",%progbits
+ 1419              		.align	1
+ 1420              		.global	cc2400_hop_rx
+ 1421              		.thumb
+ 1422              		.thumb_func
+ 1424              	cc2400_hop_rx:
+ 1425              	.LFB25:
+ 598:../common/ubertooth.c **** }
+ 599:../common/ubertooth.c **** 
+ 600:../common/ubertooth.c **** /* Hop to a new RX frequency in MHz.  Assumes starting from RX or TX state. */
+ 601:../common/ubertooth.c **** void cc2400_hop_rx(uint16_t channel)
+ 602:../common/ubertooth.c **** {
+ 1426              		.loc 1 602 0
+ 1427              		.cfi_startproc
+ 1428              		@ args = 0, pretend = 0, frame = 0
+ 1429              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1430              	.LVL114:
+ 1431 0000 10B5     		push	{r4, lr}
+ 1432              		.cfi_def_cfa_offset 8
+ 1433              		.cfi_offset 4, -8
+ 1434              		.cfi_offset 14, -4
+ 1435              		.loc 1 602 0
+ 1436 0002 0446     		mov	r4, r0
+ 603:../common/ubertooth.c **** 	cc2400_strobe(SRFOFF);
+ 1437              		.loc 1 603 0
+ 1438 0004 6420     		movs	r0, #100
+ 1439              	.LVL115:
+ 1440 0006 FFF7FEFF 		bl	cc2400_strobe
+ 1441              	.LVL116:
+ 1442              	.L117:
+ 604:../common/ubertooth.c **** 	while ((cc2400_status() & FS_LOCK));
+ 1443              		.loc 1 604 0 discriminator 1
+ 1444 000a FFF7FEFF 		bl	cc2400_status
+ 1445              	.LVL117:
+ 1446 000e 4107     		lsls	r1, r0, #29
+ 1447 0010 FBD4     		bmi	.L117
+ 605:../common/ubertooth.c **** 	cc2400_tune_rx(channel);
+ 1448              		.loc 1 605 0
+ 1449 0012 2046     		mov	r0, r4
+ 1450 0014 FFF7FEFF 		bl	cc2400_tune_rx
+ 1451              	.LVL118:
+ 1452              	.L119:
+ 606:../common/ubertooth.c **** 	while (!(cc2400_status() & XOSC16M_STABLE));
+ 1453              		.loc 1 606 0 discriminator 1
+ 1454 0018 FFF7FEFF 		bl	cc2400_status
+ 1455              	.LVL119:
+ 1456 001c 4206     		lsls	r2, r0, #25
+ 1457 001e FBD5     		bpl	.L119
+ 607:../common/ubertooth.c **** 	cc2400_strobe(SFSON);
+ 1458              		.loc 1 607 0
+ARM GAS  /tmp/cc5HFuYs.s 			page 39
+
+
+ 1459 0020 6120     		movs	r0, #97
+ 1460 0022 FFF7FEFF 		bl	cc2400_strobe
+ 1461              	.LVL120:
+ 1462              	.L121:
+ 608:../common/ubertooth.c **** 	while (!(cc2400_status() & FS_LOCK));
+ 1463              		.loc 1 608 0 discriminator 1
+ 1464 0026 FFF7FEFF 		bl	cc2400_status
+ 1465              	.LVL121:
+ 1466 002a 4307     		lsls	r3, r0, #29
+ 1467 002c FBD5     		bpl	.L121
+ 609:../common/ubertooth.c **** 	cc2400_strobe(SRX);
+ 1468              		.loc 1 609 0
+ 1469 002e 6220     		movs	r0, #98
+ 610:../common/ubertooth.c **** }
+ 1470              		.loc 1 610 0
+ 1471 0030 BDE81040 		pop	{r4, lr}
+ 609:../common/ubertooth.c **** 	cc2400_strobe(SRX);
+ 1472              		.loc 1 609 0
+ 1473 0034 FFF7FEBF 		b	cc2400_strobe
+ 1474              	.LVL122:
+ 1475              		.cfi_endproc
+ 1476              	.LFE25:
+ 1478              		.section	.text.cc2400_hop_tx,"ax",%progbits
+ 1479              		.align	1
+ 1480              		.global	cc2400_hop_tx
+ 1481              		.thumb
+ 1482              		.thumb_func
+ 1484              	cc2400_hop_tx:
+ 1485              	.LFB26:
+ 611:../common/ubertooth.c **** 
+ 612:../common/ubertooth.c **** /* Hop to a new TX frequency in MHz.  Assumes starting from RX or TX state. */
+ 613:../common/ubertooth.c **** void cc2400_hop_tx(uint16_t channel)
+ 614:../common/ubertooth.c **** {
+ 1486              		.loc 1 614 0
+ 1487              		.cfi_startproc
+ 1488              		@ args = 0, pretend = 0, frame = 0
+ 1489              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1490              	.LVL123:
+ 1491 0000 10B5     		push	{r4, lr}
+ 1492              		.cfi_def_cfa_offset 8
+ 1493              		.cfi_offset 4, -8
+ 1494              		.cfi_offset 14, -4
+ 1495              		.loc 1 614 0
+ 1496 0002 0446     		mov	r4, r0
+ 615:../common/ubertooth.c **** 	cc2400_strobe(SRFOFF);
+ 1497              		.loc 1 615 0
+ 1498 0004 6420     		movs	r0, #100
+ 1499              	.LVL124:
+ 1500 0006 FFF7FEFF 		bl	cc2400_strobe
+ 1501              	.LVL125:
+ 1502              	.L124:
+ 616:../common/ubertooth.c **** 	while ((cc2400_status() & FS_LOCK));
+ 1503              		.loc 1 616 0 discriminator 1
+ 1504 000a FFF7FEFF 		bl	cc2400_status
+ 1505              	.LVL126:
+ 1506 000e 4307     		lsls	r3, r0, #29
+ 1507 0010 FBD4     		bmi	.L124
+ARM GAS  /tmp/cc5HFuYs.s 			page 40
+
+
+ 617:../common/ubertooth.c **** 	cc2400_tune_rx(channel);
+ 1508              		.loc 1 617 0
+ 1509 0012 2046     		mov	r0, r4
+ 1510 0014 FFF7FEFF 		bl	cc2400_tune_rx
+ 1511              	.LVL127:
+ 1512              	.L126:
+ 618:../common/ubertooth.c **** 	while (!(cc2400_status() & XOSC16M_STABLE));
+ 1513              		.loc 1 618 0 discriminator 1
+ 1514 0018 FFF7FEFF 		bl	cc2400_status
+ 1515              	.LVL128:
+ 1516 001c 4406     		lsls	r4, r0, #25
+ 1517 001e FBD5     		bpl	.L126
+ 619:../common/ubertooth.c **** 	cc2400_strobe(SFSON);
+ 1518              		.loc 1 619 0
+ 1519 0020 6120     		movs	r0, #97
+ 1520 0022 FFF7FEFF 		bl	cc2400_strobe
+ 1521              	.LVL129:
+ 1522              	.L128:
+ 620:../common/ubertooth.c **** 	while (!(cc2400_status() & FS_LOCK));
+ 1523              		.loc 1 620 0 discriminator 1
+ 1524 0026 FFF7FEFF 		bl	cc2400_status
+ 1525              	.LVL130:
+ 1526 002a 4007     		lsls	r0, r0, #29
+ 1527 002c FBD5     		bpl	.L128
+ 621:../common/ubertooth.c **** 	cc2400_strobe(SRX);
+ 1528              		.loc 1 621 0
+ 1529 002e 6220     		movs	r0, #98
+ 622:../common/ubertooth.c **** }
+ 1530              		.loc 1 622 0
+ 1531 0030 BDE81040 		pop	{r4, lr}
+ 621:../common/ubertooth.c **** 	cc2400_strobe(SRX);
+ 1532              		.loc 1 621 0
+ 1533 0034 FFF7FEBF 		b	cc2400_strobe
+ 1534              	.LVL131:
+ 1535              		.cfi_endproc
+ 1536              	.LFE26:
+ 1538              		.section	.text.get_part_num,"ax",%progbits
+ 1539              		.align	1
+ 1540              		.global	get_part_num
+ 1541              		.thumb
+ 1542              		.thumb_func
+ 1544              	get_part_num:
+ 1545              	.LFB27:
+ 623:../common/ubertooth.c **** 
+ 624:../common/ubertooth.c **** void get_part_num(uint8_t *buffer, int *len)
+ 625:../common/ubertooth.c **** {
+ 1546              		.loc 1 625 0
+ 1547              		.cfi_startproc
+ 1548              		@ args = 0, pretend = 0, frame = 40
+ 1549              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1550              	.LVL132:
+ 1551 0000 30B5     		push	{r4, r5, lr}
+ 1552              		.cfi_def_cfa_offset 12
+ 1553              		.cfi_offset 4, -12
+ 1554              		.cfi_offset 5, -8
+ 1555              		.cfi_offset 14, -4
+ 1556 0002 8BB0     		sub	sp, sp, #44
+ARM GAS  /tmp/cc5HFuYs.s 			page 41
+
+
+ 1557              		.cfi_def_cfa_offset 56
+ 626:../common/ubertooth.c **** 	u32 command[5];
+ 627:../common/ubertooth.c **** 	u32 result[5];
+ 628:../common/ubertooth.c **** 	command[0] = 54; /* read part number */
+ 1558              		.loc 1 628 0
+ 1559 0004 3623     		movs	r3, #54
+ 625:../common/ubertooth.c **** 	u32 command[5];
+ 1560              		.loc 1 625 0
+ 1561 0006 0446     		mov	r4, r0
+ 1562              		.loc 1 628 0
+ 1563 0008 0AA8     		add	r0, sp, #40
+ 1564              	.LVL133:
+ 625:../common/ubertooth.c **** 	u32 command[5];
+ 1565              		.loc 1 625 0
+ 1566 000a 0D46     		mov	r5, r1
+ 1567              		.loc 1 628 0
+ 1568 000c 40F8283D 		str	r3, [r0, #-40]!
+ 629:../common/ubertooth.c **** 	iap_entry(command, result);
+ 1569              		.loc 1 629 0
+ 1570 0010 05A9     		add	r1, sp, #20
+ 1571              	.LVL134:
+ 1572 0012 6846     		mov	r0, sp
+ 1573 0014 074B     		ldr	r3, .L130
+ 1574 0016 9847     		blx	r3
+ 1575              	.LVL135:
+ 630:../common/ubertooth.c **** 	buffer[0] = result[0] & 0xFF; /* status */
+ 1576              		.loc 1 630 0
+ 1577 0018 059B     		ldr	r3, [sp, #20]
+ 1578 001a 2370     		strb	r3, [r4]
+ 631:../common/ubertooth.c **** 	buffer[1] = result[1] & 0xFF;
+ 1579              		.loc 1 631 0
+ 1580 001c 069B     		ldr	r3, [sp, #24]
+ 632:../common/ubertooth.c **** 	buffer[2] = (result[1] >> 8) & 0xFF;
+ 1581              		.loc 1 632 0
+ 1582 001e 1A0A     		lsrs	r2, r3, #8
+ 631:../common/ubertooth.c **** 	buffer[1] = result[1] & 0xFF;
+ 1583              		.loc 1 631 0
+ 1584 0020 6370     		strb	r3, [r4, #1]
+ 1585              		.loc 1 632 0
+ 1586 0022 A270     		strb	r2, [r4, #2]
+ 633:../common/ubertooth.c **** 	buffer[3] = (result[1] >> 16) & 0xFF;
+ 1587              		.loc 1 633 0
+ 1588 0024 1A0C     		lsrs	r2, r3, #16
+ 634:../common/ubertooth.c **** 	buffer[4] = (result[1] >> 24) & 0xFF;
+ 1589              		.loc 1 634 0
+ 1590 0026 1B0E     		lsrs	r3, r3, #24
+ 1591 0028 2371     		strb	r3, [r4, #4]
+ 635:../common/ubertooth.c **** 	*len = 5;
+ 1592              		.loc 1 635 0
+ 1593 002a 0523     		movs	r3, #5
+ 633:../common/ubertooth.c **** 	buffer[3] = (result[1] >> 16) & 0xFF;
+ 1594              		.loc 1 633 0
+ 1595 002c E270     		strb	r2, [r4, #3]
+ 1596              		.loc 1 635 0
+ 1597 002e 2B60     		str	r3, [r5]
+ 636:../common/ubertooth.c **** 	
+ 637:../common/ubertooth.c **** }
+ARM GAS  /tmp/cc5HFuYs.s 			page 42
+
+
+ 1598              		.loc 1 637 0
+ 1599 0030 0BB0     		add	sp, sp, #44
+ 1600              		@ sp needed
+ 1601 0032 30BD     		pop	{r4, r5, pc}
+ 1602              	.LVL136:
+ 1603              	.L131:
+ 1604              		.align	2
+ 1605              	.L130:
+ 1606 0034 F11FFF1F 		.word	536813553
+ 1607              		.cfi_endproc
+ 1608              	.LFE27:
+ 1610              		.section	.text.get_device_serial,"ax",%progbits
+ 1611              		.align	1
+ 1612              		.global	get_device_serial
+ 1613              		.thumb
+ 1614              		.thumb_func
+ 1616              	get_device_serial:
+ 1617              	.LFB28:
+ 638:../common/ubertooth.c **** 
+ 639:../common/ubertooth.c **** void get_device_serial(uint8_t *buffer, int *len)
+ 640:../common/ubertooth.c **** {
+ 1618              		.loc 1 640 0
+ 1619              		.cfi_startproc
+ 1620              		@ args = 0, pretend = 0, frame = 40
+ 1621              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1622              	.LVL137:
+ 1623 0000 30B5     		push	{r4, r5, lr}
+ 1624              		.cfi_def_cfa_offset 12
+ 1625              		.cfi_offset 4, -12
+ 1626              		.cfi_offset 5, -8
+ 1627              		.cfi_offset 14, -4
+ 1628 0002 8BB0     		sub	sp, sp, #44
+ 1629              		.cfi_def_cfa_offset 56
+ 641:../common/ubertooth.c **** 	u32 command[5];
+ 642:../common/ubertooth.c **** 	u32 result[5];
+ 643:../common/ubertooth.c **** 	command[0] = 58; /* read device serial number */
+ 1630              		.loc 1 643 0
+ 1631 0004 3A23     		movs	r3, #58
+ 640:../common/ubertooth.c **** 	u32 command[5];
+ 1632              		.loc 1 640 0
+ 1633 0006 0446     		mov	r4, r0
+ 1634              		.loc 1 643 0
+ 1635 0008 0AA8     		add	r0, sp, #40
+ 1636              	.LVL138:
+ 640:../common/ubertooth.c **** 	u32 command[5];
+ 1637              		.loc 1 640 0
+ 1638 000a 0D46     		mov	r5, r1
+ 1639              		.loc 1 643 0
+ 1640 000c 40F8283D 		str	r3, [r0, #-40]!
+ 644:../common/ubertooth.c **** 	iap_entry(command, result);
+ 1641              		.loc 1 644 0
+ 1642 0010 05A9     		add	r1, sp, #20
+ 1643              	.LVL139:
+ 1644 0012 6846     		mov	r0, sp
+ 1645 0014 134B     		ldr	r3, .L133
+ 1646 0016 9847     		blx	r3
+ 1647              	.LVL140:
+ARM GAS  /tmp/cc5HFuYs.s 			page 43
+
+
+ 645:../common/ubertooth.c **** 	buffer[0] = result[0] & 0xFF; /* status */
+ 1648              		.loc 1 645 0
+ 1649 0018 059B     		ldr	r3, [sp, #20]
+ 1650 001a 2370     		strb	r3, [r4]
+ 646:../common/ubertooth.c **** 	buffer[1] = result[1] & 0xFF;
+ 1651              		.loc 1 646 0
+ 1652 001c 069B     		ldr	r3, [sp, #24]
+ 647:../common/ubertooth.c **** 	buffer[2] = (result[1] >> 8) & 0xFF;
+ 1653              		.loc 1 647 0
+ 1654 001e 1A0A     		lsrs	r2, r3, #8
+ 646:../common/ubertooth.c **** 	buffer[1] = result[1] & 0xFF;
+ 1655              		.loc 1 646 0
+ 1656 0020 6370     		strb	r3, [r4, #1]
+ 1657              		.loc 1 647 0
+ 1658 0022 A270     		strb	r2, [r4, #2]
+ 648:../common/ubertooth.c **** 	buffer[3] = (result[1] >> 16) & 0xFF;
+ 1659              		.loc 1 648 0
+ 1660 0024 1A0C     		lsrs	r2, r3, #16
+ 649:../common/ubertooth.c **** 	buffer[4] = (result[1] >> 24) & 0xFF;
+ 1661              		.loc 1 649 0
+ 1662 0026 1B0E     		lsrs	r3, r3, #24
+ 1663 0028 2371     		strb	r3, [r4, #4]
+ 650:../common/ubertooth.c **** 	buffer[5] = result[2] & 0xFF;
+ 1664              		.loc 1 650 0
+ 1665 002a 079B     		ldr	r3, [sp, #28]
+ 648:../common/ubertooth.c **** 	buffer[3] = (result[1] >> 16) & 0xFF;
+ 1666              		.loc 1 648 0
+ 1667 002c E270     		strb	r2, [r4, #3]
+ 651:../common/ubertooth.c **** 	buffer[6] = (result[2] >> 8) & 0xFF;
+ 1668              		.loc 1 651 0
+ 1669 002e 1A0A     		lsrs	r2, r3, #8
+ 650:../common/ubertooth.c **** 	buffer[5] = result[2] & 0xFF;
+ 1670              		.loc 1 650 0
+ 1671 0030 6371     		strb	r3, [r4, #5]
+ 1672              		.loc 1 651 0
+ 1673 0032 A271     		strb	r2, [r4, #6]
+ 652:../common/ubertooth.c **** 	buffer[7] = (result[2] >> 16) & 0xFF;
+ 1674              		.loc 1 652 0
+ 1675 0034 1A0C     		lsrs	r2, r3, #16
+ 653:../common/ubertooth.c **** 	buffer[8] = (result[2] >> 24) & 0xFF;
+ 1676              		.loc 1 653 0
+ 1677 0036 1B0E     		lsrs	r3, r3, #24
+ 1678 0038 2372     		strb	r3, [r4, #8]
+ 654:../common/ubertooth.c **** 	buffer[9] = result[3] & 0xFF;
+ 1679              		.loc 1 654 0
+ 1680 003a 089B     		ldr	r3, [sp, #32]
+ 652:../common/ubertooth.c **** 	buffer[7] = (result[2] >> 16) & 0xFF;
+ 1681              		.loc 1 652 0
+ 1682 003c E271     		strb	r2, [r4, #7]
+ 655:../common/ubertooth.c **** 	buffer[10] = (result[3] >> 8) & 0xFF;
+ 1683              		.loc 1 655 0
+ 1684 003e 1A0A     		lsrs	r2, r3, #8
+ 654:../common/ubertooth.c **** 	buffer[9] = result[3] & 0xFF;
+ 1685              		.loc 1 654 0
+ 1686 0040 6372     		strb	r3, [r4, #9]
+ 1687              		.loc 1 655 0
+ 1688 0042 A272     		strb	r2, [r4, #10]
+ARM GAS  /tmp/cc5HFuYs.s 			page 44
+
+
+ 656:../common/ubertooth.c **** 	buffer[11] = (result[3] >> 16) & 0xFF;
+ 1689              		.loc 1 656 0
+ 1690 0044 1A0C     		lsrs	r2, r3, #16
+ 657:../common/ubertooth.c **** 	buffer[12] = (result[3] >> 24) & 0xFF;
+ 1691              		.loc 1 657 0
+ 1692 0046 1B0E     		lsrs	r3, r3, #24
+ 1693 0048 2373     		strb	r3, [r4, #12]
+ 658:../common/ubertooth.c **** 	buffer[13] = result[4] & 0xFF;
+ 1694              		.loc 1 658 0
+ 1695 004a 099B     		ldr	r3, [sp, #36]
+ 656:../common/ubertooth.c **** 	buffer[11] = (result[3] >> 16) & 0xFF;
+ 1696              		.loc 1 656 0
+ 1697 004c E272     		strb	r2, [r4, #11]
+ 659:../common/ubertooth.c **** 	buffer[14] = (result[4] >> 8) & 0xFF;
+ 1698              		.loc 1 659 0
+ 1699 004e 1A0A     		lsrs	r2, r3, #8
+ 658:../common/ubertooth.c **** 	buffer[13] = result[4] & 0xFF;
+ 1700              		.loc 1 658 0
+ 1701 0050 6373     		strb	r3, [r4, #13]
+ 1702              		.loc 1 659 0
+ 1703 0052 A273     		strb	r2, [r4, #14]
+ 660:../common/ubertooth.c **** 	buffer[15] = (result[4] >> 16) & 0xFF;
+ 1704              		.loc 1 660 0
+ 1705 0054 1A0C     		lsrs	r2, r3, #16
+ 661:../common/ubertooth.c **** 	buffer[16] = (result[4] >> 24) & 0xFF;
+ 1706              		.loc 1 661 0
+ 1707 0056 1B0E     		lsrs	r3, r3, #24
+ 1708 0058 2374     		strb	r3, [r4, #16]
+ 662:../common/ubertooth.c **** 	*len = 17;
+ 1709              		.loc 1 662 0
+ 1710 005a 1123     		movs	r3, #17
+ 660:../common/ubertooth.c **** 	buffer[15] = (result[4] >> 16) & 0xFF;
+ 1711              		.loc 1 660 0
+ 1712 005c E273     		strb	r2, [r4, #15]
+ 1713              		.loc 1 662 0
+ 1714 005e 2B60     		str	r3, [r5]
+ 663:../common/ubertooth.c **** }
+ 1715              		.loc 1 663 0
+ 1716 0060 0BB0     		add	sp, sp, #44
+ 1717              		@ sp needed
+ 1718 0062 30BD     		pop	{r4, r5, pc}
+ 1719              	.LVL141:
+ 1720              	.L134:
+ 1721              		.align	2
+ 1722              	.L133:
+ 1723 0064 F11FFF1F 		.word	536813553
+ 1724              		.cfi_endproc
+ 1725              	.LFE28:
+ 1727              		.section	.text.set_isp,"ax",%progbits
+ 1728              		.align	1
+ 1729              		.global	set_isp
+ 1730              		.thumb
+ 1731              		.thumb_func
+ 1733              	set_isp:
+ 1734              	.LFB29:
+ 664:../common/ubertooth.c **** 
+ 665:../common/ubertooth.c **** void set_isp(void)
+ARM GAS  /tmp/cc5HFuYs.s 			page 45
+
+
+ 666:../common/ubertooth.c **** {
+ 1735              		.loc 1 666 0
+ 1736              		.cfi_startproc
+ 1737              		@ args = 0, pretend = 0, frame = 40
+ 1738              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1739 0000 00B5     		push	{lr}
+ 1740              		.cfi_def_cfa_offset 4
+ 1741              		.cfi_offset 14, -4
+ 1742 0002 8BB0     		sub	sp, sp, #44
+ 1743              		.cfi_def_cfa_offset 48
+ 667:../common/ubertooth.c **** 	u32 command[5];
+ 668:../common/ubertooth.c **** 	u32 result[5];
+ 669:../common/ubertooth.c **** 	command[0] = 57;
+ 1744              		.loc 1 669 0
+ 1745 0004 3923     		movs	r3, #57
+ 1746 0006 0AA8     		add	r0, sp, #40
+ 1747 0008 40F8283D 		str	r3, [r0, #-40]!
+ 670:../common/ubertooth.c **** 	iap_entry(command, result);
+ 1748              		.loc 1 670 0
+ 1749 000c 05A9     		add	r1, sp, #20
+ 1750 000e 6846     		mov	r0, sp
+ 1751 0010 024B     		ldr	r3, .L136
+ 1752 0012 9847     		blx	r3
+ 1753              	.LVL142:
+ 671:../common/ubertooth.c **** }
+ 1754              		.loc 1 671 0
+ 1755 0014 0BB0     		add	sp, sp, #44
+ 1756              		@ sp needed
+ 1757 0016 5DF804FB 		ldr	pc, [sp], #4
+ 1758              	.L137:
+ 1759 001a 00BF     		.align	2
+ 1760              	.L136:
+ 1761 001c F11FFF1F 		.word	536813553
+ 1762              		.cfi_endproc
+ 1763              	.LFE29:
+ 1765              		.global	iap_entry
+ 1766              		.section	.rodata
+ 1767              		.align	2
+ 1770              	iap_entry:
+ 1771 0000 F11FFF1F 		.word	536813553
+ 1772              		.bss
+ 1773              		.align	2
+ 1774              		.set	.LANCHOR0,. + 0
+ 1777              	delay_counter:
+ 1778 0000 00000000 		.space	4
+ 1781              	wait_us_counter:
+ 1782 0004 00000000 		.space	4
+ 1783              		.text
+ 1784              	.Letext0:
+ 1785              		.file 2 "/usr/lib/gcc/arm-none-eabi/4.8.2/include/stdint-gcc.h"
+ 1786              		.file 3 "../common/ubertooth.h"
+ARM GAS  /tmp/cc5HFuYs.s 			page 46
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 ubertooth.c
+     /tmp/cc5HFuYs.s:19     .text.spi_delay:0000000000000000 $t
+     /tmp/cc5HFuYs.s:23     .text.spi_delay:0000000000000000 spi_delay
+     /tmp/cc5HFuYs.s:47     .text.spi_delay:0000000000000014 $d
+     /tmp/cc5HFuYs.s:52     .text.rbit:0000000000000000 $t
+     /tmp/cc5HFuYs.s:57     .text.rbit:0000000000000000 rbit
+     /tmp/cc5HFuYs.s:78     .text.wait_us:0000000000000000 $t
+     /tmp/cc5HFuYs.s:83     .text.wait_us:0000000000000000 wait_us
+     /tmp/cc5HFuYs.s:116    .text.wait_us:0000000000000028 $d
+     /tmp/cc5HFuYs.s:121    .text.wait:0000000000000000 $t
+     /tmp/cc5HFuYs.s:126    .text.wait:0000000000000000 wait
+     /tmp/cc5HFuYs.s:143    .text.wait:0000000000000008 $d
+     /tmp/cc5HFuYs.s:148    .text.wait_ms:0000000000000000 $t
+     /tmp/cc5HFuYs.s:153    .text.wait_ms:0000000000000000 wait_ms
+     /tmp/cc5HFuYs.s:171    .text.all_pins_off:0000000000000000 $t
+     /tmp/cc5HFuYs.s:176    .text.all_pins_off:0000000000000000 all_pins_off
+     /tmp/cc5HFuYs.s:242    .text.all_pins_off:0000000000000044 $d
+     /tmp/cc5HFuYs.s:250    .text.gpio_init:0000000000000000 $t
+     /tmp/cc5HFuYs.s:255    .text.gpio_init:0000000000000000 gpio_init
+     /tmp/cc5HFuYs.s:300    .text.gpio_init:0000000000000030 $d
+     /tmp/cc5HFuYs.s:305    .text.dio_ssp_init:0000000000000000 $t
+     /tmp/cc5HFuYs.s:310    .text.dio_ssp_init:0000000000000000 dio_ssp_init
+     /tmp/cc5HFuYs.s:353    .text.dio_ssp_init:0000000000000048 $d
+     /tmp/cc5HFuYs.s:360    .text.atest_init:0000000000000000 $t
+     /tmp/cc5HFuYs.s:365    .text.atest_init:0000000000000000 atest_init
+     /tmp/cc5HFuYs.s:395    .text.atest_init:0000000000000028 $d
+     /tmp/cc5HFuYs.s:402    .text.cc2400_spi:0000000000000000 $t
+     /tmp/cc5HFuYs.s:407    .text.cc2400_spi:0000000000000000 cc2400_spi
+     /tmp/cc5HFuYs.s:480    .text.cc2400_spi:0000000000000044 $d
+     /tmp/cc5HFuYs.s:487    .text.cc2400_init:0000000000000000 $t
+     /tmp/cc5HFuYs.s:492    .text.cc2400_init:0000000000000000 cc2400_init
+     /tmp/cc5HFuYs.s:539    .text.cc2400_init:000000000000002c $d
+     /tmp/cc5HFuYs.s:548    .text.cc2400_get:0000000000000000 $t
+     /tmp/cc5HFuYs.s:553    .text.cc2400_get:0000000000000000 cc2400_get
+     /tmp/cc5HFuYs.s:581    .text.cc2400_set:0000000000000000 $t
+     /tmp/cc5HFuYs.s:586    .text.cc2400_set:0000000000000000 cc2400_set
+     /tmp/cc5HFuYs.s:607    .text.cc2400_get8:0000000000000000 $t
+     /tmp/cc5HFuYs.s:612    .text.cc2400_get8:0000000000000000 cc2400_get8
+     /tmp/cc5HFuYs.s:640    .text.cc2400_set8:0000000000000000 $t
+     /tmp/cc5HFuYs.s:645    .text.cc2400_set8:0000000000000000 cc2400_set8
+     /tmp/cc5HFuYs.s:666    .text.cc2400_fifo_write:0000000000000000 $t
+     /tmp/cc5HFuYs.s:671    .text.cc2400_fifo_write:0000000000000000 cc2400_fifo_write
+     /tmp/cc5HFuYs.s:810    .text.cc2400_fifo_write:0000000000000088 $d
+     /tmp/cc5HFuYs.s:816    .text.cc2400_fifo_read:0000000000000000 $t
+     /tmp/cc5HFuYs.s:821    .text.cc2400_fifo_read:0000000000000000 cc2400_fifo_read
+     /tmp/cc5HFuYs.s:951    .text.cc2400_fifo_read:0000000000000088 $d
+     /tmp/cc5HFuYs.s:957    .text.cc2400_status:0000000000000000 $t
+     /tmp/cc5HFuYs.s:962    .text.cc2400_status:0000000000000000 cc2400_status
+     /tmp/cc5HFuYs.s:984    .text.cc2400_strobe:0000000000000000 $t
+     /tmp/cc5HFuYs.s:989    .text.cc2400_strobe:0000000000000000 cc2400_strobe
+     /tmp/cc5HFuYs.s:1014   .text.cc2400_reset:0000000000000000 $t
+     /tmp/cc5HFuYs.s:1019   .text.cc2400_reset:0000000000000000 cc2400_reset
+     /tmp/cc5HFuYs.s:1069   .text.clock_start:0000000000000000 $t
+     /tmp/cc5HFuYs.s:1074   .text.clock_start:0000000000000000 clock_start
+     /tmp/cc5HFuYs.s:1267   .text.clock_start:000000000000011c $d
+     /tmp/cc5HFuYs.s:1283   .text.ubertooth_init:0000000000000000 $t
+ARM GAS  /tmp/cc5HFuYs.s 			page 47
+
+
+     /tmp/cc5HFuYs.s:1288   .text.ubertooth_init:0000000000000000 ubertooth_init
+     /tmp/cc5HFuYs.s:1313   .text.reset:0000000000000000 $t
+     /tmp/cc5HFuYs.s:1318   .text.reset:0000000000000000 reset
+     /tmp/cc5HFuYs.s:1363   .text.reset:000000000000002c $d
+     /tmp/cc5HFuYs.s:1371   .text.cc2400_tune_rx:0000000000000000 $t
+     /tmp/cc5HFuYs.s:1376   .text.cc2400_tune_rx:0000000000000000 cc2400_tune_rx
+     /tmp/cc5HFuYs.s:1395   .text.cc2400_tune_tx:0000000000000000 $t
+     /tmp/cc5HFuYs.s:1400   .text.cc2400_tune_tx:0000000000000000 cc2400_tune_tx
+     /tmp/cc5HFuYs.s:1419   .text.cc2400_hop_rx:0000000000000000 $t
+     /tmp/cc5HFuYs.s:1424   .text.cc2400_hop_rx:0000000000000000 cc2400_hop_rx
+     /tmp/cc5HFuYs.s:1479   .text.cc2400_hop_tx:0000000000000000 $t
+     /tmp/cc5HFuYs.s:1484   .text.cc2400_hop_tx:0000000000000000 cc2400_hop_tx
+     /tmp/cc5HFuYs.s:1539   .text.get_part_num:0000000000000000 $t
+     /tmp/cc5HFuYs.s:1544   .text.get_part_num:0000000000000000 get_part_num
+     /tmp/cc5HFuYs.s:1606   .text.get_part_num:0000000000000034 $d
+     /tmp/cc5HFuYs.s:1611   .text.get_device_serial:0000000000000000 $t
+     /tmp/cc5HFuYs.s:1616   .text.get_device_serial:0000000000000000 get_device_serial
+     /tmp/cc5HFuYs.s:1723   .text.get_device_serial:0000000000000064 $d
+     /tmp/cc5HFuYs.s:1728   .text.set_isp:0000000000000000 $t
+     /tmp/cc5HFuYs.s:1733   .text.set_isp:0000000000000000 set_isp
+     /tmp/cc5HFuYs.s:1761   .text.set_isp:000000000000001c $d
+     /tmp/cc5HFuYs.s:1770   .rodata:0000000000000000 iap_entry
+     /tmp/cc5HFuYs.s:1767   .rodata:0000000000000000 $d
+     /tmp/cc5HFuYs.s:1773   .bss:0000000000000000 $d
+     /tmp/cc5HFuYs.s:1777   .bss:0000000000000000 delay_counter
+     /tmp/cc5HFuYs.s:1781   .bss:0000000000000004 wait_us_counter
+                     .debug_frame:0000000000000010 $d
+
+NO UNDEFINED SYMBOLS

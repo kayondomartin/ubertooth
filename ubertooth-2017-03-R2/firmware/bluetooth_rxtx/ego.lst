@@ -1,0 +1,1850 @@
+ARM GAS  /tmp/ccXBfSeJ.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"ego.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.ssp_stop,"ax",%progbits
+  19              		.align	1
+  20              		.thumb
+  21              		.thumb_func
+  23              	ssp_stop:
+  24              	.LFB1:
+  25              		.file 1 "ego.c"
+   1:ego.c         **** /*
+   2:ego.c         ****  * Copyright 2015 Mike Ryan
+   3:ego.c         ****  *
+   4:ego.c         ****  * This file is part of Project Ubertooth.
+   5:ego.c         ****  *
+   6:ego.c         ****  * This program is free software; you can redistribute it and/or modify
+   7:ego.c         ****  * it under the terms of the GNU General Public License as published by
+   8:ego.c         ****  * the Free Software Foundation; either version 2, or (at your option)
+   9:ego.c         ****  * any later version.
+  10:ego.c         ****  *
+  11:ego.c         ****  * This program is distributed in the hope that it will be useful,
+  12:ego.c         ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  13:ego.c         ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  14:ego.c         ****  * GNU General Public License for more details.
+  15:ego.c         ****  *
+  16:ego.c         ****  * You should have received a copy of the GNU General Public License
+  17:ego.c         ****  * along with this program; see the file COPYING.  If not, write to
+  18:ego.c         ****  * the Free Software Foundation, Inc., 51 Franklin Street,
+  19:ego.c         ****  * Boston, MA 02110-1301, USA.
+  20:ego.c         ****  */
+  21:ego.c         **** 
+  22:ego.c         **** #include "ego.h"
+  23:ego.c         **** 
+  24:ego.c         **** /*
+  25:ego.c         ****  * This code performs several functions related to the Yuneec E-GO electric
+  26:ego.c         ****  * skateboard:
+  27:ego.c         ****  *
+  28:ego.c         ****  *  - connection following
+  29:ego.c         ****  *  - continuous RX on a single channel
+  30:ego.c         ****  *  - jamming
+  31:ego.c         ****  */
+  32:ego.c         **** 
+  33:ego.c         **** int enqueue_with_ts(u8 type, u8 *buf, u32 ts);
+ARM GAS  /tmp/ccXBfSeJ.s 			page 2
+
+
+  34:ego.c         **** #define CLK100NS (3125*(clkn & 0xfffff) + T0TC)
+  35:ego.c         **** extern volatile u32 clkn; // TODO: replace with timer1
+  36:ego.c         **** extern volatile u8 requested_mode;
+  37:ego.c         **** extern volatile u16 channel;
+  38:ego.c         **** 
+  39:ego.c         **** static const uint16_t channels[4] = { 2408, 2418, 2423, 2469 };
+  40:ego.c         **** 
+  41:ego.c         **** typedef enum _ego_state_t {
+  42:ego.c         **** 	EGO_ST_INIT = 0,
+  43:ego.c         **** 	EGO_ST_START_RX,
+  44:ego.c         **** 	EGO_ST_CAP,
+  45:ego.c         **** 	EGO_ST_SLEEP,
+  46:ego.c         **** 	EGO_ST_START_JAMMING,
+  47:ego.c         **** 	EGO_ST_JAMMING,
+  48:ego.c         **** } ego_state_t;
+  49:ego.c         **** 
+  50:ego.c         **** typedef struct _ego_fsm_state_t {
+  51:ego.c         **** 	ego_state_t state;
+  52:ego.c         **** 	int channel_index;
+  53:ego.c         **** 	u32 sleep_start;
+  54:ego.c         **** 	u32 sleep_duration;
+  55:ego.c         **** 	int timer_active;
+  56:ego.c         **** 
+  57:ego.c         **** 	// used by jamming
+  58:ego.c         **** 	int packet_observed;
+  59:ego.c         **** 	u32 anchor;
+  60:ego.c         **** } ego_fsm_state_t;
+  61:ego.c         **** 
+  62:ego.c         **** typedef void (*ego_st_handler)(ego_fsm_state_t *);
+  63:ego.c         **** 
+  64:ego.c         **** #define EGO_PACKET_LEN 36
+  65:ego.c         **** typedef struct _ego_packet_t {
+  66:ego.c         **** 	u8 rxbuf[EGO_PACKET_LEN];
+  67:ego.c         **** 	u32 rxtime;
+  68:ego.c         **** } ego_packet_t;
+  69:ego.c         **** 
+  70:ego.c         **** static void ssp_start(void) {
+  71:ego.c         **** 	// make sure the (active low) slave select signal is not active
+  72:ego.c         **** 	DIO_SSEL_SET;
+  73:ego.c         **** 
+  74:ego.c         **** 	// enable SSP
+  75:ego.c         **** 	DIO_SSP_CR1 |= SSPCR1_SSE;
+  76:ego.c         **** 
+  77:ego.c         **** 	// activate slave select pin
+  78:ego.c         **** 	DIO_SSEL_CLR;
+  79:ego.c         **** }
+  80:ego.c         **** 
+  81:ego.c         **** static void ssp_stop() {
+  26              		.loc 1 81 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              		@ link register save eliminated.
+  82:ego.c         **** 	// disable CC2400's output (active low)
+  83:ego.c         **** 	DIO_SSEL_SET;
+  31              		.loc 1 83 0
+  32 0000 044B     		ldr	r3, .L2
+ARM GAS  /tmp/ccXBfSeJ.s 			page 3
+
+
+  33 0002 4FF08052 		mov	r2, #268435456
+  34 0006 1A60     		str	r2, [r3]
+  84:ego.c         **** 
+  85:ego.c         **** 	// disable SSP
+  86:ego.c         **** 	DIO_SSP_CR1 &= ~SSPCR1_SSE;
+  35              		.loc 1 86 0
+  36 0008 034B     		ldr	r3, .L2+4
+  37 000a 1A68     		ldr	r2, [r3]
+  38 000c 22F00202 		bic	r2, r2, #2
+  39 0010 1A60     		str	r2, [r3]
+  40 0012 7047     		bx	lr
+  41              	.L3:
+  42              		.align	2
+  43              	.L2:
+  44 0014 98C00920 		.word	537510040
+  45 0018 04000340 		.word	1073938436
+  46              		.cfi_endproc
+  47              	.LFE1:
+  49              		.section	.text.do_rx,"ax",%progbits
+  50              		.align	1
+  51              		.thumb
+  52              		.thumb_func
+  54              	do_rx:
+  55              	.LFB5:
+  87:ego.c         **** }
+  88:ego.c         **** 
+  89:ego.c         **** static void ego_init(void) {
+  90:ego.c         **** 	// enable USB interrupts
+  91:ego.c         **** 	ISER0 = ISER0_ISE_USB;
+  92:ego.c         **** 
+  93:ego.c         **** 	dio_ssp_init();
+  94:ego.c         **** }
+  95:ego.c         **** 
+  96:ego.c         **** static void ego_deinit(void) {
+  97:ego.c         **** 	cc2400_strobe(SRFOFF);
+  98:ego.c         **** 	ssp_stop(); // TODO disable SSP
+  99:ego.c         **** 	ICER0 = ICER0_ICE_USB;
+ 100:ego.c         **** }
+ 101:ego.c         **** 
+ 102:ego.c         **** static void rf_on(void) {
+ 103:ego.c         **** 	cc2400_set(MANAND,  0x7fff);
+ 104:ego.c         **** 	cc2400_set(LMTST,   0x2b22);
+ 105:ego.c         **** 	cc2400_set(MDMTST0, 0x134b); // without PRNG
+ 106:ego.c         **** 	cc2400_set(GRMDM,   0x04c0); // un-buffered mode, 2FSK
+ 107:ego.c         **** 	// 0 00 00 1 001 10 0 00 0 0
+ 108:ego.c         **** 	//      |  | |   |  +--------> CRC off
+ 109:ego.c         **** 	//      |  | |   +-----------> sync word: 24 MSB bits of SYNC_WORD
+ 110:ego.c         **** 	//      |  | +---------------> 1 byte of 01010101
+ 111:ego.c         **** 	//      |  +-----------------> packet mode
+ 112:ego.c         **** 	//      +--------------------> un-buffered mode
+ 113:ego.c         **** 	cc2400_set(FSDIV,   channel - 1); // 1 MHz IF
+ 114:ego.c         **** 	cc2400_set(MDMCTRL, 0x0026); // 150 kHz frequency deviation
+ 115:ego.c         **** 	cc2400_set(GRDEC,  3);       // 250 kbit
+ 116:ego.c         **** 
+ 117:ego.c         ****     // 630f9ffe86
+ 118:ego.c         **** 	cc2400_set(SYNCH,   0x630f);
+ 119:ego.c         **** 	cc2400_set(SYNCL,   0x9ffe);
+ARM GAS  /tmp/ccXBfSeJ.s 			page 4
+
+
+ 120:ego.c         **** 
+ 121:ego.c         **** 	while (!(cc2400_status() & XOSC16M_STABLE));
+ 122:ego.c         **** 
+ 123:ego.c         **** 	ssp_start();
+ 124:ego.c         **** 
+ 125:ego.c         **** 	cc2400_strobe(SFSON);
+ 126:ego.c         **** 	while (!(cc2400_status() & FS_LOCK));
+ 127:ego.c         **** 	while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
+ 128:ego.c         **** 
+ 129:ego.c         **** 	cc2400_strobe(SRX);
+ 130:ego.c         **** }
+ 131:ego.c         **** 
+ 132:ego.c         **** static void do_rx(ego_packet_t *packet) {
+  56              		.loc 1 132 0
+  57              		.cfi_startproc
+  58              		@ args = 0, pretend = 0, frame = 0
+  59              		@ frame_needed = 0, uses_anonymous_args = 0
+  60              		@ link register save eliminated.
+  61              	.LVL0:
+  62              	.LVL1:
+ 133:ego.c         **** 	int i;
+ 134:ego.c         **** 	for (i = 0; i < EGO_PACKET_LEN; i++) {
+  63              		.loc 1 134 0
+  64 0000 0023     		movs	r3, #0
+  65              	.LVL2:
+  66              	.L6:
+ 135:ego.c         **** 		// make sure there are bytes ready
+ 136:ego.c         **** 		while (!(SSP1SR & SSPSR_RNE)) ;
+  67              		.loc 1 136 0 discriminator 1
+  68 0002 054A     		ldr	r2, .L11
+  69 0004 1268     		ldr	r2, [r2]
+  70 0006 5207     		lsls	r2, r2, #29
+  71 0008 FBD5     		bpl	.L6
+ 137:ego.c         **** 		packet->rxbuf[i] = (u8)DIO_SSP_DR;
+  72              		.loc 1 137 0
+  73 000a 044A     		ldr	r2, .L11+4
+  74 000c 1268     		ldr	r2, [r2]
+  75 000e C254     		strb	r2, [r0, r3]
+ 134:ego.c         **** 		// make sure there are bytes ready
+  76              		.loc 1 134 0
+  77 0010 0133     		adds	r3, r3, #1
+  78              	.LVL3:
+  79 0012 242B     		cmp	r3, #36
+  80 0014 F5D1     		bne	.L6
+ 138:ego.c         **** 	}
+ 139:ego.c         **** }
+  81              		.loc 1 139 0
+  82 0016 7047     		bx	lr
+  83              	.L12:
+  84              		.align	2
+  85              	.L11:
+  86 0018 0C000340 		.word	1073938444
+  87 001c 08000340 		.word	1073938440
+  88              		.cfi_endproc
+  89              	.LFE5:
+  91              		.section	.text.sleep_ms,"ax",%progbits
+  92              		.align	1
+ARM GAS  /tmp/ccXBfSeJ.s 			page 5
+
+
+  93              		.thumb
+  94              		.thumb_func
+  96              	sleep_ms:
+  97              	.LFB7:
+ 140:ego.c         **** 
+ 141:ego.c         **** static inline int sync_received(void) {
+ 142:ego.c         **** 	return cc2400_status() & SYNC_RECEIVED;
+ 143:ego.c         **** }
+ 144:ego.c         **** 
+ 145:ego.c         **** // sleep for some milliseconds
+ 146:ego.c         **** static void sleep_ms(ego_fsm_state_t *state, u32 duration) {
+  98              		.loc 1 146 0
+  99              		.cfi_startproc
+ 100              		@ args = 0, pretend = 0, frame = 0
+ 101              		@ frame_needed = 0, uses_anonymous_args = 0
+ 102              	.LVL4:
+ 103 0000 10B5     		push	{r4, lr}
+ 104              		.cfi_def_cfa_offset 8
+ 105              		.cfi_offset 4, -8
+ 106              		.cfi_offset 14, -4
+ 147:ego.c         **** 	state->sleep_start = CLK100NS;
+ 107              		.loc 1 147 0
+ 108 0002 084B     		ldr	r3, .L14
+ 109 0004 084A     		ldr	r2, .L14+4
+ 110 0006 1B68     		ldr	r3, [r3]
+ 111 0008 1268     		ldr	r2, [r2]
+ 112 000a C3F31303 		ubfx	r3, r3, #0, #20
+ 113 000e 40F63544 		movw	r4, #3125
+ 114 0012 04FB0323 		mla	r3, r4, r3, r2
+ 115 0016 8360     		str	r3, [r0, #8]
+ 148:ego.c         **** 	state->sleep_duration = duration * 1000*10;
+ 116              		.loc 1 148 0
+ 117 0018 42F21073 		movw	r3, #10000
+ 118 001c 5943     		muls	r1, r3, r1
+ 119              	.LVL5:
+ 120 001e C160     		str	r1, [r0, #12]
+ 121 0020 10BD     		pop	{r4, pc}
+ 122              	.L15:
+ 123 0022 00BF     		.align	2
+ 124              	.L14:
+ 125 0024 00000000 		.word	clkn
+ 126 0028 08400040 		.word	1073758216
+ 127              		.cfi_endproc
+ 128              	.LFE7:
+ 130              		.section	.text.sleep_elapsed,"ax",%progbits
+ 131              		.align	1
+ 132              		.thumb
+ 133              		.thumb_func
+ 135              	sleep_elapsed:
+ 136              	.LFB9:
+ 149:ego.c         **** }
+ 150:ego.c         **** 
+ 151:ego.c         **** // sleep for some milliseconds relative to the current anchor point
+ 152:ego.c         **** static void sleep_ms_anchor(ego_fsm_state_t *state, u32 duration) {
+ 153:ego.c         **** 	state->sleep_start = state->anchor;
+ 154:ego.c         **** 	state->sleep_duration = duration * 1000*10;
+ 155:ego.c         **** }
+ARM GAS  /tmp/ccXBfSeJ.s 			page 6
+
+
+ 156:ego.c         **** 
+ 157:ego.c         **** static inline int sleep_elapsed(ego_fsm_state_t *state) {
+ 137              		.loc 1 157 0
+ 138              		.cfi_startproc
+ 139              		@ args = 0, pretend = 0, frame = 0
+ 140              		@ frame_needed = 0, uses_anonymous_args = 0
+ 141              		@ link register save eliminated.
+ 142              	.LVL6:
+ 158:ego.c         **** 	u32 now = CLK100NS;
+ 143              		.loc 1 158 0
+ 144 0000 0B4B     		ldr	r3, .L18
+ 145 0002 0C4A     		ldr	r2, .L18+4
+ 146 0004 1B68     		ldr	r3, [r3]
+ 147 0006 1268     		ldr	r2, [r2]
+ 148 0008 40F63541 		movw	r1, #3125
+ 149 000c C3F31303 		ubfx	r3, r3, #0, #20
+ 150 0010 01FB0323 		mla	r3, r1, r3, r2
+ 151              	.LVL7:
+ 159:ego.c         **** 	if (now < state->sleep_start)
+ 152              		.loc 1 159 0
+ 153 0014 8268     		ldr	r2, [r0, #8]
+ 160:ego.c         **** 		now += 3276800000;
+ 161:ego.c         **** 	return (now - state->sleep_start) >= state->sleep_duration;
+ 154              		.loc 1 161 0
+ 155 0016 C068     		ldr	r0, [r0, #12]
+ 156              	.LVL8:
+ 159:ego.c         **** 	if (now < state->sleep_start)
+ 157              		.loc 1 159 0
+ 158 0018 9342     		cmp	r3, r2
+ 160:ego.c         **** 		now += 3276800000;
+ 159              		.loc 1 160 0
+ 160 001a 3CBF     		itt	cc
+ 161 001c 03F14343 		addcc	r3, r3, #-1023410176
+ 162              	.LVL9:
+ 163 0020 03F5A003 		addcc	r3, r3, #5242880
+ 164              	.LVL10:
+ 165              		.loc 1 161 0
+ 166 0024 9B1A     		subs	r3, r3, r2
+ 167              	.LVL11:
+ 162:ego.c         **** }
+ 168              		.loc 1 162 0
+ 169 0026 8342     		cmp	r3, r0
+ 170 0028 34BF     		ite	cc
+ 171 002a 0020     		movcc	r0, #0
+ 172 002c 0120     		movcs	r0, #1
+ 173 002e 7047     		bx	lr
+ 174              	.L19:
+ 175              		.align	2
+ 176              	.L18:
+ 177 0030 00000000 		.word	clkn
+ 178 0034 08400040 		.word	1073758216
+ 179              		.cfi_endproc
+ 180              	.LFE9:
+ 182              		.section	.text.nop_state,"ax",%progbits
+ 183              		.align	1
+ 184              		.thumb
+ 185              		.thumb_func
+ARM GAS  /tmp/ccXBfSeJ.s 			page 7
+
+
+ 187              	nop_state:
+ 188              	.LFB10:
+ 163:ego.c         **** 
+ 164:ego.c         **** 
+ 165:ego.c         **** /////////////
+ 166:ego.c         **** // states
+ 167:ego.c         **** 
+ 168:ego.c         **** // do nothing
+ 169:ego.c         **** static void nop_state(ego_fsm_state_t *state) {
+ 189              		.loc 1 169 0
+ 190              		.cfi_startproc
+ 191              		@ args = 0, pretend = 0, frame = 0
+ 192              		@ frame_needed = 0, uses_anonymous_args = 0
+ 193              		@ link register save eliminated.
+ 194              	.LVL12:
+ 195 0000 7047     		bx	lr
+ 196              		.cfi_endproc
+ 197              	.LFE10:
+ 199              		.section	.text.init_state,"ax",%progbits
+ 200              		.align	1
+ 201              		.thumb
+ 202              		.thumb_func
+ 204              	init_state:
+ 205              	.LFB11:
+ 170:ego.c         **** }
+ 171:ego.c         **** 
+ 172:ego.c         **** // used in follow and jam mode, override the channel supplied by user
+ 173:ego.c         **** static void init_state(ego_fsm_state_t *state) {
+ 206              		.loc 1 173 0
+ 207              		.cfi_startproc
+ 208              		@ args = 0, pretend = 0, frame = 0
+ 209              		@ frame_needed = 0, uses_anonymous_args = 0
+ 210              		@ link register save eliminated.
+ 211              	.LVL13:
+ 212              		.loc 1 173 0
+ 174:ego.c         **** 	state->channel_index = 0;
+ 213              		.loc 1 174 0
+ 214 0000 0023     		movs	r3, #0
+ 215 0002 4360     		str	r3, [r0, #4]
+ 175:ego.c         **** 	channel = channels[state->channel_index];
+ 216              		.loc 1 175 0
+ 217 0004 034B     		ldr	r3, .L22
+ 218 0006 40F66812 		movw	r2, #2408
+ 219 000a 1A80     		strh	r2, [r3]	@ movhi
+ 176:ego.c         **** 	state->state = EGO_ST_START_RX;
+ 220              		.loc 1 176 0
+ 221 000c 0123     		movs	r3, #1
+ 222 000e 0370     		strb	r3, [r0]
+ 223 0010 7047     		bx	lr
+ 224              	.L23:
+ 225 0012 00BF     		.align	2
+ 226              	.L22:
+ 227 0014 00000000 		.word	channel
+ 228              		.cfi_endproc
+ 229              	.LFE11:
+ 231              		.section	.text.continuous_init_state,"ax",%progbits
+ 232              		.align	1
+ARM GAS  /tmp/ccXBfSeJ.s 			page 8
+
+
+ 233              		.thumb
+ 234              		.thumb_func
+ 236              	continuous_init_state:
+ 237              	.LFB15:
+ 177:ego.c         **** }
+ 178:ego.c         **** 
+ 179:ego.c         **** static void start_rf_state(ego_fsm_state_t *state) {
+ 180:ego.c         **** 	rf_on();
+ 181:ego.c         **** 	state->state = EGO_ST_CAP;
+ 182:ego.c         **** }
+ 183:ego.c         **** 
+ 184:ego.c         **** static void cap_state(ego_fsm_state_t *state) {
+ 185:ego.c         **** 	ego_packet_t packet = {
+ 186:ego.c         **** 		.rxtime = CLK100NS,
+ 187:ego.c         **** 	};
+ 188:ego.c         **** 
+ 189:ego.c         **** 	if (sleep_elapsed(state)) {
+ 190:ego.c         **** 		sleep_ms(state, 4);
+ 191:ego.c         **** 		state->state = EGO_ST_SLEEP;
+ 192:ego.c         **** 	}
+ 193:ego.c         **** 
+ 194:ego.c         **** 	if (sync_received()) {
+ 195:ego.c         **** 		RXLED_SET;
+ 196:ego.c         **** 		do_rx(&packet);
+ 197:ego.c         **** 		enqueue_with_ts(EGO_PACKET, packet.rxbuf, packet.rxtime);
+ 198:ego.c         **** 		RXLED_CLR;
+ 199:ego.c         **** 
+ 200:ego.c         **** 		sleep_ms(state, 6);
+ 201:ego.c         **** 		state->state = EGO_ST_SLEEP;
+ 202:ego.c         **** 	}
+ 203:ego.c         **** 
+ 204:ego.c         **** 	// kill RF on state change
+ 205:ego.c         **** 	if (state->state != EGO_ST_CAP) {
+ 206:ego.c         **** 		cc2400_strobe(SRFOFF);
+ 207:ego.c         **** 		ssp_stop();
+ 208:ego.c         **** 		state->timer_active = 1;
+ 209:ego.c         **** 	}
+ 210:ego.c         **** }
+ 211:ego.c         **** 
+ 212:ego.c         **** static void sleep_state(ego_fsm_state_t *state) {
+ 213:ego.c         **** 	if (sleep_elapsed(state)) {
+ 214:ego.c         **** 		// change channel
+ 215:ego.c         **** 		state->channel_index = (state->channel_index + 1) % 4;
+ 216:ego.c         **** 		channel = channels[state->channel_index];
+ 217:ego.c         **** 
+ 218:ego.c         **** 		// set 7 ms timeout for RX
+ 219:ego.c         **** 		sleep_ms(state, 7);
+ 220:ego.c         **** 		state->timer_active = 1;
+ 221:ego.c         **** 
+ 222:ego.c         **** 		state->state = EGO_ST_START_RX;
+ 223:ego.c         **** 	}
+ 224:ego.c         **** }
+ 225:ego.c         **** 
+ 226:ego.c         **** // continuous cap states (reuses START_RX state)
+ 227:ego.c         **** static void continuous_init_state(ego_fsm_state_t *state) {
+ 238              		.loc 1 227 0
+ 239              		.cfi_startproc
+ARM GAS  /tmp/ccXBfSeJ.s 			page 9
+
+
+ 240              		@ args = 0, pretend = 0, frame = 0
+ 241              		@ frame_needed = 0, uses_anonymous_args = 0
+ 242              		@ link register save eliminated.
+ 243              	.LVL14:
+ 228:ego.c         **** 	state->state = EGO_ST_START_RX;
+ 244              		.loc 1 228 0
+ 245 0000 0123     		movs	r3, #1
+ 246 0002 0370     		strb	r3, [r0]
+ 247 0004 7047     		bx	lr
+ 248              		.cfi_endproc
+ 249              	.LFE15:
+ 251              		.section	.text.start_rf_state,"ax",%progbits
+ 252              		.align	1
+ 253              		.thumb
+ 254              		.thumb_func
+ 256              	start_rf_state:
+ 257              	.LFB12:
+ 179:ego.c         **** 	rf_on();
+ 258              		.loc 1 179 0
+ 259              		.cfi_startproc
+ 260              		@ args = 0, pretend = 0, frame = 0
+ 261              		@ frame_needed = 0, uses_anonymous_args = 0
+ 262              	.LVL15:
+ 263 0000 10B5     		push	{r4, lr}
+ 264              		.cfi_def_cfa_offset 8
+ 265              		.cfi_offset 4, -8
+ 266              		.cfi_offset 14, -4
+ 267              	.LBB16:
+ 268              	.LBB17:
+ 103:ego.c         **** 	cc2400_set(LMTST,   0x2b22);
+ 269              		.loc 1 103 0
+ 270 0002 47F6FF71 		movw	r1, #32767
+ 271              	.LBE17:
+ 272              	.LBE16:
+ 179:ego.c         **** 	rf_on();
+ 273              		.loc 1 179 0
+ 274 0006 0446     		mov	r4, r0
+ 275              	.LBB23:
+ 276              	.LBB22:
+ 103:ego.c         **** 	cc2400_set(LMTST,   0x2b22);
+ 277              		.loc 1 103 0
+ 278 0008 0D20     		movs	r0, #13
+ 279              	.LVL16:
+ 280 000a FFF7FEFF 		bl	cc2400_set
+ 281              	.LVL17:
+ 104:ego.c         **** 	cc2400_set(MDMTST0, 0x134b); // without PRNG
+ 282              		.loc 1 104 0
+ 283 000e 1220     		movs	r0, #18
+ 284 0010 42F62231 		movw	r1, #11042
+ 285 0014 FFF7FEFF 		bl	cc2400_set
+ 286              	.LVL18:
+ 105:ego.c         **** 	cc2400_set(GRMDM,   0x04c0); // un-buffered mode, 2FSK
+ 287              		.loc 1 105 0
+ 288 0018 1420     		movs	r0, #20
+ 289 001a 41F24B31 		movw	r1, #4939
+ 290 001e FFF7FEFF 		bl	cc2400_set
+ 291              	.LVL19:
+ARM GAS  /tmp/ccXBfSeJ.s 			page 10
+
+
+ 106:ego.c         **** 	// 0 00 00 1 001 10 0 00 0 0
+ 292              		.loc 1 106 0
+ 293 0022 2020     		movs	r0, #32
+ 294 0024 4FF49861 		mov	r1, #1216
+ 295 0028 FFF7FEFF 		bl	cc2400_set
+ 296              	.LVL20:
+ 113:ego.c         **** 	cc2400_set(MDMCTRL, 0x0026); // 150 kHz frequency deviation
+ 297              		.loc 1 113 0
+ 298 002c 1E4B     		ldr	r3, .L32
+ 299 002e 0220     		movs	r0, #2
+ 300 0030 1988     		ldrh	r1, [r3]
+ 301 0032 89B2     		uxth	r1, r1
+ 302 0034 0139     		subs	r1, r1, #1
+ 303 0036 89B2     		uxth	r1, r1
+ 304 0038 FFF7FEFF 		bl	cc2400_set
+ 305              	.LVL21:
+ 114:ego.c         **** 	cc2400_set(GRDEC,  3);       // 250 kbit
+ 306              		.loc 1 114 0
+ 307 003c 0320     		movs	r0, #3
+ 308 003e 2621     		movs	r1, #38
+ 309 0040 FFF7FEFF 		bl	cc2400_set
+ 310              	.LVL22:
+ 115:ego.c         **** 
+ 311              		.loc 1 115 0
+ 312 0044 2120     		movs	r0, #33
+ 313 0046 0321     		movs	r1, #3
+ 314 0048 FFF7FEFF 		bl	cc2400_set
+ 315              	.LVL23:
+ 118:ego.c         **** 	cc2400_set(SYNCL,   0x9ffe);
+ 316              		.loc 1 118 0
+ 317 004c 2D20     		movs	r0, #45
+ 318 004e 46F20F31 		movw	r1, #25359
+ 319 0052 FFF7FEFF 		bl	cc2400_set
+ 320              	.LVL24:
+ 119:ego.c         **** 
+ 321              		.loc 1 119 0
+ 322 0056 2C20     		movs	r0, #44
+ 323 0058 49F6FE71 		movw	r1, #40958
+ 324 005c FFF7FEFF 		bl	cc2400_set
+ 325              	.LVL25:
+ 326              	.L27:
+ 121:ego.c         **** 
+ 327              		.loc 1 121 0
+ 328 0060 FFF7FEFF 		bl	cc2400_status
+ 329              	.LVL26:
+ 330 0064 4006     		lsls	r0, r0, #25
+ 331 0066 FBD5     		bpl	.L27
+ 332              	.LBB18:
+ 333              	.LBB19:
+  72:ego.c         **** 
+ 334              		.loc 1 72 0
+ 335 0068 104A     		ldr	r2, .L32+4
+ 336 006a 4FF08053 		mov	r3, #268435456
+ 337 006e 1360     		str	r3, [r2]
+  75:ego.c         **** 
+ 338              		.loc 1 75 0
+ 339 0070 0F4A     		ldr	r2, .L32+8
+ARM GAS  /tmp/ccXBfSeJ.s 			page 11
+
+
+ 340              	.LBE19:
+ 341              	.LBE18:
+ 125:ego.c         **** 	while (!(cc2400_status() & FS_LOCK));
+ 342              		.loc 1 125 0
+ 343 0072 6120     		movs	r0, #97
+ 344              	.LBB21:
+ 345              	.LBB20:
+  75:ego.c         **** 
+ 346              		.loc 1 75 0
+ 347 0074 1168     		ldr	r1, [r2]
+ 348 0076 41F00201 		orr	r1, r1, #2
+ 349 007a 1160     		str	r1, [r2]
+  78:ego.c         **** }
+ 350              		.loc 1 78 0
+ 351 007c 0D4A     		ldr	r2, .L32+12
+ 352 007e 1360     		str	r3, [r2]
+ 353              	.LBE20:
+ 354              	.LBE21:
+ 125:ego.c         **** 	while (!(cc2400_status() & FS_LOCK));
+ 355              		.loc 1 125 0
+ 356 0080 FFF7FEFF 		bl	cc2400_strobe
+ 357              	.LVL27:
+ 358              	.L29:
+ 126:ego.c         **** 	while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
+ 359              		.loc 1 126 0
+ 360 0084 FFF7FEFF 		bl	cc2400_status
+ 361              	.LVL28:
+ 362 0088 4107     		lsls	r1, r0, #29
+ 363 008a FBD5     		bpl	.L29
+ 364              	.L31:
+ 127:ego.c         **** 
+ 365              		.loc 1 127 0
+ 366 008c 0E20     		movs	r0, #14
+ 367 008e FFF7FEFF 		bl	cc2400_get
+ 368              	.LVL29:
+ 369 0092 00F01F00 		and	r0, r0, #31
+ 370 0096 0F28     		cmp	r0, #15
+ 371 0098 F8D1     		bne	.L31
+ 129:ego.c         **** }
+ 372              		.loc 1 129 0
+ 373 009a 6220     		movs	r0, #98
+ 374 009c FFF7FEFF 		bl	cc2400_strobe
+ 375              	.LVL30:
+ 376              	.LBE22:
+ 377              	.LBE23:
+ 181:ego.c         **** }
+ 378              		.loc 1 181 0
+ 379 00a0 0223     		movs	r3, #2
+ 380 00a2 2370     		strb	r3, [r4]
+ 381 00a4 10BD     		pop	{r4, pc}
+ 382              	.LVL31:
+ 383              	.L33:
+ 384 00a6 00BF     		.align	2
+ 385              	.L32:
+ 386 00a8 00000000 		.word	channel
+ 387 00ac 98C00920 		.word	537510040
+ 388 00b0 04000340 		.word	1073938436
+ARM GAS  /tmp/ccXBfSeJ.s 			page 12
+
+
+ 389 00b4 9CC00920 		.word	537510044
+ 390              		.cfi_endproc
+ 391              	.LFE12:
+ 393              		.section	.text.start_jamming_state,"ax",%progbits
+ 394              		.align	1
+ 395              		.thumb
+ 396              		.thumb_func
+ 398              	start_jamming_state:
+ 399              	.LFB18:
+ 229:ego.c         **** }
+ 230:ego.c         **** 
+ 231:ego.c         **** static void continuous_cap_state(ego_fsm_state_t *state) {
+ 232:ego.c         **** 	ego_packet_t packet = {
+ 233:ego.c         **** 		.rxtime = CLK100NS,
+ 234:ego.c         **** 	};
+ 235:ego.c         **** 
+ 236:ego.c         **** 	if (sync_received()) {
+ 237:ego.c         **** 		RXLED_SET;
+ 238:ego.c         **** 		do_rx(&packet);
+ 239:ego.c         **** 		enqueue_with_ts(EGO_PACKET, packet.rxbuf, packet.rxtime);
+ 240:ego.c         **** 		RXLED_CLR;
+ 241:ego.c         **** 
+ 242:ego.c         **** 		// restart cap with radio warm
+ 243:ego.c         **** 		cc2400_strobe(SFSON);
+ 244:ego.c         **** 		while (!(cc2400_status() & FS_LOCK));
+ 245:ego.c         **** 		while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
+ 246:ego.c         **** 		cc2400_strobe(SRX);
+ 247:ego.c         **** 	}
+ 248:ego.c         **** }
+ 249:ego.c         **** 
+ 250:ego.c         **** // jammer states
+ 251:ego.c         **** static void jam_cap_state(ego_fsm_state_t *state) {
+ 252:ego.c         **** 	if (sync_received()) {
+ 253:ego.c         **** 		state->state = EGO_ST_START_JAMMING;
+ 254:ego.c         **** 		state->packet_observed = 1;
+ 255:ego.c         **** 		state->anchor = CLK100NS;
+ 256:ego.c         **** 	}
+ 257:ego.c         **** 	if (state->timer_active && sleep_elapsed(state)) {
+ 258:ego.c         **** 		state->state = EGO_ST_START_JAMMING;
+ 259:ego.c         **** 		state->packet_observed = 0;
+ 260:ego.c         **** 		sleep_ms(state, 11); // 11 ms hop interval
+ 261:ego.c         **** 	}
+ 262:ego.c         **** 
+ 263:ego.c         **** 	// state changed, kill radio
+ 264:ego.c         **** 	if (state->state != EGO_ST_CAP) {
+ 265:ego.c         **** 		cc2400_strobe(SRFOFF);
+ 266:ego.c         **** 		ssp_stop();
+ 267:ego.c         **** 	}
+ 268:ego.c         **** }
+ 269:ego.c         **** 
+ 270:ego.c         **** static void start_jamming_state(ego_fsm_state_t *state) {
+ 400              		.loc 1 270 0
+ 401              		.cfi_startproc
+ 402              		@ args = 0, pretend = 0, frame = 0
+ 403              		@ frame_needed = 0, uses_anonymous_args = 0
+ 404              	.LVL32:
+ 405 0000 10B5     		push	{r4, lr}
+ARM GAS  /tmp/ccXBfSeJ.s 			page 13
+
+
+ 406              		.cfi_def_cfa_offset 8
+ 407              		.cfi_offset 4, -8
+ 408              		.cfi_offset 14, -4
+ 271:ego.c         **** #ifdef TX_ENABLE
+ 272:ego.c         **** 	cc2400_set(MANAND,  0x7fff);
+ 409              		.loc 1 272 0
+ 410 0002 47F6FF71 		movw	r1, #32767
+ 270:ego.c         **** #ifdef TX_ENABLE
+ 411              		.loc 1 270 0
+ 412 0006 0446     		mov	r4, r0
+ 413              		.loc 1 272 0
+ 414 0008 0D20     		movs	r0, #13
+ 415              	.LVL33:
+ 416 000a FFF7FEFF 		bl	cc2400_set
+ 417              	.LVL34:
+ 273:ego.c         **** 	cc2400_set(LMTST,   0x2b22);
+ 418              		.loc 1 273 0
+ 419 000e 1220     		movs	r0, #18
+ 420 0010 42F62231 		movw	r1, #11042
+ 421 0014 FFF7FEFF 		bl	cc2400_set
+ 422              	.LVL35:
+ 274:ego.c         **** 	cc2400_set(MDMTST0, 0x334b); // with PRNG
+ 423              		.loc 1 274 0
+ 424 0018 1420     		movs	r0, #20
+ 425 001a 43F24B31 		movw	r1, #13131
+ 426 001e FFF7FEFF 		bl	cc2400_set
+ 427              	.LVL36:
+ 275:ego.c         **** 	// cc2400_set(GRMDM,   0x04e0); // un-buffered mode, 2FSK
+ 276:ego.c         **** 	cc2400_set(GRMDM,   0x04c0); // un-buffered mode, 2FSK
+ 428              		.loc 1 276 0
+ 429 0022 2020     		movs	r0, #32
+ 430 0024 4FF49861 		mov	r1, #1216
+ 431 0028 FFF7FEFF 		bl	cc2400_set
+ 432              	.LVL37:
+ 277:ego.c         **** 	// 0 00 00 1 001 10 0 00 0 0
+ 278:ego.c         **** 	//      |  | |   |  +--------> CRC off
+ 279:ego.c         **** 	//      |  | |   +-----------> sync word: 24 MSB bits of SYNC_WORD
+ 280:ego.c         **** 	//      |  | +---------------> 1 byte of 01010101
+ 281:ego.c         **** 	//      |  +-----------------> packet mode
+ 282:ego.c         **** 	//      +--------------------> un-buffered mode
+ 283:ego.c         **** 	cc2400_set(FSDIV,   channel); // no IF for TX
+ 433              		.loc 1 283 0
+ 434 002c 1A4B     		ldr	r3, .L41
+ 435 002e 0220     		movs	r0, #2
+ 436 0030 1988     		ldrh	r1, [r3]
+ 437 0032 89B2     		uxth	r1, r1
+ 438 0034 FFF7FEFF 		bl	cc2400_set
+ 439              	.LVL38:
+ 284:ego.c         **** 	cc2400_set(MDMCTRL, 0x0026); // 150 kHz frequency deviation
+ 440              		.loc 1 284 0
+ 441 0038 0320     		movs	r0, #3
+ 442 003a 2621     		movs	r1, #38
+ 443 003c FFF7FEFF 		bl	cc2400_set
+ 444              	.LVL39:
+ 285:ego.c         **** 	cc2400_set(GRDEC,  3);       // 250 kbit
+ 445              		.loc 1 285 0
+ 446 0040 2120     		movs	r0, #33
+ARM GAS  /tmp/ccXBfSeJ.s 			page 14
+
+
+ 447 0042 0321     		movs	r1, #3
+ 448 0044 FFF7FEFF 		bl	cc2400_set
+ 449              	.LVL40:
+ 286:ego.c         **** 	cc2400_set(FREND, 0xf);
+ 450              		.loc 1 286 0
+ 451 0048 0520     		movs	r0, #5
+ 452 004a 0F21     		movs	r1, #15
+ 453 004c FFF7FEFF 		bl	cc2400_set
+ 454              	.LVL41:
+ 455              	.L36:
+ 287:ego.c         **** 
+ 288:ego.c         **** 	while (!(cc2400_status() & XOSC16M_STABLE));
+ 456              		.loc 1 288 0 discriminator 1
+ 457 0050 FFF7FEFF 		bl	cc2400_status
+ 458              	.LVL42:
+ 459 0054 4206     		lsls	r2, r0, #25
+ 460 0056 FBD5     		bpl	.L36
+ 289:ego.c         **** 
+ 290:ego.c         **** 	cc2400_strobe(SFSON);
+ 461              		.loc 1 290 0
+ 462 0058 6120     		movs	r0, #97
+ 463 005a FFF7FEFF 		bl	cc2400_strobe
+ 464              	.LVL43:
+ 465              	.L38:
+ 291:ego.c         **** 	while (!(cc2400_status() & FS_LOCK));
+ 466              		.loc 1 291 0 discriminator 1
+ 467 005e FFF7FEFF 		bl	cc2400_status
+ 468              	.LVL44:
+ 469 0062 4307     		lsls	r3, r0, #29
+ 470 0064 FBD5     		bpl	.L38
+ 471              	.L40:
+ 292:ego.c         **** 	while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
+ 472              		.loc 1 292 0
+ 473 0066 0E20     		movs	r0, #14
+ 474 0068 FFF7FEFF 		bl	cc2400_get
+ 475              	.LVL45:
+ 476 006c 00F01F00 		and	r0, r0, #31
+ 477 0070 0F28     		cmp	r0, #15
+ 478 0072 F8D1     		bne	.L40
+ 293:ego.c         **** 
+ 294:ego.c         **** #ifdef UBERTOOTH_ONE
+ 295:ego.c         **** 	PAEN_SET;
+ 479              		.loc 1 295 0
+ 480 0074 094B     		ldr	r3, .L41+4
+ 481 0076 8022     		movs	r2, #128
+ 482 0078 1A60     		str	r2, [r3]
+ 296:ego.c         **** #endif
+ 297:ego.c         **** 
+ 298:ego.c         **** 	cc2400_strobe(STX);
+ 483              		.loc 1 298 0
+ 484 007a 6320     		movs	r0, #99
+ 485 007c FFF7FEFF 		bl	cc2400_strobe
+ 486              	.LVL46:
+ 299:ego.c         **** 	TXLED_SET;
+ 487              		.loc 1 299 0
+ 488 0080 074B     		ldr	r3, .L41+8
+ 489 0082 4FF48072 		mov	r2, #256
+ARM GAS  /tmp/ccXBfSeJ.s 			page 15
+
+
+ 490 0086 1A60     		str	r2, [r3]
+ 300:ego.c         **** #endif
+ 301:ego.c         **** 
+ 302:ego.c         **** 	state->state = EGO_ST_JAMMING;
+ 491              		.loc 1 302 0
+ 492 0088 0523     		movs	r3, #5
+ 493 008a 2370     		strb	r3, [r4]
+ 494              	.LVL47:
+ 495              	.LBB24:
+ 496              	.LBB25:
+ 153:ego.c         **** 	state->sleep_duration = duration * 1000*10;
+ 497              		.loc 1 153 0
+ 498 008c A369     		ldr	r3, [r4, #24]
+ 499 008e A360     		str	r3, [r4, #8]
+ 154:ego.c         **** }
+ 500              		.loc 1 154 0
+ 501 0090 44F62063 		movw	r3, #20000
+ 502 0094 E360     		str	r3, [r4, #12]
+ 503 0096 10BD     		pop	{r4, pc}
+ 504              	.LVL48:
+ 505              	.L42:
+ 506              		.align	2
+ 507              	.L41:
+ 508 0098 00000000 		.word	channel
+ 509 009c 58C00920 		.word	537509976
+ 510 00a0 38C00920 		.word	537509944
+ 511              	.LBE25:
+ 512              	.LBE24:
+ 513              		.cfi_endproc
+ 514              	.LFE18:
+ 516              		.section	.text.sleep_state,"ax",%progbits
+ 517              		.align	1
+ 518              		.thumb
+ 519              		.thumb_func
+ 521              	sleep_state:
+ 522              	.LFB14:
+ 212:ego.c         **** 	if (sleep_elapsed(state)) {
+ 523              		.loc 1 212 0
+ 524              		.cfi_startproc
+ 525              		@ args = 0, pretend = 0, frame = 0
+ 526              		@ frame_needed = 0, uses_anonymous_args = 0
+ 527              	.LVL49:
+ 528 0000 10B5     		push	{r4, lr}
+ 529              		.cfi_def_cfa_offset 8
+ 530              		.cfi_offset 4, -8
+ 531              		.cfi_offset 14, -4
+ 212:ego.c         **** 	if (sleep_elapsed(state)) {
+ 532              		.loc 1 212 0
+ 533 0002 0446     		mov	r4, r0
+ 213:ego.c         **** 		// change channel
+ 534              		.loc 1 213 0
+ 535 0004 FFF7FEFF 		bl	sleep_elapsed
+ 536              	.LVL50:
+ 537 0008 B0B1     		cbz	r0, .L43
+ 538              	.LVL51:
+ 539              	.LBB28:
+ 540              	.LBB29:
+ARM GAS  /tmp/ccXBfSeJ.s 			page 16
+
+
+ 215:ego.c         **** 		channel = channels[state->channel_index];
+ 541              		.loc 1 215 0
+ 542 000a 6368     		ldr	r3, [r4, #4]
+ 543 000c 5A1C     		adds	r2, r3, #1
+ 544 000e 0B4B     		ldr	r3, .L49
+ 545 0010 1340     		ands	r3, r3, r2
+ 546 0012 002B     		cmp	r3, #0
+ 547 0014 03DA     		bge	.L45
+ 548 0016 013B     		subs	r3, r3, #1
+ 549 0018 63F00303 		orn	r3, r3, #3
+ 550 001c 0133     		adds	r3, r3, #1
+ 551              	.L45:
+ 216:ego.c         **** 
+ 552              		.loc 1 216 0
+ 553 001e 084A     		ldr	r2, .L49+4
+ 215:ego.c         **** 		channel = channels[state->channel_index];
+ 554              		.loc 1 215 0
+ 555 0020 6360     		str	r3, [r4, #4]
+ 216:ego.c         **** 
+ 556              		.loc 1 216 0
+ 557 0022 32F81320 		ldrh	r2, [r2, r3, lsl #1]
+ 558 0026 074B     		ldr	r3, .L49+8
+ 219:ego.c         **** 		state->timer_active = 1;
+ 559              		.loc 1 219 0
+ 560 0028 2046     		mov	r0, r4
+ 561 002a 0721     		movs	r1, #7
+ 216:ego.c         **** 
+ 562              		.loc 1 216 0
+ 563 002c 1A80     		strh	r2, [r3]	@ movhi
+ 219:ego.c         **** 		state->timer_active = 1;
+ 564              		.loc 1 219 0
+ 565 002e FFF7FEFF 		bl	sleep_ms
+ 566              	.LVL52:
+ 220:ego.c         **** 
+ 567              		.loc 1 220 0
+ 568 0032 0123     		movs	r3, #1
+ 569 0034 2361     		str	r3, [r4, #16]
+ 222:ego.c         **** 	}
+ 570              		.loc 1 222 0
+ 571 0036 2370     		strb	r3, [r4]
+ 572              	.LVL53:
+ 573              	.L43:
+ 574 0038 10BD     		pop	{r4, pc}
+ 575              	.LVL54:
+ 576              	.L50:
+ 577 003a 00BF     		.align	2
+ 578              	.L49:
+ 579 003c 03000080 		.word	-2147483645
+ 580 0040 00000000 		.word	.LANCHOR0
+ 581 0044 00000000 		.word	channel
+ 582              	.LBE29:
+ 583              	.LBE28:
+ 584              		.cfi_endproc
+ 585              	.LFE14:
+ 587              		.section	.text.jam_sleep_state,"ax",%progbits
+ 588              		.align	1
+ 589              		.thumb
+ARM GAS  /tmp/ccXBfSeJ.s 			page 17
+
+
+ 590              		.thumb_func
+ 592              	jam_sleep_state:
+ 593              	.LFB20:
+ 303:ego.c         **** 	sleep_ms_anchor(state, 2);
+ 304:ego.c         **** }
+ 305:ego.c         **** 
+ 306:ego.c         **** void jamming_state(ego_fsm_state_t *state) {
+ 307:ego.c         **** 	if (sleep_elapsed(state)) {
+ 308:ego.c         **** 		cc2400_strobe(SRFOFF);
+ 309:ego.c         **** #ifdef UBERTOOTH_ONE
+ 310:ego.c         **** 		PAEN_CLR;
+ 311:ego.c         **** #endif
+ 312:ego.c         **** 		TXLED_CLR;
+ 313:ego.c         **** 
+ 314:ego.c         **** 		// change channel
+ 315:ego.c         **** 		state->channel_index = (state->channel_index + 1) % 4;
+ 316:ego.c         **** 		channel = channels[state->channel_index];
+ 317:ego.c         **** 
+ 318:ego.c         **** 		state->state = EGO_ST_SLEEP;
+ 319:ego.c         **** 		sleep_ms_anchor(state, 6);
+ 320:ego.c         **** 	}
+ 321:ego.c         **** }
+ 322:ego.c         **** 
+ 323:ego.c         **** static void jam_sleep_state(ego_fsm_state_t *state) {
+ 594              		.loc 1 323 0
+ 595              		.cfi_startproc
+ 596              		@ args = 0, pretend = 0, frame = 0
+ 597              		@ frame_needed = 0, uses_anonymous_args = 0
+ 598              	.LVL55:
+ 599 0000 10B5     		push	{r4, lr}
+ 600              		.cfi_def_cfa_offset 8
+ 601              		.cfi_offset 4, -8
+ 602              		.cfi_offset 14, -4
+ 603              		.loc 1 323 0
+ 604 0002 0446     		mov	r4, r0
+ 324:ego.c         **** 	if (sleep_elapsed(state)) {
+ 605              		.loc 1 324 0
+ 606 0004 FFF7FEFF 		bl	sleep_elapsed
+ 607              	.LVL56:
+ 608 0008 30B1     		cbz	r0, .L51
+ 609              	.LVL57:
+ 610              	.LBB34:
+ 611              	.LBB35:
+ 325:ego.c         **** 		state->state = EGO_ST_START_RX;
+ 612              		.loc 1 325 0
+ 613 000a 0123     		movs	r3, #1
+ 614 000c 2370     		strb	r3, [r4]
+ 326:ego.c         **** 		state->timer_active = 1;
+ 615              		.loc 1 326 0
+ 616 000e 2361     		str	r3, [r4, #16]
+ 617              	.LVL58:
+ 618              	.LBB36:
+ 619              	.LBB37:
+ 153:ego.c         **** 	state->sleep_duration = duration * 1000*10;
+ 620              		.loc 1 153 0
+ 621 0010 A369     		ldr	r3, [r4, #24]
+ 622 0012 A360     		str	r3, [r4, #8]
+ARM GAS  /tmp/ccXBfSeJ.s 			page 18
+
+
+ 154:ego.c         **** }
+ 623              		.loc 1 154 0
+ 624 0014 014B     		ldr	r3, .L56
+ 625 0016 E360     		str	r3, [r4, #12]
+ 626              	.LVL59:
+ 627              	.L51:
+ 628 0018 10BD     		pop	{r4, pc}
+ 629              	.LVL60:
+ 630              	.L57:
+ 631 001a 00BF     		.align	2
+ 632              	.L56:
+ 633 001c B0AD0100 		.word	110000
+ 634              	.LBE37:
+ 635              	.LBE36:
+ 636              	.LBE35:
+ 637              	.LBE34:
+ 638              		.cfi_endproc
+ 639              	.LFE20:
+ 641              		.section	.text.jamming_state,"ax",%progbits
+ 642              		.align	1
+ 643              		.global	jamming_state
+ 644              		.thumb
+ 645              		.thumb_func
+ 647              	jamming_state:
+ 648              	.LFB19:
+ 306:ego.c         **** 	if (sleep_elapsed(state)) {
+ 649              		.loc 1 306 0
+ 650              		.cfi_startproc
+ 651              		@ args = 0, pretend = 0, frame = 0
+ 652              		@ frame_needed = 0, uses_anonymous_args = 0
+ 653              	.LVL61:
+ 654 0000 10B5     		push	{r4, lr}
+ 655              		.cfi_def_cfa_offset 8
+ 656              		.cfi_offset 4, -8
+ 657              		.cfi_offset 14, -4
+ 306:ego.c         **** 	if (sleep_elapsed(state)) {
+ 658              		.loc 1 306 0
+ 659 0002 0446     		mov	r4, r0
+ 307:ego.c         **** 		cc2400_strobe(SRFOFF);
+ 660              		.loc 1 307 0
+ 661 0004 FFF7FEFF 		bl	sleep_elapsed
+ 662              	.LVL62:
+ 663 0008 00B3     		cbz	r0, .L58
+ 664              	.LVL63:
+ 665              	.LBB42:
+ 666              	.LBB43:
+ 308:ego.c         **** #ifdef UBERTOOTH_ONE
+ 667              		.loc 1 308 0
+ 668 000a 6420     		movs	r0, #100
+ 669 000c FFF7FEFF 		bl	cc2400_strobe
+ 670              	.LVL64:
+ 310:ego.c         **** #endif
+ 671              		.loc 1 310 0
+ 672 0010 0F4B     		ldr	r3, .L64
+ 673 0012 8022     		movs	r2, #128
+ 674 0014 1A60     		str	r2, [r3]
+ 312:ego.c         **** 
+ARM GAS  /tmp/ccXBfSeJ.s 			page 19
+
+
+ 675              		.loc 1 312 0
+ 676 0016 4FF48072 		mov	r2, #256
+ 677 001a 43F8202C 		str	r2, [r3, #-32]
+ 315:ego.c         **** 		channel = channels[state->channel_index];
+ 678              		.loc 1 315 0
+ 679 001e 6368     		ldr	r3, [r4, #4]
+ 680 0020 5A1C     		adds	r2, r3, #1
+ 681 0022 0C4B     		ldr	r3, .L64+4
+ 682 0024 1340     		ands	r3, r3, r2
+ 683 0026 002B     		cmp	r3, #0
+ 684 0028 03DA     		bge	.L60
+ 685 002a 013B     		subs	r3, r3, #1
+ 686 002c 63F00303 		orn	r3, r3, #3
+ 687 0030 0133     		adds	r3, r3, #1
+ 688              	.L60:
+ 316:ego.c         **** 
+ 689              		.loc 1 316 0
+ 690 0032 094A     		ldr	r2, .L64+8
+ 315:ego.c         **** 		channel = channels[state->channel_index];
+ 691              		.loc 1 315 0
+ 692 0034 6360     		str	r3, [r4, #4]
+ 316:ego.c         **** 
+ 693              		.loc 1 316 0
+ 694 0036 32F81320 		ldrh	r2, [r2, r3, lsl #1]
+ 695 003a 084B     		ldr	r3, .L64+12
+ 696 003c 1A80     		strh	r2, [r3]	@ movhi
+ 318:ego.c         **** 		sleep_ms_anchor(state, 6);
+ 697              		.loc 1 318 0
+ 698 003e 0323     		movs	r3, #3
+ 699 0040 2370     		strb	r3, [r4]
+ 700              	.LVL65:
+ 701              	.LBB44:
+ 702              	.LBB45:
+ 153:ego.c         **** 	state->sleep_duration = duration * 1000*10;
+ 703              		.loc 1 153 0
+ 704 0042 A369     		ldr	r3, [r4, #24]
+ 705 0044 A360     		str	r3, [r4, #8]
+ 154:ego.c         **** }
+ 706              		.loc 1 154 0
+ 707 0046 4EF66023 		movw	r3, #60000
+ 708 004a E360     		str	r3, [r4, #12]
+ 709              	.LVL66:
+ 710              	.L58:
+ 711 004c 10BD     		pop	{r4, pc}
+ 712              	.LVL67:
+ 713              	.L65:
+ 714 004e 00BF     		.align	2
+ 715              	.L64:
+ 716 0050 5CC00920 		.word	537509980
+ 717 0054 03000080 		.word	-2147483645
+ 718 0058 00000000 		.word	.LANCHOR0
+ 719 005c 00000000 		.word	channel
+ 720              	.LBE45:
+ 721              	.LBE44:
+ 722              	.LBE43:
+ 723              	.LBE42:
+ 724              		.cfi_endproc
+ARM GAS  /tmp/ccXBfSeJ.s 			page 20
+
+
+ 725              	.LFE19:
+ 727              		.section	.text.continuous_cap_state,"ax",%progbits
+ 728              		.align	1
+ 729              		.thumb
+ 730              		.thumb_func
+ 732              	continuous_cap_state:
+ 733              	.LFB16:
+ 231:ego.c         **** 	ego_packet_t packet = {
+ 734              		.loc 1 231 0
+ 735              		.cfi_startproc
+ 736              		@ args = 0, pretend = 0, frame = 40
+ 737              		@ frame_needed = 0, uses_anonymous_args = 0
+ 738              	.LVL68:
+ 739 0000 10B5     		push	{r4, lr}
+ 740              		.cfi_def_cfa_offset 8
+ 741              		.cfi_offset 4, -8
+ 742              		.cfi_offset 14, -4
+ 743 0002 8AB0     		sub	sp, sp, #40
+ 744              		.cfi_def_cfa_offset 48
+ 232:ego.c         **** 		.rxtime = CLK100NS,
+ 745              		.loc 1 232 0
+ 746 0004 0021     		movs	r1, #0
+ 747 0006 2822     		movs	r2, #40
+ 748 0008 6846     		mov	r0, sp
+ 749              	.LVL69:
+ 750 000a FFF7FEFF 		bl	memset
+ 751              	.LVL70:
+ 233:ego.c         **** 	};
+ 752              		.loc 1 233 0
+ 753 000e 174B     		ldr	r3, .L75
+ 754 0010 174A     		ldr	r2, .L75+4
+ 755 0012 1B68     		ldr	r3, [r3]
+ 756 0014 1268     		ldr	r2, [r2]
+ 757 0016 40F63541 		movw	r1, #3125
+ 758 001a C3F31303 		ubfx	r3, r3, #0, #20
+ 759 001e 01FB0323 		mla	r3, r1, r3, r2
+ 232:ego.c         **** 		.rxtime = CLK100NS,
+ 760              		.loc 1 232 0
+ 761 0022 0993     		str	r3, [sp, #36]
+ 762              	.LBB50:
+ 763              	.LBB51:
+ 142:ego.c         **** }
+ 764              		.loc 1 142 0
+ 765 0024 FFF7FEFF 		bl	cc2400_status
+ 766              	.LVL71:
+ 767              	.LBE51:
+ 768              	.LBE50:
+ 236:ego.c         **** 		RXLED_SET;
+ 769              		.loc 1 236 0
+ 770 0028 C006     		lsls	r0, r0, #27
+ 771 002a 1DD5     		bpl	.L66
+ 237:ego.c         **** 		do_rx(&packet);
+ 772              		.loc 1 237 0
+ 773 002c 114B     		ldr	r3, .L75+8
+ 774 002e 1024     		movs	r4, #16
+ 775 0030 1C60     		str	r4, [r3]
+ 238:ego.c         **** 		enqueue_with_ts(EGO_PACKET, packet.rxbuf, packet.rxtime);
+ARM GAS  /tmp/ccXBfSeJ.s 			page 21
+
+
+ 776              		.loc 1 238 0
+ 777 0032 6846     		mov	r0, sp
+ 778 0034 FFF7FEFF 		bl	do_rx
+ 779              	.LVL72:
+ 239:ego.c         **** 		RXLED_CLR;
+ 780              		.loc 1 239 0
+ 781 0038 0620     		movs	r0, #6
+ 782 003a 6946     		mov	r1, sp
+ 783 003c 099A     		ldr	r2, [sp, #36]
+ 784 003e FFF7FEFF 		bl	enqueue_with_ts
+ 785              	.LVL73:
+ 240:ego.c         **** 
+ 786              		.loc 1 240 0
+ 787 0042 0D4B     		ldr	r3, .L75+12
+ 243:ego.c         **** 		while (!(cc2400_status() & FS_LOCK));
+ 788              		.loc 1 243 0
+ 789 0044 6120     		movs	r0, #97
+ 240:ego.c         **** 
+ 790              		.loc 1 240 0
+ 791 0046 1C60     		str	r4, [r3]
+ 243:ego.c         **** 		while (!(cc2400_status() & FS_LOCK));
+ 792              		.loc 1 243 0
+ 793 0048 FFF7FEFF 		bl	cc2400_strobe
+ 794              	.LVL74:
+ 795              	.L69:
+ 244:ego.c         **** 		while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
+ 796              		.loc 1 244 0 discriminator 1
+ 797 004c FFF7FEFF 		bl	cc2400_status
+ 798              	.LVL75:
+ 799 0050 4107     		lsls	r1, r0, #29
+ 800 0052 FBD5     		bpl	.L69
+ 801              	.L71:
+ 802              	.LBB52:
+ 803              	.LBB53:
+ 245:ego.c         **** 		cc2400_strobe(SRX);
+ 804              		.loc 1 245 0
+ 805 0054 0E20     		movs	r0, #14
+ 806 0056 FFF7FEFF 		bl	cc2400_get
+ 807              	.LVL76:
+ 808 005a 00F01F00 		and	r0, r0, #31
+ 809 005e 0F28     		cmp	r0, #15
+ 810 0060 F8D1     		bne	.L71
+ 246:ego.c         **** 	}
+ 811              		.loc 1 246 0
+ 812 0062 6220     		movs	r0, #98
+ 813 0064 FFF7FEFF 		bl	cc2400_strobe
+ 814              	.LVL77:
+ 815              	.L66:
+ 816              	.LBE53:
+ 817              	.LBE52:
+ 248:ego.c         **** 
+ 818              		.loc 1 248 0
+ 819 0068 0AB0     		add	sp, sp, #40
+ 820              		@ sp needed
+ 821 006a 10BD     		pop	{r4, pc}
+ 822              	.L76:
+ 823              		.align	2
+ARM GAS  /tmp/ccXBfSeJ.s 			page 22
+
+
+ 824              	.L75:
+ 825 006c 00000000 		.word	clkn
+ 826 0070 08400040 		.word	1073758216
+ 827 0074 38C00920 		.word	537509944
+ 828 0078 3CC00920 		.word	537509948
+ 829              		.cfi_endproc
+ 830              	.LFE16:
+ 832              		.section	.text.jam_cap_state,"ax",%progbits
+ 833              		.align	1
+ 834              		.thumb
+ 835              		.thumb_func
+ 837              	jam_cap_state:
+ 838              	.LFB17:
+ 251:ego.c         **** 	if (sync_received()) {
+ 839              		.loc 1 251 0
+ 840              		.cfi_startproc
+ 841              		@ args = 0, pretend = 0, frame = 0
+ 842              		@ frame_needed = 0, uses_anonymous_args = 0
+ 843              	.LVL78:
+ 844 0000 10B5     		push	{r4, lr}
+ 845              		.cfi_def_cfa_offset 8
+ 846              		.cfi_offset 4, -8
+ 847              		.cfi_offset 14, -4
+ 251:ego.c         **** 	if (sync_received()) {
+ 848              		.loc 1 251 0
+ 849 0002 0446     		mov	r4, r0
+ 850              	.LBB58:
+ 851              	.LBB59:
+ 142:ego.c         **** }
+ 852              		.loc 1 142 0
+ 853 0004 FFF7FEFF 		bl	cc2400_status
+ 854              	.LVL79:
+ 855              	.LBE59:
+ 856              	.LBE58:
+ 252:ego.c         **** 		state->state = EGO_ST_START_JAMMING;
+ 857              		.loc 1 252 0
+ 858 0008 C306     		lsls	r3, r0, #27
+ 859 000a 0ED5     		bpl	.L78
+ 253:ego.c         **** 		state->packet_observed = 1;
+ 860              		.loc 1 253 0
+ 861 000c 0423     		movs	r3, #4
+ 862 000e 2370     		strb	r3, [r4]
+ 254:ego.c         **** 		state->anchor = CLK100NS;
+ 863              		.loc 1 254 0
+ 864 0010 0123     		movs	r3, #1
+ 865 0012 6361     		str	r3, [r4, #20]
+ 255:ego.c         **** 	}
+ 866              		.loc 1 255 0
+ 867 0014 114B     		ldr	r3, .L89
+ 868 0016 124A     		ldr	r2, .L89+4
+ 869 0018 1B68     		ldr	r3, [r3]
+ 870 001a 1268     		ldr	r2, [r2]
+ 871 001c C3F31303 		ubfx	r3, r3, #0, #20
+ 872 0020 40F63541 		movw	r1, #3125
+ 873 0024 01FB0323 		mla	r3, r1, r3, r2
+ 874 0028 A361     		str	r3, [r4, #24]
+ 875              	.L78:
+ARM GAS  /tmp/ccXBfSeJ.s 			page 23
+
+
+ 257:ego.c         **** 		state->state = EGO_ST_START_JAMMING;
+ 876              		.loc 1 257 0
+ 877 002a 2369     		ldr	r3, [r4, #16]
+ 878 002c 5BB1     		cbz	r3, .L80
+ 257:ego.c         **** 		state->state = EGO_ST_START_JAMMING;
+ 879              		.loc 1 257 0 is_stmt 0 discriminator 1
+ 880 002e 2046     		mov	r0, r4
+ 881 0030 FFF7FEFF 		bl	sleep_elapsed
+ 882              	.LVL80:
+ 883 0034 38B1     		cbz	r0, .L80
+ 258:ego.c         **** 		state->packet_observed = 0;
+ 884              		.loc 1 258 0 is_stmt 1
+ 885 0036 0423     		movs	r3, #4
+ 886 0038 2370     		strb	r3, [r4]
+ 259:ego.c         **** 		sleep_ms(state, 11); // 11 ms hop interval
+ 887              		.loc 1 259 0
+ 888 003a 0023     		movs	r3, #0
+ 889 003c 6361     		str	r3, [r4, #20]
+ 260:ego.c         **** 	}
+ 890              		.loc 1 260 0
+ 891 003e 2046     		mov	r0, r4
+ 892 0040 0B21     		movs	r1, #11
+ 893 0042 FFF7FEFF 		bl	sleep_ms
+ 894              	.LVL81:
+ 895              	.L80:
+ 264:ego.c         **** 		cc2400_strobe(SRFOFF);
+ 896              		.loc 1 264 0
+ 897 0046 2378     		ldrb	r3, [r4]	@ zero_extendqisi2
+ 898 0048 022B     		cmp	r3, #2
+ 899 004a 06D0     		beq	.L77
+ 900              	.LVL82:
+ 901              	.LBB60:
+ 902              	.LBB61:
+ 265:ego.c         **** 		ssp_stop();
+ 903              		.loc 1 265 0
+ 904 004c 6420     		movs	r0, #100
+ 905 004e FFF7FEFF 		bl	cc2400_strobe
+ 906              	.LVL83:
+ 907              	.LBE61:
+ 908              	.LBE60:
+ 268:ego.c         **** 
+ 909              		.loc 1 268 0
+ 910 0052 BDE81040 		pop	{r4, lr}
+ 911              	.LVL84:
+ 912              	.LBB63:
+ 913              	.LBB62:
+ 266:ego.c         **** 	}
+ 914              		.loc 1 266 0
+ 915 0056 FFF7FEBF 		b	ssp_stop
+ 916              	.LVL85:
+ 917              	.L77:
+ 918 005a 10BD     		pop	{r4, pc}
+ 919              	.LVL86:
+ 920              	.L90:
+ 921              		.align	2
+ 922              	.L89:
+ 923 005c 00000000 		.word	clkn
+ARM GAS  /tmp/ccXBfSeJ.s 			page 24
+
+
+ 924 0060 08400040 		.word	1073758216
+ 925              	.LBE62:
+ 926              	.LBE63:
+ 927              		.cfi_endproc
+ 928              	.LFE17:
+ 930              		.section	.text.cap_state,"ax",%progbits
+ 931              		.align	1
+ 932              		.thumb
+ 933              		.thumb_func
+ 935              	cap_state:
+ 936              	.LFB13:
+ 184:ego.c         **** 	ego_packet_t packet = {
+ 937              		.loc 1 184 0
+ 938              		.cfi_startproc
+ 939              		@ args = 0, pretend = 0, frame = 40
+ 940              		@ frame_needed = 0, uses_anonymous_args = 0
+ 941              	.LVL87:
+ 942 0000 30B5     		push	{r4, r5, lr}
+ 943              		.cfi_def_cfa_offset 12
+ 944              		.cfi_offset 4, -12
+ 945              		.cfi_offset 5, -8
+ 946              		.cfi_offset 14, -4
+ 947 0002 8BB0     		sub	sp, sp, #44
+ 948              		.cfi_def_cfa_offset 56
+ 185:ego.c         **** 		.rxtime = CLK100NS,
+ 949              		.loc 1 185 0
+ 950 0004 0021     		movs	r1, #0
+ 184:ego.c         **** 	ego_packet_t packet = {
+ 951              		.loc 1 184 0
+ 952 0006 0446     		mov	r4, r0
+ 185:ego.c         **** 		.rxtime = CLK100NS,
+ 953              		.loc 1 185 0
+ 954 0008 2822     		movs	r2, #40
+ 955 000a 6846     		mov	r0, sp
+ 956              	.LVL88:
+ 957 000c FFF7FEFF 		bl	memset
+ 958              	.LVL89:
+ 186:ego.c         **** 	};
+ 959              		.loc 1 186 0
+ 960 0010 1B4B     		ldr	r3, .L104
+ 961 0012 1C4A     		ldr	r2, .L104+4
+ 962 0014 1B68     		ldr	r3, [r3]
+ 963 0016 1268     		ldr	r2, [r2]
+ 964 0018 C3F31303 		ubfx	r3, r3, #0, #20
+ 965 001c 40F63541 		movw	r1, #3125
+ 966 0020 01FB0323 		mla	r3, r1, r3, r2
+ 189:ego.c         **** 		sleep_ms(state, 4);
+ 967              		.loc 1 189 0
+ 968 0024 2046     		mov	r0, r4
+ 185:ego.c         **** 		.rxtime = CLK100NS,
+ 969              		.loc 1 185 0
+ 970 0026 0993     		str	r3, [sp, #36]
+ 189:ego.c         **** 		sleep_ms(state, 4);
+ 971              		.loc 1 189 0
+ 972 0028 FFF7FEFF 		bl	sleep_elapsed
+ 973              	.LVL90:
+ 974 002c 28B1     		cbz	r0, .L92
+ARM GAS  /tmp/ccXBfSeJ.s 			page 25
+
+
+ 190:ego.c         **** 		state->state = EGO_ST_SLEEP;
+ 975              		.loc 1 190 0
+ 976 002e 2046     		mov	r0, r4
+ 977 0030 0421     		movs	r1, #4
+ 978 0032 FFF7FEFF 		bl	sleep_ms
+ 979              	.LVL91:
+ 191:ego.c         **** 	}
+ 980              		.loc 1 191 0
+ 981 0036 0323     		movs	r3, #3
+ 982 0038 2370     		strb	r3, [r4]
+ 983              	.L92:
+ 984              	.LBB66:
+ 985              	.LBB67:
+ 142:ego.c         **** }
+ 986              		.loc 1 142 0
+ 987 003a FFF7FEFF 		bl	cc2400_status
+ 988              	.LVL92:
+ 989              	.LBE67:
+ 990              	.LBE66:
+ 194:ego.c         **** 		RXLED_SET;
+ 991              		.loc 1 194 0
+ 992 003e C206     		lsls	r2, r0, #27
+ 993 0040 12D5     		bpl	.L93
+ 195:ego.c         **** 		do_rx(&packet);
+ 994              		.loc 1 195 0
+ 995 0042 114B     		ldr	r3, .L104+8
+ 996 0044 1025     		movs	r5, #16
+ 997 0046 1D60     		str	r5, [r3]
+ 196:ego.c         **** 		enqueue_with_ts(EGO_PACKET, packet.rxbuf, packet.rxtime);
+ 998              		.loc 1 196 0
+ 999 0048 6846     		mov	r0, sp
+ 1000 004a FFF7FEFF 		bl	do_rx
+ 1001              	.LVL93:
+ 197:ego.c         **** 		RXLED_CLR;
+ 1002              		.loc 1 197 0
+ 1003 004e 6946     		mov	r1, sp
+ 1004 0050 099A     		ldr	r2, [sp, #36]
+ 1005 0052 0620     		movs	r0, #6
+ 1006 0054 FFF7FEFF 		bl	enqueue_with_ts
+ 1007              	.LVL94:
+ 198:ego.c         **** 
+ 1008              		.loc 1 198 0
+ 1009 0058 0C4B     		ldr	r3, .L104+12
+ 200:ego.c         **** 		state->state = EGO_ST_SLEEP;
+ 1010              		.loc 1 200 0
+ 1011 005a 2046     		mov	r0, r4
+ 198:ego.c         **** 
+ 1012              		.loc 1 198 0
+ 1013 005c 1D60     		str	r5, [r3]
+ 200:ego.c         **** 		state->state = EGO_ST_SLEEP;
+ 1014              		.loc 1 200 0
+ 1015 005e 0621     		movs	r1, #6
+ 1016 0060 FFF7FEFF 		bl	sleep_ms
+ 1017              	.LVL95:
+ 201:ego.c         **** 	}
+ 1018              		.loc 1 201 0
+ 1019 0064 0323     		movs	r3, #3
+ARM GAS  /tmp/ccXBfSeJ.s 			page 26
+
+
+ 1020 0066 2370     		strb	r3, [r4]
+ 1021              	.L93:
+ 205:ego.c         **** 		cc2400_strobe(SRFOFF);
+ 1022              		.loc 1 205 0
+ 1023 0068 2378     		ldrb	r3, [r4]	@ zero_extendqisi2
+ 1024 006a 022B     		cmp	r3, #2
+ 1025 006c 06D0     		beq	.L91
+ 206:ego.c         **** 		ssp_stop();
+ 1026              		.loc 1 206 0
+ 1027 006e 6420     		movs	r0, #100
+ 1028 0070 FFF7FEFF 		bl	cc2400_strobe
+ 1029              	.LVL96:
+ 207:ego.c         **** 		state->timer_active = 1;
+ 1030              		.loc 1 207 0
+ 1031 0074 FFF7FEFF 		bl	ssp_stop
+ 1032              	.LVL97:
+ 208:ego.c         **** 	}
+ 1033              		.loc 1 208 0
+ 1034 0078 0123     		movs	r3, #1
+ 1035 007a 2361     		str	r3, [r4, #16]
+ 1036              	.L91:
+ 210:ego.c         **** 
+ 1037              		.loc 1 210 0
+ 1038 007c 0BB0     		add	sp, sp, #44
+ 1039              		@ sp needed
+ 1040 007e 30BD     		pop	{r4, r5, pc}
+ 1041              	.LVL98:
+ 1042              	.L105:
+ 1043              		.align	2
+ 1044              	.L104:
+ 1045 0080 00000000 		.word	clkn
+ 1046 0084 08400040 		.word	1073758216
+ 1047 0088 38C00920 		.word	537509944
+ 1048 008c 3CC00920 		.word	537509948
+ 1049              		.cfi_endproc
+ 1050              	.LFE13:
+ 1052              		.section	.text.ego_main,"ax",%progbits
+ 1053              		.align	1
+ 1054              		.global	ego_main
+ 1055              		.thumb
+ 1056              		.thumb_func
+ 1058              	ego_main:
+ 1059              	.LFB21:
+ 327:ego.c         **** 		sleep_ms_anchor(state, 11);
+ 328:ego.c         **** 	}
+ 329:ego.c         **** }
+ 330:ego.c         **** 
+ 331:ego.c         **** void ego_main(ego_mode_t mode) {
+ 1060              		.loc 1 331 0
+ 1061              		.cfi_startproc
+ 1062              		@ args = 0, pretend = 0, frame = 32
+ 1063              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1064              	.LVL99:
+ 1065 0000 30B5     		push	{r4, r5, lr}
+ 1066              		.cfi_def_cfa_offset 12
+ 1067              		.cfi_offset 4, -12
+ 1068              		.cfi_offset 5, -8
+ARM GAS  /tmp/ccXBfSeJ.s 			page 27
+
+
+ 1069              		.cfi_offset 14, -4
+ 1070 0002 89B0     		sub	sp, sp, #36
+ 1071              		.cfi_def_cfa_offset 48
+ 332:ego.c         **** 	const ego_st_handler *handler; // set depending on mode
+ 333:ego.c         **** 	ego_fsm_state_t state = {
+ 1072              		.loc 1 333 0
+ 1073 0004 0021     		movs	r1, #0
+ 331:ego.c         **** 	const ego_st_handler *handler; // set depending on mode
+ 1074              		.loc 1 331 0
+ 1075 0006 0446     		mov	r4, r0
+ 1076              		.loc 1 333 0
+ 1077 0008 1C22     		movs	r2, #28
+ 1078 000a 01A8     		add	r0, sp, #4
+ 1079              	.LVL100:
+ 1080 000c FFF7FEFF 		bl	memset
+ 1081              	.LVL101:
+ 334:ego.c         **** 		.state = EGO_ST_INIT,
+ 335:ego.c         **** 		.channel_index = 0,
+ 336:ego.c         **** 		.timer_active = 0,
+ 337:ego.c         **** 	};
+ 338:ego.c         **** 
+ 339:ego.c         **** 	// hopping connection following
+ 340:ego.c         **** 	static const ego_st_handler follow_handler[] = {
+ 341:ego.c         **** 		init_state,
+ 342:ego.c         **** 		start_rf_state,
+ 343:ego.c         **** 		cap_state,
+ 344:ego.c         **** 		sleep_state,
+ 345:ego.c         **** 		nop_state,
+ 346:ego.c         **** 		nop_state,
+ 347:ego.c         **** 		nop_state,
+ 348:ego.c         **** 	};
+ 349:ego.c         **** 
+ 350:ego.c         **** 	// continuous rx on a single channel
+ 351:ego.c         **** 	static const ego_st_handler continuous_rx_handler[] = {
+ 352:ego.c         **** 		continuous_init_state, // do not override user channel
+ 353:ego.c         **** 		start_rf_state,
+ 354:ego.c         **** 		continuous_cap_state,
+ 355:ego.c         **** 		nop_state,
+ 356:ego.c         **** 		nop_state,
+ 357:ego.c         **** 		nop_state,
+ 358:ego.c         **** 	};
+ 359:ego.c         **** 
+ 360:ego.c         **** 	// jamming
+ 361:ego.c         **** 	static const ego_st_handler jam_handler[] = {
+ 362:ego.c         **** 		init_state,
+ 363:ego.c         **** 		start_rf_state,
+ 364:ego.c         **** 		jam_cap_state,
+ 365:ego.c         **** 		jam_sleep_state,
+ 366:ego.c         **** 		start_jamming_state,
+ 367:ego.c         **** 		jamming_state,
+ 368:ego.c         **** 	};
+ 369:ego.c         **** 
+ 370:ego.c         **** 	switch (mode) {
+ 1082              		.loc 1 370 0
+ 1083 0010 012C     		cmp	r4, #1
+ 1084 0012 144D     		ldr	r5, .L116
+ 1085 0014 09D0     		beq	.L114
+ARM GAS  /tmp/ccXBfSeJ.s 			page 28
+
+
+ 1086 0016 06D3     		bcc	.L109
+ 1087 0018 022C     		cmp	r4, #2
+ 1088 001a 01D1     		bne	.L115
+ 1089              	.LVL102:
+ 371:ego.c         **** 		case EGO_FOLLOW:
+ 372:ego.c         **** 			handler = follow_handler;
+ 373:ego.c         **** 			break;
+ 374:ego.c         **** 		case EGO_CONTINUOUS_RX:
+ 375:ego.c         **** 			handler = continuous_rx_handler;
+ 376:ego.c         **** 			break;
+ 377:ego.c         **** #ifdef TX_ENABLE
+ 378:ego.c         **** 		case EGO_JAM:
+ 379:ego.c         **** 			handler = jam_handler;
+ 1090              		.loc 1 379 0
+ 1091 001c 124C     		ldr	r4, .L116+4
+ 380:ego.c         **** 			break;
+ 1092              		.loc 1 380 0
+ 1093 001e 05E0     		b	.L108
+ 1094              	.LVL103:
+ 1095              	.L115:
+ 381:ego.c         **** #endif
+ 382:ego.c         **** 		default: // should never happen
+ 383:ego.c         **** 			requested_mode = MODE_IDLE;
+ 1096              		.loc 1 383 0
+ 1097 0020 0023     		movs	r3, #0
+ 1098 0022 2B70     		strb	r3, [r5]
+ 1099 0024 1BE0     		b	.L106
+ 1100              	.L109:
+ 372:ego.c         **** 			break;
+ 1101              		.loc 1 372 0
+ 1102 0026 114C     		ldr	r4, .L116+8
+ 1103 0028 00E0     		b	.L108
+ 1104              	.L114:
+ 375:ego.c         **** 			break;
+ 1105              		.loc 1 375 0
+ 1106 002a 114C     		ldr	r4, .L116+12
+ 1107              	.L108:
+ 1108              	.LVL104:
+ 1109              	.LBB72:
+ 1110              	.LBB73:
+  91:ego.c         **** 
+ 1111              		.loc 1 91 0
+ 1112 002c 114B     		ldr	r3, .L116+16
+ 1113 002e 4FF08072 		mov	r2, #16777216
+ 1114 0032 1A60     		str	r2, [r3]
+  93:ego.c         **** }
+ 1115              		.loc 1 93 0
+ 1116 0034 FFF7FEFF 		bl	dio_ssp_init
+ 1117              	.LVL105:
+ 1118              	.L113:
+ 1119              	.LBE73:
+ 1120              	.LBE72:
+ 384:ego.c         **** 			return;
+ 385:ego.c         **** 	}
+ 386:ego.c         **** 
+ 387:ego.c         **** 	ego_init();
+ 388:ego.c         **** 
+ARM GAS  /tmp/ccXBfSeJ.s 			page 29
+
+
+ 389:ego.c         **** 	while (1) {
+ 390:ego.c         **** 		if (requested_mode != MODE_EGO)
+ 1121              		.loc 1 390 0
+ 1122 0038 2B78     		ldrb	r3, [r5]	@ zero_extendqisi2
+ 1123 003a 0D2B     		cmp	r3, #13
+ 1124 003c 06D1     		bne	.L112
+ 391:ego.c         **** 			break;
+ 392:ego.c         **** 		handler[state.state](&state);
+ 1125              		.loc 1 392 0
+ 1126 003e 9DF80430 		ldrb	r3, [sp, #4]	@ zero_extendqisi2
+ 1127 0042 01A8     		add	r0, sp, #4
+ 1128 0044 54F82330 		ldr	r3, [r4, r3, lsl #2]
+ 1129 0048 9847     		blx	r3
+ 1130              	.LVL106:
+ 393:ego.c         **** 	}
+ 1131              		.loc 1 393 0
+ 1132 004a F5E7     		b	.L113
+ 1133              	.L112:
+ 1134              	.LBB74:
+ 1135              	.LBB75:
+  97:ego.c         **** 	ssp_stop(); // TODO disable SSP
+ 1136              		.loc 1 97 0
+ 1137 004c 6420     		movs	r0, #100
+ 1138 004e FFF7FEFF 		bl	cc2400_strobe
+ 1139              	.LVL107:
+  98:ego.c         **** 	ICER0 = ICER0_ICE_USB;
+ 1140              		.loc 1 98 0
+ 1141 0052 FFF7FEFF 		bl	ssp_stop
+ 1142              	.LVL108:
+  99:ego.c         **** }
+ 1143              		.loc 1 99 0
+ 1144 0056 084B     		ldr	r3, .L116+20
+ 1145 0058 4FF08072 		mov	r2, #16777216
+ 1146 005c 1A60     		str	r2, [r3]
+ 1147              	.LVL109:
+ 1148              	.L106:
+ 1149              	.LBE75:
+ 1150              	.LBE74:
+ 394:ego.c         **** 
+ 395:ego.c         **** 	ego_deinit();
+ 396:ego.c         **** }
+ 1151              		.loc 1 396 0
+ 1152 005e 09B0     		add	sp, sp, #36
+ 1153              		@ sp needed
+ 1154 0060 30BD     		pop	{r4, r5, pc}
+ 1155              	.L117:
+ 1156 0062 00BF     		.align	2
+ 1157              	.L116:
+ 1158 0064 00000000 		.word	requested_mode
+ 1159 0068 3C000000 		.word	.LANCHOR0+60
+ 1160 006c 08000000 		.word	.LANCHOR0+8
+ 1161 0070 24000000 		.word	.LANCHOR0+36
+ 1162 0074 00E100E0 		.word	-536813312
+ 1163 0078 80E100E0 		.word	-536813184
+ 1164              		.cfi_endproc
+ 1165              	.LFE21:
+ 1167              		.section	.rodata
+ARM GAS  /tmp/ccXBfSeJ.s 			page 30
+
+
+ 1168              		.align	2
+ 1169              		.set	.LANCHOR0,. + 0
+ 1172              	channels:
+ 1173 0000 6809     		.short	2408
+ 1174 0002 7209     		.short	2418
+ 1175 0004 7709     		.short	2423
+ 1176 0006 A509     		.short	2469
+ 1179              	follow_handler.4002:
+ 1180 0008 00000000 		.word	init_state
+ 1181 000c 00000000 		.word	start_rf_state
+ 1182 0010 00000000 		.word	cap_state
+ 1183 0014 00000000 		.word	sleep_state
+ 1184 0018 00000000 		.word	nop_state
+ 1185 001c 00000000 		.word	nop_state
+ 1186 0020 00000000 		.word	nop_state
+ 1189              	continuous_rx_handler.4003:
+ 1190 0024 00000000 		.word	continuous_init_state
+ 1191 0028 00000000 		.word	start_rf_state
+ 1192 002c 00000000 		.word	continuous_cap_state
+ 1193 0030 00000000 		.word	nop_state
+ 1194 0034 00000000 		.word	nop_state
+ 1195 0038 00000000 		.word	nop_state
+ 1198              	jam_handler.4004:
+ 1199 003c 00000000 		.word	init_state
+ 1200 0040 00000000 		.word	start_rf_state
+ 1201 0044 00000000 		.word	jam_cap_state
+ 1202 0048 00000000 		.word	jam_sleep_state
+ 1203 004c 00000000 		.word	start_jamming_state
+ 1204 0050 00000000 		.word	jamming_state
+ 1205              		.text
+ 1206              	.Letext0:
+ 1207              		.file 2 "/usr/lib/gcc/arm-none-eabi/4.8.2/include/stdint-gcc.h"
+ 1208              		.file 3 "../../host/libubertooth/src/ubertooth_interface.h"
+ 1209              		.file 4 "../common/ubertooth.h"
+ 1210              		.file 5 "ego.h"
+ARM GAS  /tmp/ccXBfSeJ.s 			page 31
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 ego.c
+     /tmp/ccXBfSeJ.s:19     .text.ssp_stop:0000000000000000 $t
+     /tmp/ccXBfSeJ.s:23     .text.ssp_stop:0000000000000000 ssp_stop
+     /tmp/ccXBfSeJ.s:44     .text.ssp_stop:0000000000000014 $d
+     /tmp/ccXBfSeJ.s:50     .text.do_rx:0000000000000000 $t
+     /tmp/ccXBfSeJ.s:54     .text.do_rx:0000000000000000 do_rx
+     /tmp/ccXBfSeJ.s:86     .text.do_rx:0000000000000018 $d
+     /tmp/ccXBfSeJ.s:92     .text.sleep_ms:0000000000000000 $t
+     /tmp/ccXBfSeJ.s:96     .text.sleep_ms:0000000000000000 sleep_ms
+     /tmp/ccXBfSeJ.s:125    .text.sleep_ms:0000000000000024 $d
+     /tmp/ccXBfSeJ.s:131    .text.sleep_elapsed:0000000000000000 $t
+     /tmp/ccXBfSeJ.s:135    .text.sleep_elapsed:0000000000000000 sleep_elapsed
+     /tmp/ccXBfSeJ.s:177    .text.sleep_elapsed:0000000000000030 $d
+     /tmp/ccXBfSeJ.s:183    .text.nop_state:0000000000000000 $t
+     /tmp/ccXBfSeJ.s:187    .text.nop_state:0000000000000000 nop_state
+     /tmp/ccXBfSeJ.s:200    .text.init_state:0000000000000000 $t
+     /tmp/ccXBfSeJ.s:204    .text.init_state:0000000000000000 init_state
+     /tmp/ccXBfSeJ.s:227    .text.init_state:0000000000000014 $d
+     /tmp/ccXBfSeJ.s:232    .text.continuous_init_state:0000000000000000 $t
+     /tmp/ccXBfSeJ.s:236    .text.continuous_init_state:0000000000000000 continuous_init_state
+     /tmp/ccXBfSeJ.s:252    .text.start_rf_state:0000000000000000 $t
+     /tmp/ccXBfSeJ.s:256    .text.start_rf_state:0000000000000000 start_rf_state
+     /tmp/ccXBfSeJ.s:386    .text.start_rf_state:00000000000000a8 $d
+     /tmp/ccXBfSeJ.s:394    .text.start_jamming_state:0000000000000000 $t
+     /tmp/ccXBfSeJ.s:398    .text.start_jamming_state:0000000000000000 start_jamming_state
+     /tmp/ccXBfSeJ.s:508    .text.start_jamming_state:0000000000000098 $d
+     /tmp/ccXBfSeJ.s:517    .text.sleep_state:0000000000000000 $t
+     /tmp/ccXBfSeJ.s:521    .text.sleep_state:0000000000000000 sleep_state
+     /tmp/ccXBfSeJ.s:579    .text.sleep_state:000000000000003c $d
+     /tmp/ccXBfSeJ.s:588    .text.jam_sleep_state:0000000000000000 $t
+     /tmp/ccXBfSeJ.s:592    .text.jam_sleep_state:0000000000000000 jam_sleep_state
+     /tmp/ccXBfSeJ.s:633    .text.jam_sleep_state:000000000000001c $d
+     /tmp/ccXBfSeJ.s:642    .text.jamming_state:0000000000000000 $t
+     /tmp/ccXBfSeJ.s:647    .text.jamming_state:0000000000000000 jamming_state
+     /tmp/ccXBfSeJ.s:716    .text.jamming_state:0000000000000050 $d
+     /tmp/ccXBfSeJ.s:728    .text.continuous_cap_state:0000000000000000 $t
+     /tmp/ccXBfSeJ.s:732    .text.continuous_cap_state:0000000000000000 continuous_cap_state
+     /tmp/ccXBfSeJ.s:825    .text.continuous_cap_state:000000000000006c $d
+     /tmp/ccXBfSeJ.s:833    .text.jam_cap_state:0000000000000000 $t
+     /tmp/ccXBfSeJ.s:837    .text.jam_cap_state:0000000000000000 jam_cap_state
+     /tmp/ccXBfSeJ.s:923    .text.jam_cap_state:000000000000005c $d
+     /tmp/ccXBfSeJ.s:931    .text.cap_state:0000000000000000 $t
+     /tmp/ccXBfSeJ.s:935    .text.cap_state:0000000000000000 cap_state
+     /tmp/ccXBfSeJ.s:1045   .text.cap_state:0000000000000080 $d
+     /tmp/ccXBfSeJ.s:1053   .text.ego_main:0000000000000000 $t
+     /tmp/ccXBfSeJ.s:1058   .text.ego_main:0000000000000000 ego_main
+     /tmp/ccXBfSeJ.s:1158   .text.ego_main:0000000000000064 $d
+     /tmp/ccXBfSeJ.s:1168   .rodata:0000000000000000 $d
+     /tmp/ccXBfSeJ.s:1172   .rodata:0000000000000000 channels
+     /tmp/ccXBfSeJ.s:1179   .rodata:0000000000000008 follow_handler.4002
+     /tmp/ccXBfSeJ.s:1189   .rodata:0000000000000024 continuous_rx_handler.4003
+     /tmp/ccXBfSeJ.s:1198   .rodata:000000000000003c jam_handler.4004
+                     .debug_frame:0000000000000010 $d
+
+UNDEFINED SYMBOLS
+clkn
+ARM GAS  /tmp/ccXBfSeJ.s 			page 32
+
+
+channel
+cc2400_set
+cc2400_status
+cc2400_strobe
+cc2400_get
+memset
+enqueue_with_ts
+dio_ssp_init
+requested_mode

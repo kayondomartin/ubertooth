@@ -1,0 +1,5 @@
+# Hashes of file build rules.
+7467db918619edace93cf84e074de7e8 CMakeFiles/uninstall
+2c3db0b3c5be3871abf3f555afb3a679 python/specan_ui/CMakeFiles/specan
+2c3db0b3c5be3871abf3f555afb3a679 python/specan_ui/CMakeFiles/ubertooth-specan-ui
+9cdbd9beb256d647a2e0f33c2f4af75d python/specan_ui/build/timestamp

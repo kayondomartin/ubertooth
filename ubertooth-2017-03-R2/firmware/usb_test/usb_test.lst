@@ -1,0 +1,142 @@
+ARM GAS  /tmp/ccnHZjCF.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"usb_test.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.startup.main,"ax",%progbits
+  19              		.align	1
+  20              		.global	main
+  21              		.thumb
+  22              		.thumb_func
+  24              	main:
+  25              	.LFB0:
+  26              		.file 1 "usb_test.c"
+   1:usb_test.c    **** /*
+   2:usb_test.c    ****  * Copyright 2010 Michael Ossmann
+   3:usb_test.c    ****  *
+   4:usb_test.c    ****  * This file is part of Project Ubertooth.
+   5:usb_test.c    ****  *
+   6:usb_test.c    ****  * This program is free software; you can redistribute it and/or modify
+   7:usb_test.c    ****  * it under the terms of the GNU General Public License as published by
+   8:usb_test.c    ****  * the Free Software Foundation; either version 2, or (at your option)
+   9:usb_test.c    ****  * any later version.
+  10:usb_test.c    ****  *
+  11:usb_test.c    ****  * This program is distributed in the hope that it will be useful,
+  12:usb_test.c    ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  13:usb_test.c    ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  14:usb_test.c    ****  * GNU General Public License for more details.
+  15:usb_test.c    ****  *
+  16:usb_test.c    ****  * You should have received a copy of the GNU General Public License
+  17:usb_test.c    ****  * along with this program; see the file COPYING.  If not, write to
+  18:usb_test.c    ****  * the Free Software Foundation, Inc., 51 Franklin Street,
+  19:usb_test.c    ****  * Boston, MA 02110-1301, USA.
+  20:usb_test.c    ****  */
+  21:usb_test.c    **** 
+  22:usb_test.c    **** #include "ubertooth.h"
+  23:usb_test.c    **** #include "usb_serial.h"
+  24:usb_test.c    **** 
+  25:usb_test.c    **** int main()
+  26:usb_test.c    **** {
+  27              		.loc 1 26 0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31 0000 08B5     		push	{r3, lr}
+  32              		.cfi_def_cfa_offset 8
+ARM GAS  /tmp/ccnHZjCF.s 			page 2
+
+
+  33              		.cfi_offset 3, -8
+  34              		.cfi_offset 14, -4
+  27:usb_test.c    **** 	int c;
+  28:usb_test.c    **** 
+  29:usb_test.c    **** 	ubertooth_init();
+  35              		.loc 1 29 0
+  36 0002 FFF7FEFF 		bl	ubertooth_init
+  37              	.LVL0:
+  30:usb_test.c    **** 	usb_serial_init();
+  38              		.loc 1 30 0
+  39 0006 FFF7FEFF 		bl	usb_serial_init
+  40              	.LVL1:
+  41              	.L3:
+  31:usb_test.c    **** 
+  32:usb_test.c    **** 	/*
+  33:usb_test.c    **** 	 * for each character received over USB serial connection, echo the
+  34:usb_test.c    **** 	 * character back over USB serial and toggle USRLED
+  35:usb_test.c    **** 	 */
+  36:usb_test.c    **** 	while (1) {
+  37:usb_test.c    **** 		c = VCOM_getchar();
+  42              		.loc 1 37 0
+  43 000a FFF7FEFF 		bl	VCOM_getchar
+  44              	.LVL2:
+  38:usb_test.c    **** 		if (c != EOF) {
+  45              		.loc 1 38 0
+  46 000e 431C     		adds	r3, r0, #1
+  47 0010 FBD0     		beq	.L3
+  39:usb_test.c    **** 			/* toggle USRLED */
+  40:usb_test.c    **** 			if (USRLED)
+  48              		.loc 1 40 0
+  49 0012 064B     		ldr	r3, .L9
+  50 0014 1B68     		ldr	r3, [r3]
+  51 0016 13F0020F 		tst	r3, #2
+  41:usb_test.c    **** 				USRLED_CLR;
+  52              		.loc 1 41 0
+  53 001a 14BF     		ite	ne
+  54 001c 044A     		ldrne	r2, .L9+4
+  42:usb_test.c    **** 			else
+  43:usb_test.c    **** 				USRLED_SET;
+  55              		.loc 1 43 0
+  56 001e 054A     		ldreq	r2, .L9+8
+  57 0020 0223     		movs	r3, #2
+  58 0022 1360     		str	r3, [r2]
+  44:usb_test.c    **** 			VCOM_putchar(c);
+  59              		.loc 1 44 0
+  60 0024 FFF7FEFF 		bl	VCOM_putchar
+  61              	.LVL3:
+  62 0028 EFE7     		b	.L3
+  63              	.L10:
+  64 002a 00BF     		.align	2
+  65              	.L9:
+  66 002c 34C00920 		.word	537509940
+  67 0030 3CC00920 		.word	537509948
+  68 0034 38C00920 		.word	537509944
+  69              		.cfi_endproc
+  70              	.LFE0:
+  72              		.text
+ARM GAS  /tmp/ccnHZjCF.s 			page 3
+
+
+  73              	.Letext0:
+  74              		.file 2 "../common/ubertooth.h"
+  75              		.file 3 "../common/usb_serial.h"
+  76              		.file 4 "/usr/lib/gcc/arm-none-eabi/4.8.2/include/stdint-gcc.h"
+ARM GAS  /tmp/ccnHZjCF.s 			page 4
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 usb_test.c
+     /tmp/ccnHZjCF.s:19     .text.startup.main:0000000000000000 $t
+     /tmp/ccnHZjCF.s:24     .text.startup.main:0000000000000000 main
+     /tmp/ccnHZjCF.s:66     .text.startup.main:000000000000002c $d
+                     .debug_frame:0000000000000010 $d
+
+UNDEFINED SYMBOLS
+ubertooth_init
+usb_serial_init
+VCOM_getchar
+VCOM_putchar

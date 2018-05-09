@@ -1,0 +1,16 @@
+/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/python/specan_ui/CMakeFiles/specan.dir
+/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/libubertooth/src/CMakeFiles/ubertooth.dir
+/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/ubertooth-tools/src/CMakeFiles/ubertooth-afh.dir
+/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/ubertooth-tools/src/CMakeFiles/ubertooth-btle.dir
+/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/ubertooth-tools/src/CMakeFiles/ubertooth-debug.dir
+/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/ubertooth-tools/src/CMakeFiles/ubertooth-dfu.dir
+/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/ubertooth-tools/src/CMakeFiles/ubertooth-dump.dir
+/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/ubertooth-tools/src/CMakeFiles/ubertooth-ego.dir
+/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/ubertooth-tools/src/CMakeFiles/ubertooth-follow.dir
+/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/ubertooth-tools/src/CMakeFiles/ubertooth-rx.dir
+/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/ubertooth-tools/src/CMakeFiles/ubertooth-scan.dir
+/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/ubertooth-tools/src/CMakeFiles/ubertooth-specan.dir
+/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/python/specan_ui/CMakeFiles/ubertooth-specan-ui.dir
+/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/ubertooth-tools/src/CMakeFiles/ubertooth-tx.dir
+/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/ubertooth-tools/src/CMakeFiles/ubertooth-util.dir
+/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/CMakeFiles/uninstall.dir
