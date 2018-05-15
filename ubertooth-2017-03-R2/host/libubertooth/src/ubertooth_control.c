@@ -912,12 +912,50 @@ int cmd_read_register(struct libusb_device_handle* devh, u8 reg)
 	return (data[0] << 8) | data[1];
 }
 
-int cmd_btle_slave(struct libusb_device_handle* devh, u8 *mac_address)
+int cmd_btle_slave(struct libusb_device_handle* devh, u8 *mac_address, int pwr_level)
 {
 	int r;
 
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_SLAVE, 0, 0,
-			mac_address, 6, 1000);
+	//r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_SLAVE_P6, 0, 0,
+	//		mac_address, 6, 1000);
+	// JWHUR POWER CONTROL
+	switch (pwr_level) {
+		case 0:
+			r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_SLAVE_P0, 0, 0,
+					mac_address, 6, 1000);
+			break;
+		case 1:
+			r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_SLAVE_P1, 0, 0,
+					mac_address, 6, 1000);
+			break;
+		case 2:
+			r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_SLAVE_P2, 0, 0,
+					mac_address, 6, 1000);
+			break;
+		case 3:
+			r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_SLAVE_P3, 0, 0,
+					mac_address, 6, 1000);
+			break;
+		case 4:
+			r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_SLAVE_P4, 0, 0,
+					mac_address, 6, 1000);
+			break;
+		case 5:
+			r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_SLAVE_P5, 0, 0,
+					mac_address, 6, 1000);
+			break;
+		case 6:
+			r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_SLAVE_P6, 0, 0,
+					mac_address, 6, 1000);
+			break;
+		case 7:
+			r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_SLAVE_P7, 0, 0,
+					mac_address, 6, 1000);
+			break;
+		default:
+			r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_SLAVE, 0, 0,
+					mac_address, 6, 1000);
+	}
 	printf("JWHUR cmd_btle_slave\n");
 	if (r < 0) {
 		if (r == LIBUSB_ERROR_PIPE) {

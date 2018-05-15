@@ -641,6 +641,41 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 		memcpy(slave_mac_address, data, 6);
 		requested_mode = MODE_BT_SLAVE_LE;
 		break;
+	
+	// WJHUR Power control
+	case UBERTOOTH_BTLE_SLAVE_P0:
+		memcpy(slave_mac_address, data, 6);
+		requested_mode = MODE_BT_SLAVE_LE_P0;
+		break;
+	case UBERTOOTH_BTLE_SLAVE_P1:
+		memcpy(slave_mac_address, data, 6);
+		requested_mode = MODE_BT_SLAVE_LE_P1;
+		break;
+	case UBERTOOTH_BTLE_SLAVE_P2:
+		memcpy(slave_mac_address, data, 6);
+		requested_mode = MODE_BT_SLAVE_LE_P2;
+		break;
+	case UBERTOOTH_BTLE_SLAVE_P3:
+		memcpy(slave_mac_address, data, 6);
+		requested_mode = MODE_BT_SLAVE_LE_P3;
+		break;
+	case UBERTOOTH_BTLE_SLAVE_P4:
+		memcpy(slave_mac_address, data, 6);
+		requested_mode = MODE_BT_SLAVE_LE_P4;
+		break;
+	case UBERTOOTH_BTLE_SLAVE_P5:
+		memcpy(slave_mac_address, data, 6);
+		requested_mode = MODE_BT_SLAVE_LE_P5;
+		break;
+	case UBERTOOTH_BTLE_SLAVE_P6:
+		memcpy(slave_mac_address, data, 6);
+		requested_mode = MODE_BT_SLAVE_LE_P6;
+		break;
+	case UBERTOOTH_BTLE_SLAVE_P7:
+		memcpy(slave_mac_address, data, 6);
+		requested_mode = MODE_BT_SLAVE_LE_P7;
+		break;
+
 
 	case UBERTOOTH_BTLE_SET_TARGET:
 		// Addresses appear in packets in reverse-octet order.
@@ -787,6 +822,14 @@ void DMA_IRQHandler()
 	   || mode == MODE_BT_FOLLOW_LE
 	   || mode == MODE_BT_PROMISC_LE
 	   || mode == MODE_BT_SLAVE_LE
+	   || mode == MODE_BT_SLAVE_LE_P0
+	   || mode == MODE_BT_SLAVE_LE_P1
+	   || mode == MODE_BT_SLAVE_LE_P2
+	   || mode == MODE_BT_SLAVE_LE_P3
+	   || mode == MODE_BT_SLAVE_LE_P4
+	   || mode == MODE_BT_SLAVE_LE_P5
+	   || mode == MODE_BT_SLAVE_LE_P6
+	   || mode == MODE_BT_SLAVE_LE_P7
 	   || mode == MODE_RX_GENERIC)
 	{
 		/* interrupt on channel 0 */
@@ -1035,7 +1078,7 @@ static void cc2400_tx_sync(uint32_t sync)
  * should not be pre-whitened, but the CRC should be calculated and
  * included in the data length.
  */
-void le_transmit(u32 aa, u8 len, u8 *data)
+void le_transmit(u32 aa, u8 len, u8 *data, u16 tx_pwr)
 {
 	unsigned i, j;
 	int bit;
@@ -1043,6 +1086,8 @@ void le_transmit(u32 aa, u8 len, u8 *data)
 	u8 tx_len;
 	u8 byte;
 	u16 gio_save;
+	//JWHUR tx power control
+	tx_pwr = (tx_pwr & 0x000f);
 
 	// first four bytes: AA
 	for (i = 0; i < 4; ++i) {
@@ -1084,7 +1129,18 @@ void le_transmit(u32 aa, u8 len, u8 *data)
 	//      +--------------------> buffered mode
 
 	cc2400_set(FSDIV,   channel);
-	cc2400_set(FREND,   0b1011);    // amplifier level (-7 dBm, picked from hat)
+	// JWHUR cc2400 data sheet about power control
+	// lsb 3 bit : dbm
+	// 000 : -25
+	// 001 : -15
+	// 010 : -10
+	// 011 : -7
+	// 100 : -4.6
+	// 101 : -2.8
+	// 110 : -1.3
+	// 111 : 0
+	cc2400_set(FREND, tx_pwr);
+	//cc2400_set(FREND,   0b1011);    // amplifier level (-7 dBm, picked from hat)
 	cc2400_set(MDMCTRL, 0x0040);    // 250 kHz frequency deviation
 	cc2400_set(INT,     0x0014);    // FIFO_THRESHOLD: 20 bytes
 
@@ -2270,19 +2326,35 @@ void bt_promisc_le() {
 	}
 }
 
-void bt_slave_le() {
+void bt_slave_le(u16 tx_pwr) {
 	u32 calc_crc;
 	int i;
 
 	u8 adv_ind[] = {
 		// LL header
-		0x00, 0x0f,
+		0x42, 0x1e, // adv_nonconn_ind
+
+		// AdvA (6 bytes) + AdvData (upto 31 bytes)
 
 		// advertising address
 		0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 
-		// advertising data
-		0x05, 0x01, 0x06, 0x13, 0x13, 0x13, 0x13, 0x13, 0x13,
+		// advertising flags, standards
+		// 0x02, 0x01, 0x06, 
+		
+		// service advertised
+		0x03, 0x03, 0xaa, 0xfe, //len, type, eddystone UUID
+		
+		// len(3 + URL frame + Eddystone URL), type, eddystone UUID
+		0x13, 0x16, 0xaa, 0xfe, 
+
+		// URL frame
+		0x10, 0x00, 0x02, // frametype (URL), tx power, URL scheme prefix (0x02: http://)
+
+		// Eddystone URL (available data, 0~20 bytes)
+		0xaa, 'M', 'W', 'N', 'L', '_', '3', '0', '1', // Preamble, SSID
+
+		0xaa, 'm', 'w', 'n', //'l', 'w', 'l', 'a', 'n', // Preamble, PASSWD
 
 		// CRC (calc)
 		0xff, 0xff, 0xff,
@@ -2302,10 +2374,18 @@ void bt_slave_le() {
 	clkn_start();
 
 	// spam advertising packets
-	while (requested_mode == MODE_BT_SLAVE_LE) {
+	while (requested_mode == MODE_BT_SLAVE_LE 
+			|| requested_mode == MODE_BT_SLAVE_LE_P0
+			|| requested_mode == MODE_BT_SLAVE_LE_P1
+			|| requested_mode == MODE_BT_SLAVE_LE_P2
+			|| requested_mode == MODE_BT_SLAVE_LE_P3
+			|| requested_mode == MODE_BT_SLAVE_LE_P4
+			|| requested_mode == MODE_BT_SLAVE_LE_P5
+			|| requested_mode == MODE_BT_SLAVE_LE_P6
+			|| requested_mode == MODE_BT_SLAVE_LE_P7) {
 		ICER0 = ICER0_ICE_USB;
 		ICER0 = ICER0_ICE_DMA;
-		le_transmit(0x8e89bed6, adv_ind_len+3, adv_ind);
+		le_transmit(0x8e89bed6, adv_ind_len+3, adv_ind, tx_pwr);
 		ISER0 = ISER0_ISE_USB;
 		ISER0 = ISER0_ISE_DMA;
 		msleep(100);
@@ -2564,7 +2644,7 @@ int main()
 					bt_promisc_le();
 					break;
 				case MODE_BT_SLAVE_LE:
-					bt_slave_le();
+					bt_slave_le(0x000f);
 					break;
 				case MODE_TX_TEST:
 					mode = MODE_TX_TEST;
@@ -2599,6 +2679,32 @@ int main()
 				case MODE_IDLE:
 					cc2400_idle();
 					break;
+				// JWHUR POWER CONTROL
+				case MODE_BT_SLAVE_LE_P0:
+					bt_slave_le(0x0008);
+					break;
+				case MODE_BT_SLAVE_LE_P1:
+					bt_slave_le(0x0009);
+					break;
+				case MODE_BT_SLAVE_LE_P2:
+					bt_slave_le(0x000a);
+					break;
+				case MODE_BT_SLAVE_LE_P3:
+					bt_slave_le(0x000b);
+					break;
+				case MODE_BT_SLAVE_LE_P4:
+					bt_slave_le(0x000c);
+					break;
+				case MODE_BT_SLAVE_LE_P5:
+					bt_slave_le(0x000d);
+					break;
+				case MODE_BT_SLAVE_LE_P6:
+					bt_slave_le(0x000e);
+					break;
+				case MODE_BT_SLAVE_LE_P7:
+					bt_slave_le(0x000f);
+					break;
+				
 				default:
 					/* This is really an error state, but what can you do? */
 					break;

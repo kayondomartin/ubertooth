@@ -38,23 +38,7 @@ ubertooth_control.h
 stdint.h
 -
 
-/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/arglist.c
-stdio.h
--
-stdlib.h
--
-ctype.h
--
-arglist.h
 /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/arglist.h
-
-/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/arglist.h
-
-/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/cc2400.c
-string.h
--
-stdio.h
--
 
 /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/cc2400.h
 stdio.h

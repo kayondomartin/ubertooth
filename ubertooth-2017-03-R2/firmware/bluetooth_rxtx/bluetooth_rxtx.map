@@ -337,7 +337,7 @@ LOAD /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libm.a
 LOAD /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libnosys.a
 END GROUP
 
-.text           0x0000000000004000     0x5630
+.text           0x0000000000004000     0x5790
                 0x0000000000004000                . = ALIGN (0x400)
                 0x0000000000004000                _interrupt_vector_table = .
  *(.irq_handler_table)
@@ -380,518 +380,517 @@ END GROUP
                 0x0000000000004764      0x170 bluetooth_rxtx.o
                 0x0000000000004764                connection_follow_cb
  .text.vendor_request_handler
-                0x00000000000048d4      0x650 bluetooth_rxtx.o
+                0x00000000000048d4      0x6f8 bluetooth_rxtx.o
  .text.enqueue_with_ts
-                0x0000000000004f24       0x58 bluetooth_rxtx.o
-                0x0000000000004f24                enqueue_with_ts
+                0x0000000000004fcc       0x58 bluetooth_rxtx.o
+                0x0000000000004fcc                enqueue_with_ts
  .text.TIMER0_IRQHandler
-                0x0000000000004f7c      0x140 bluetooth_rxtx.o
-                0x0000000000004f7c                TIMER0_IRQHandler
+                0x0000000000005024      0x140 bluetooth_rxtx.o
+                0x0000000000005024                TIMER0_IRQHandler
  .text.EINT3_IRQHandler
-                0x00000000000050bc       0x34 bluetooth_rxtx.o
-                0x00000000000050bc                EINT3_IRQHandler
+                0x0000000000005164       0x34 bluetooth_rxtx.o
+                0x0000000000005164                EINT3_IRQHandler
  .text.DMA_IRQHandler
-                0x00000000000050f0       0xdc bluetooth_rxtx.o
-                0x00000000000050f0                DMA_IRQHandler
+                0x0000000000005198      0x10c bluetooth_rxtx.o
+                0x0000000000005198                DMA_IRQHandler
  .text.le_transmit
-                0x00000000000051cc      0x1ac bluetooth_rxtx.o
-                0x00000000000051cc                le_transmit
- .text.le_jam   0x0000000000005378       0x78 bluetooth_rxtx.o
-                0x0000000000005378                le_jam
- .text.hop      0x00000000000053f0      0x1a0 bluetooth_rxtx.o
-                0x00000000000053f0                hop
+                0x00000000000052a4      0x1ac bluetooth_rxtx.o
+                0x00000000000052a4                le_transmit
+ .text.le_jam   0x0000000000005450       0x78 bluetooth_rxtx.o
+                0x0000000000005450                le_jam
+ .text.hop      0x00000000000054c8      0x1a0 bluetooth_rxtx.o
+                0x00000000000054c8                hop
  .text.bt_stream_rx
-                0x0000000000005590      0x15c bluetooth_rxtx.o
-                0x0000000000005590                bt_stream_rx
+                0x0000000000005668      0x15c bluetooth_rxtx.o
+                0x0000000000005668                bt_stream_rx
  .text.br_transmit
-                0x00000000000056ec      0x280 bluetooth_rxtx.o
-                0x00000000000056ec                br_transmit
+                0x00000000000057c4      0x280 bluetooth_rxtx.o
+                0x00000000000057c4                br_transmit
  .text.reset_le
-                0x000000000000596c       0x54 bluetooth_rxtx.o
-                0x000000000000596c                reset_le
+                0x0000000000005a44       0x54 bluetooth_rxtx.o
+                0x0000000000005a44                reset_le
  .text.reset_le_promisc
-                0x00000000000059c0       0x20 bluetooth_rxtx.o
-                0x00000000000059c0                reset_le_promisc
+                0x0000000000005a98       0x20 bluetooth_rxtx.o
+                0x0000000000005a98                reset_le_promisc
  .text.bt_generic_le
-                0x00000000000059e0      0x1e4 bluetooth_rxtx.o
-                0x00000000000059e0                bt_generic_le
+                0x0000000000005ab8      0x1e4 bluetooth_rxtx.o
+                0x0000000000005ab8                bt_generic_le
  .text.bt_le_sync
-                0x0000000000005bc4      0x3d8 bluetooth_rxtx.o
-                0x0000000000005bc4                bt_le_sync
+                0x0000000000005c9c      0x3d8 bluetooth_rxtx.o
+                0x0000000000005c9c                bt_le_sync
  .text.bt_follow_le
-                0x0000000000005f9c       0x20 bluetooth_rxtx.o
-                0x0000000000005f9c                bt_follow_le
+                0x0000000000006074       0x20 bluetooth_rxtx.o
+                0x0000000000006074                bt_follow_le
  .text.le_promisc_state
-                0x0000000000005fbc       0x36 bluetooth_rxtx.o
-                0x0000000000005fbc                le_promisc_state
- *fill*         0x0000000000005ff2        0x2 
+                0x0000000000006094       0x36 bluetooth_rxtx.o
+                0x0000000000006094                le_promisc_state
+ *fill*         0x00000000000060ca        0x2 
  .text.promisc_recover_hop_increment
-                0x0000000000005ff4       0xe0 bluetooth_rxtx.o
-                0x0000000000005ff4                promisc_recover_hop_increment
+                0x00000000000060cc       0xe0 bluetooth_rxtx.o
+                0x00000000000060cc                promisc_recover_hop_increment
  .text.promisc_recover_hop_interval
-                0x00000000000060d4       0xb4 bluetooth_rxtx.o
-                0x00000000000060d4                promisc_recover_hop_interval
+                0x00000000000061ac       0xb4 bluetooth_rxtx.o
+                0x00000000000061ac                promisc_recover_hop_interval
  .text.promisc_follow_cb
-                0x0000000000006188       0x74 bluetooth_rxtx.o
-                0x0000000000006188                promisc_follow_cb
- .text.see_aa   0x00000000000061fc       0x5c bluetooth_rxtx.o
-                0x00000000000061fc                see_aa
+                0x0000000000006260       0x74 bluetooth_rxtx.o
+                0x0000000000006260                promisc_follow_cb
+ .text.see_aa   0x00000000000062d4       0x5c bluetooth_rxtx.o
+                0x00000000000062d4                see_aa
  .text.cb_le_promisc
-                0x0000000000006258      0x1a0 bluetooth_rxtx.o
-                0x0000000000006258                cb_le_promisc
+                0x0000000000006330      0x1a0 bluetooth_rxtx.o
+                0x0000000000006330                cb_le_promisc
  .text.bt_promisc_le
-                0x00000000000063f8       0x70 bluetooth_rxtx.o
-                0x00000000000063f8                bt_promisc_le
+                0x00000000000064d0       0x70 bluetooth_rxtx.o
+                0x00000000000064d0                bt_promisc_le
  .text.bt_slave_le
-                0x0000000000006468       0xb4 bluetooth_rxtx.o
-                0x0000000000006468                bt_slave_le
+                0x0000000000006540       0xf0 bluetooth_rxtx.o
+                0x0000000000006540                bt_slave_le
  .text.rx_generic_sync
-                0x000000000000651c       0xa0 bluetooth_rxtx.o
-                0x000000000000651c                rx_generic_sync
+                0x0000000000006630       0xa0 bluetooth_rxtx.o
+                0x0000000000006630                rx_generic_sync
  .text.rx_generic
-                0x00000000000065bc       0x20 bluetooth_rxtx.o
-                0x00000000000065bc                rx_generic
+                0x00000000000066d0       0x20 bluetooth_rxtx.o
+                0x00000000000066d0                rx_generic
  .text.tx_generic
-                0x00000000000065dc       0xf4 bluetooth_rxtx.o
-                0x00000000000065dc                tx_generic
- .text.specan   0x00000000000066d0      0x114 bluetooth_rxtx.o
-                0x00000000000066d0                specan
+                0x00000000000066f0       0xf4 bluetooth_rxtx.o
+                0x00000000000066f0                tx_generic
+ .text.specan   0x00000000000067e4      0x114 bluetooth_rxtx.o
+                0x00000000000067e4                specan
  .text.led_specan
-                0x00000000000067e4      0x130 bluetooth_rxtx.o
-                0x00000000000067e4                led_specan
+                0x00000000000068f8      0x130 bluetooth_rxtx.o
+                0x00000000000068f8                led_specan
  .text.startup.main
-                0x0000000000006914      0x114 bluetooth_rxtx.o
-                0x0000000000006914                main
- .text.precalc  0x0000000000006a28      0x138 bluetooth.o
-                0x0000000000006a28                precalc
+                0x0000000000006a28      0x154 bluetooth_rxtx.o
+                0x0000000000006a28                main
+ .text.precalc  0x0000000000006b7c      0x138 bluetooth.o
+                0x0000000000006b7c                precalc
  .text.next_hop
-                0x0000000000006b60      0x13c bluetooth.o
-                0x0000000000006b60                next_hop
+                0x0000000000006cb4      0x13c bluetooth.o
+                0x0000000000006cb4                next_hop
  .text.btle_channel_index
-                0x0000000000006c9c       0x26 bluetooth_le.o
-                0x0000000000006c9c                btle_channel_index
+                0x0000000000006df0       0x26 bluetooth_le.o
+                0x0000000000006df0                btle_channel_index
  .text.btle_channel_index_to_phys
-                0x0000000000006cc2       0x30 bluetooth_le.o
-                0x0000000000006cc2                btle_channel_index_to_phys
+                0x0000000000006e16       0x30 bluetooth_le.o
+                0x0000000000006e16                btle_channel_index_to_phys
  .text.btle_next_hop
-                0x0000000000006cf2       0x1e bluetooth_le.o
-                0x0000000000006cf2                btle_next_hop
+                0x0000000000006e46       0x1e bluetooth_le.o
+                0x0000000000006e46                btle_next_hop
  .text.btle_calc_crc
-                0x0000000000006d10       0x38 bluetooth_le.o
-                0x0000000000006d10                btle_calc_crc
+                0x0000000000006e64       0x38 bluetooth_le.o
+                0x0000000000006e64                btle_calc_crc
  .text.btle_reverse_crc
-                0x0000000000006d48       0x52 bluetooth_le.o
-                0x0000000000006d48                btle_reverse_crc
- *fill*         0x0000000000006d9a        0x2 
+                0x0000000000006e9c       0x52 bluetooth_le.o
+                0x0000000000006e9c                btle_reverse_crc
+ *fill*         0x0000000000006eee        0x2 
  .text.btle_crcgen_lut
-                0x0000000000006d9c       0x28 bluetooth_le.o
-                0x0000000000006d9c                btle_crcgen_lut
+                0x0000000000006ef0       0x28 bluetooth_le.o
+                0x0000000000006ef0                btle_crcgen_lut
  .text.usb_vendor_request_handler
-                0x0000000000006dc4       0x2c ubertooth_usb.o
-                0x0000000000006dc4                usb_vendor_request_handler
+                0x0000000000006f18       0x2c ubertooth_usb.o
+                0x0000000000006f18                usb_vendor_request_handler
  .text.set_serial_descriptor
-                0x0000000000006df0       0x54 ubertooth_usb.o
-                0x0000000000006df0                set_serial_descriptor
+                0x0000000000006f44       0x54 ubertooth_usb.o
+                0x0000000000006f44                set_serial_descriptor
  .text.ubertooth_usb_init
-                0x0000000000006e44       0x4c ubertooth_usb.o
-                0x0000000000006e44                ubertooth_usb_init
+                0x0000000000006f98       0x4c ubertooth_usb.o
+                0x0000000000006f98                ubertooth_usb_init
  .text.queue_init
-                0x0000000000006e90       0x1c ubertooth_usb.o
-                0x0000000000006e90                queue_init
+                0x0000000000006fe4       0x1c ubertooth_usb.o
+                0x0000000000006fe4                queue_init
  .text.usb_enqueue
-                0x0000000000006eac       0x34 ubertooth_usb.o
-                0x0000000000006eac                usb_enqueue
- .text.dequeue  0x0000000000006ee0       0x2c ubertooth_usb.o
-                0x0000000000006ee0                dequeue
+                0x0000000000007000       0x34 ubertooth_usb.o
+                0x0000000000007000                usb_enqueue
+ .text.dequeue  0x0000000000007034       0x2c ubertooth_usb.o
+                0x0000000000007034                dequeue
  .text.dequeue_send
-                0x0000000000006f0c       0x48 ubertooth_usb.o
-                0x0000000000006f0c                dequeue_send
+                0x0000000000007060       0x48 ubertooth_usb.o
+                0x0000000000007060                dequeue_send
  .text.handle_usb
-                0x0000000000006f54       0x28 ubertooth_usb.o
-                0x0000000000006f54                handle_usb
+                0x00000000000070a8       0x28 ubertooth_usb.o
+                0x00000000000070a8                handle_usb
  .text.rssi_reset
-                0x0000000000006f7c       0x38 ubertooth_rssi.o
-                0x0000000000006f7c                rssi_reset
+                0x00000000000070d0       0x38 ubertooth_rssi.o
+                0x00000000000070d0                rssi_reset
  .text.rssi_add
-                0x0000000000006fb4       0x40 ubertooth_rssi.o
-                0x0000000000006fb4                rssi_add
+                0x0000000000007108       0x40 ubertooth_rssi.o
+                0x0000000000007108                rssi_add
  .text.rssi_iir_update
-                0x0000000000006ff4       0x50 ubertooth_rssi.o
-                0x0000000000006ff4                rssi_iir_update
+                0x0000000000007148       0x50 ubertooth_rssi.o
+                0x0000000000007148                rssi_iir_update
  .text.rssi_get_avg
-                0x0000000000007044       0x28 ubertooth_rssi.o
-                0x0000000000007044                rssi_get_avg
+                0x0000000000007198       0x28 ubertooth_rssi.o
+                0x0000000000007198                rssi_get_avg
  .text.cs_threshold_calc_and_set
-                0x000000000000706c       0x64 ubertooth_cs.o
-                0x000000000000706c                cs_threshold_calc_and_set
+                0x00000000000071c0       0x64 ubertooth_cs.o
+                0x00000000000071c0                cs_threshold_calc_and_set
  .text.cs_trigger_enable
-                0x00000000000070d0       0x2c ubertooth_cs.o
-                0x00000000000070d0                cs_trigger_enable
+                0x0000000000007224       0x2c ubertooth_cs.o
+                0x0000000000007224                cs_trigger_enable
  .text.cs_trigger_disable
-                0x00000000000070fc       0x2c ubertooth_cs.o
-                0x00000000000070fc                cs_trigger_disable
+                0x0000000000007250       0x2c ubertooth_cs.o
+                0x0000000000007250                cs_trigger_disable
  .text.cs_reset
-                0x0000000000007128       0x24 ubertooth_cs.o
-                0x0000000000007128                cs_reset
+                0x000000000000727c       0x24 ubertooth_cs.o
+                0x000000000000727c                cs_reset
  .text.clkn_stop
-                0x000000000000714c       0x50 ubertooth_clock.o
-                0x000000000000714c                clkn_stop
+                0x00000000000072a0       0x50 ubertooth_clock.o
+                0x00000000000072a0                clkn_stop
  .text.clkn_start
-                0x000000000000719c        0xc ubertooth_clock.o
-                0x000000000000719c                clkn_start
+                0x00000000000072f0        0xc ubertooth_clock.o
+                0x00000000000072f0                clkn_start
  .text.clkn_init
-                0x00000000000071a8       0x28 ubertooth_clock.o
-                0x00000000000071a8                clkn_init
+                0x00000000000072fc       0x28 ubertooth_clock.o
+                0x00000000000072fc                clkn_init
  .text.dma_disable
-                0x00000000000071d0       0x7c ubertooth_dma.o
+                0x0000000000007324       0x7c ubertooth_dma.o
  .text.dma_init
-                0x000000000000724c       0x7c ubertooth_dma.o
-                0x000000000000724c                dma_init
+                0x00000000000073a0       0x7c ubertooth_dma.o
+                0x00000000000073a0                dma_init
  .text.dma_init_le
-                0x00000000000072c8       0x90 ubertooth_dma.o
-                0x00000000000072c8                dma_init_le
+                0x000000000000741c       0x90 ubertooth_dma.o
+                0x000000000000741c                dma_init_le
  .text.dio_ssp_start
-                0x0000000000007358       0x4c ubertooth_dma.o
-                0x0000000000007358                dio_ssp_start
+                0x00000000000074ac       0x4c ubertooth_dma.o
+                0x00000000000074ac                dio_ssp_start
  .text.dio_ssp_stop
-                0x00000000000073a4       0x2c ubertooth_dma.o
-                0x00000000000073a4                dio_ssp_stop
+                0x00000000000074f8       0x2c ubertooth_dma.o
+                0x00000000000074f8                dio_ssp_stop
  .text.cc2400_rangetest
-                0x00000000000073d0      0x288 cc2400_rangetest.o
-                0x00000000000073d0                cc2400_rangetest
+                0x0000000000007524      0x288 cc2400_rangetest.o
+                0x0000000000007524                cc2400_rangetest
  .text.cc2400_repeater
-                0x0000000000007658      0x170 cc2400_rangetest.o
-                0x0000000000007658                cc2400_repeater
+                0x00000000000077ac      0x170 cc2400_rangetest.o
+                0x00000000000077ac                cc2400_repeater
  .text.cc2400_txtest
-                0x00000000000077c8       0x78 cc2400_rangetest.o
-                0x00000000000077c8                cc2400_txtest
+                0x000000000000791c       0x78 cc2400_rangetest.o
+                0x000000000000791c                cc2400_txtest
  .text.ssp_stop
-                0x0000000000007840       0x1c ego.o
- .text.do_rx    0x000000000000785c       0x20 ego.o
+                0x0000000000007994       0x1c ego.o
+ .text.do_rx    0x00000000000079b0       0x20 ego.o
  .text.sleep_ms
-                0x000000000000787c       0x2c ego.o
+                0x00000000000079d0       0x2c ego.o
  .text.sleep_elapsed
-                0x00000000000078a8       0x38 ego.o
+                0x00000000000079fc       0x38 ego.o
  .text.nop_state
-                0x00000000000078e0        0x2 ego.o
- *fill*         0x00000000000078e2        0x2 
+                0x0000000000007a34        0x2 ego.o
+ *fill*         0x0000000000007a36        0x2 
  .text.init_state
-                0x00000000000078e4       0x18 ego.o
+                0x0000000000007a38       0x18 ego.o
  .text.continuous_init_state
-                0x00000000000078fc        0x6 ego.o
- *fill*         0x0000000000007902        0x2 
+                0x0000000000007a50        0x6 ego.o
+ *fill*         0x0000000000007a56        0x2 
  .text.start_rf_state
-                0x0000000000007904       0xb8 ego.o
+                0x0000000000007a58       0xb8 ego.o
  .text.start_jamming_state
-                0x00000000000079bc       0xa4 ego.o
+                0x0000000000007b10       0xa4 ego.o
  .text.sleep_state
-                0x0000000000007a60       0x48 ego.o
+                0x0000000000007bb4       0x48 ego.o
  .text.jam_sleep_state
-                0x0000000000007aa8       0x20 ego.o
+                0x0000000000007bfc       0x20 ego.o
  .text.jamming_state
-                0x0000000000007ac8       0x60 ego.o
-                0x0000000000007ac8                jamming_state
+                0x0000000000007c1c       0x60 ego.o
+                0x0000000000007c1c                jamming_state
  .text.continuous_cap_state
-                0x0000000000007b28       0x7c ego.o
+                0x0000000000007c7c       0x7c ego.o
  .text.jam_cap_state
-                0x0000000000007ba4       0x64 ego.o
+                0x0000000000007cf8       0x64 ego.o
  .text.cap_state
-                0x0000000000007c08       0x90 ego.o
+                0x0000000000007d5c       0x90 ego.o
  .text.ego_main
-                0x0000000000007c98       0x7c ego.o
-                0x0000000000007c98                ego_main
+                0x0000000000007dec       0x7c ego.o
+                0x0000000000007dec                ego_main
  .text.USB_IRQHandler
-                0x0000000000007d14        0x4 ../common/usb_serial.o
-                0x0000000000007d14                USB_IRQHandler
+                0x0000000000007e68        0x4 ../common/usb_serial.o
+                0x0000000000007e68                USB_IRQHandler
  .text.Reset_Handler
-                0x0000000000007d18       0x54 ../common/LPC17xx_Startup.o
-                0x0000000000007d18                Reset_Handler
+                0x0000000000007e6c       0x54 ../common/LPC17xx_Startup.o
+                0x0000000000007e6c                Reset_Handler
  .text.Default_Handler
-                0x0000000000007d6c        0x2 ../common/LPC17xx_Interrupts.o
-                0x0000000000007d6c                TIMER2_IRQHandler
-                0x0000000000007d6c                DebugMon_Handler
-                0x0000000000007d6c                RIT_IRQHandler
-                0x0000000000007d6c                I2C0_IRQHandler
-                0x0000000000007d6c                HardFault_Handler
-                0x0000000000007d6c                SysTick_Handler
-                0x0000000000007d6c                PWM1_IRQHandler
-                0x0000000000007d6c                PendSV_Handler
-                0x0000000000007d6c                NMI_Handler
-                0x0000000000007d6c                I2C1_IRQHandler
-                0x0000000000007d6c                EINT2_IRQHandler
-                0x0000000000007d6c                UART1_IRQHandler
-                0x0000000000007d6c                TIMER3_IRQHandler
-                0x0000000000007d6c                UART0_IRQHandler
-                0x0000000000007d6c                MemManagement_Handler
-                0x0000000000007d6c                UsageFault_Handler
-                0x0000000000007d6c                PLL0_IRQHandler
-                0x0000000000007d6c                CAN_IRQHandler
-                0x0000000000007d6c                PLL1_IRQHandler
-                0x0000000000007d6c                SSP0_IRQHandler
-                0x0000000000007d6c                I2S_IRQHandler
-                0x0000000000007d6c                I2C2_IRQHandler
-                0x0000000000007d6c                RTC_IRQHandler
-                0x0000000000007d6c                SPI_IRQHandler
-                0x0000000000007d6c                EINT1_IRQHandler
-                0x0000000000007d6c                TIMER1_IRQHandler
-                0x0000000000007d6c                UART2_IRQHandler
-                0x0000000000007d6c                ADC_IRQHandler
-                0x0000000000007d6c                SSP1_IRQHandler
-                0x0000000000007d6c                BOD_IRQHandler
-                0x0000000000007d6c                WDT_IRQHandler
-                0x0000000000007d6c                SVC_Handler
-                0x0000000000007d6c                QEI_IRQHandler
-                0x0000000000007d6c                EINT0_IRQHandler
-                0x0000000000007d6c                USBACT_IRQHandler
-                0x0000000000007d6c                CANACT_IRQHandler
-                0x0000000000007d6c                BusFault_Handler
-                0x0000000000007d6c                UART3_IRQHandler
-                0x0000000000007d6c                MCPWM_IRQHandler
-                0x0000000000007d6c                ENET_IRQHandler
- *fill*         0x0000000000007d6e        0x2 
+                0x0000000000007ec0        0x2 ../common/LPC17xx_Interrupts.o
+                0x0000000000007ec0                TIMER2_IRQHandler
+                0x0000000000007ec0                DebugMon_Handler
+                0x0000000000007ec0                RIT_IRQHandler
+                0x0000000000007ec0                I2C0_IRQHandler
+                0x0000000000007ec0                HardFault_Handler
+                0x0000000000007ec0                SysTick_Handler
+                0x0000000000007ec0                PWM1_IRQHandler
+                0x0000000000007ec0                PendSV_Handler
+                0x0000000000007ec0                NMI_Handler
+                0x0000000000007ec0                I2C1_IRQHandler
+                0x0000000000007ec0                EINT2_IRQHandler
+                0x0000000000007ec0                UART1_IRQHandler
+                0x0000000000007ec0                TIMER3_IRQHandler
+                0x0000000000007ec0                UART0_IRQHandler
+                0x0000000000007ec0                MemManagement_Handler
+                0x0000000000007ec0                UsageFault_Handler
+                0x0000000000007ec0                PLL0_IRQHandler
+                0x0000000000007ec0                CAN_IRQHandler
+                0x0000000000007ec0                PLL1_IRQHandler
+                0x0000000000007ec0                SSP0_IRQHandler
+                0x0000000000007ec0                I2S_IRQHandler
+                0x0000000000007ec0                I2C2_IRQHandler
+                0x0000000000007ec0                RTC_IRQHandler
+                0x0000000000007ec0                SPI_IRQHandler
+                0x0000000000007ec0                EINT1_IRQHandler
+                0x0000000000007ec0                TIMER1_IRQHandler
+                0x0000000000007ec0                UART2_IRQHandler
+                0x0000000000007ec0                ADC_IRQHandler
+                0x0000000000007ec0                SSP1_IRQHandler
+                0x0000000000007ec0                BOD_IRQHandler
+                0x0000000000007ec0                WDT_IRQHandler
+                0x0000000000007ec0                SVC_Handler
+                0x0000000000007ec0                QEI_IRQHandler
+                0x0000000000007ec0                EINT0_IRQHandler
+                0x0000000000007ec0                USBACT_IRQHandler
+                0x0000000000007ec0                CANACT_IRQHandler
+                0x0000000000007ec0                BusFault_Handler
+                0x0000000000007ec0                UART3_IRQHandler
+                0x0000000000007ec0                MCPWM_IRQHandler
+                0x0000000000007ec0                ENET_IRQHandler
+ *fill*         0x0000000000007ec2        0x2 
  .text.spi_delay
-                0x0000000000007d70       0x18 ../common/ubertooth.o
- .text.rbit     0x0000000000007d88        0x6 ../common/ubertooth.o
-                0x0000000000007d88                rbit
- *fill*         0x0000000000007d8e        0x2 
- .text.wait_us  0x0000000000007d90       0x2c ../common/ubertooth.o
-                0x0000000000007d90                wait_us
- .text.wait     0x0000000000007dbc        0xc ../common/ubertooth.o
-                0x0000000000007dbc                wait
+                0x0000000000007ec4       0x18 ../common/ubertooth.o
+ .text.rbit     0x0000000000007edc        0x6 ../common/ubertooth.o
+                0x0000000000007edc                rbit
+ *fill*         0x0000000000007ee2        0x2 
+ .text.wait_us  0x0000000000007ee4       0x2c ../common/ubertooth.o
+                0x0000000000007ee4                wait_us
+ .text.wait     0x0000000000007f10        0xc ../common/ubertooth.o
+                0x0000000000007f10                wait
  .text.all_pins_off
-                0x0000000000007dc8       0x54 ../common/ubertooth.o
-                0x0000000000007dc8                all_pins_off
+                0x0000000000007f1c       0x54 ../common/ubertooth.o
+                0x0000000000007f1c                all_pins_off
  .text.gpio_init
-                0x0000000000007e1c       0x34 ../common/ubertooth.o
-                0x0000000000007e1c                gpio_init
+                0x0000000000007f70       0x34 ../common/ubertooth.o
+                0x0000000000007f70                gpio_init
  .text.dio_ssp_init
-                0x0000000000007e50       0x54 ../common/ubertooth.o
-                0x0000000000007e50                dio_ssp_init
+                0x0000000000007fa4       0x54 ../common/ubertooth.o
+                0x0000000000007fa4                dio_ssp_init
  .text.atest_init
-                0x0000000000007ea4       0x34 ../common/ubertooth.o
-                0x0000000000007ea4                atest_init
+                0x0000000000007ff8       0x34 ../common/ubertooth.o
+                0x0000000000007ff8                atest_init
  .text.cc2400_spi
-                0x0000000000007ed8       0x50 ../common/ubertooth.o
-                0x0000000000007ed8                cc2400_spi
+                0x000000000000802c       0x50 ../common/ubertooth.o
+                0x000000000000802c                cc2400_spi
  .text.cc2400_init
-                0x0000000000007f28       0x38 ../common/ubertooth.o
-                0x0000000000007f28                cc2400_init
+                0x000000000000807c       0x38 ../common/ubertooth.o
+                0x000000000000807c                cc2400_init
  .text.cc2400_get
-                0x0000000000007f60       0x12 ../common/ubertooth.o
-                0x0000000000007f60                cc2400_get
+                0x00000000000080b4       0x12 ../common/ubertooth.o
+                0x00000000000080b4                cc2400_get
  .text.cc2400_set
-                0x0000000000007f72        0xa ../common/ubertooth.o
-                0x0000000000007f72                cc2400_set
+                0x00000000000080c6        0xa ../common/ubertooth.o
+                0x00000000000080c6                cc2400_set
  .text.cc2400_get8
-                0x0000000000007f7c       0x12 ../common/ubertooth.o
-                0x0000000000007f7c                cc2400_get8
+                0x00000000000080d0       0x12 ../common/ubertooth.o
+                0x00000000000080d0                cc2400_get8
  .text.cc2400_set8
-                0x0000000000007f8e        0xa ../common/ubertooth.o
-                0x0000000000007f8e                cc2400_set8
+                0x00000000000080e2        0xa ../common/ubertooth.o
+                0x00000000000080e2                cc2400_set8
  .text.cc2400_fifo_write
-                0x0000000000007f98       0x90 ../common/ubertooth.o
-                0x0000000000007f98                cc2400_fifo_write
+                0x00000000000080ec       0x90 ../common/ubertooth.o
+                0x00000000000080ec                cc2400_fifo_write
  .text.cc2400_fifo_read
-                0x0000000000008028       0x90 ../common/ubertooth.o
-                0x0000000000008028                cc2400_fifo_read
+                0x000000000000817c       0x90 ../common/ubertooth.o
+                0x000000000000817c                cc2400_fifo_read
  .text.cc2400_status
-                0x00000000000080b8        0xe ../common/ubertooth.o
-                0x00000000000080b8                cc2400_status
+                0x000000000000820c        0xe ../common/ubertooth.o
+                0x000000000000820c                cc2400_status
  .text.cc2400_strobe
-                0x00000000000080c6        0xe ../common/ubertooth.o
-                0x00000000000080c6                cc2400_strobe
+                0x000000000000821a        0xe ../common/ubertooth.o
+                0x000000000000821a                cc2400_strobe
  .text.cc2400_reset
-                0x00000000000080d4       0x2c ../common/ubertooth.o
-                0x00000000000080d4                cc2400_reset
+                0x0000000000008228       0x2c ../common/ubertooth.o
+                0x0000000000008228                cc2400_reset
  .text.clock_start
-                0x0000000000008100      0x14c ../common/ubertooth.o
-                0x0000000000008100                clock_start
+                0x0000000000008254      0x14c ../common/ubertooth.o
+                0x0000000000008254                clock_start
  .text.ubertooth_init
-                0x000000000000824c       0x12 ../common/ubertooth.o
-                0x000000000000824c                ubertooth_init
- *fill*         0x000000000000825e        0x2 
- .text.reset    0x0000000000008260       0x34 ../common/ubertooth.o
-                0x0000000000008260                reset
+                0x00000000000083a0       0x12 ../common/ubertooth.o
+                0x00000000000083a0                ubertooth_init
+ *fill*         0x00000000000083b2        0x2 
+ .text.reset    0x00000000000083b4       0x34 ../common/ubertooth.o
+                0x00000000000083b4                reset
  .text.get_part_num
-                0x0000000000008294       0x38 ../common/ubertooth.o
-                0x0000000000008294                get_part_num
+                0x00000000000083e8       0x38 ../common/ubertooth.o
+                0x00000000000083e8                get_part_num
  .text.get_device_serial
-                0x00000000000082cc       0x68 ../common/ubertooth.o
-                0x00000000000082cc                get_device_serial
- .text.set_isp  0x0000000000008334       0x20 ../common/ubertooth.o
-                0x0000000000008334                set_isp
- .text.DataIn   0x0000000000008354       0x28 ../common/lpcusb/target/usbcontrol.o
+                0x0000000000008420       0x68 ../common/ubertooth.o
+                0x0000000000008420                get_device_serial
+ .text.set_isp  0x0000000000008488       0x20 ../common/ubertooth.o
+                0x0000000000008488                set_isp
+ .text.DataIn   0x00000000000084a8       0x28 ../common/lpcusb/target/usbcontrol.o
  .text._HandleRequest.constprop.1
-                0x000000000000837c       0x50 ../common/lpcusb/target/usbcontrol.o
+                0x00000000000084d0       0x50 ../common/lpcusb/target/usbcontrol.o
  .text.USBHandleControlTransfer
-                0x00000000000083cc       0xa8 ../common/lpcusb/target/usbcontrol.o
-                0x00000000000083cc                USBHandleControlTransfer
+                0x0000000000008520       0xa8 ../common/lpcusb/target/usbcontrol.o
+                0x0000000000008520                USBHandleControlTransfer
  .text.USBRegisterRequestHandler
-                0x0000000000008474       0x10 ../common/lpcusb/target/usbcontrol.o
-                0x0000000000008474                USBRegisterRequestHandler
+                0x00000000000085c8       0x10 ../common/lpcusb/target/usbcontrol.o
+                0x00000000000085c8                USBRegisterRequestHandler
  .text.HandleUsbReset
-                0x0000000000008484        0x2 ../common/lpcusb/target/usbinit.o
- *fill*         0x0000000000008486        0x2 
- .text.USBInit  0x0000000000008488       0x4c ../common/lpcusb/target/usbinit.o
-                0x0000000000008488                USBInit
+                0x00000000000085d8        0x2 ../common/lpcusb/target/usbinit.o
+ *fill*         0x00000000000085da        0x2 
+ .text.USBInit  0x00000000000085dc       0x4c ../common/lpcusb/target/usbinit.o
+                0x00000000000085dc                USBInit
  .text.Wait4DevInt
-                0x00000000000084d4       0x18 ../common/lpcusb/target/usbhw_lpc.o
+                0x0000000000008628       0x18 ../common/lpcusb/target/usbhw_lpc.o
  .text.USBHwCmd
-                0x00000000000084ec       0x18 ../common/lpcusb/target/usbhw_lpc.o
+                0x0000000000008640       0x18 ../common/lpcusb/target/usbhw_lpc.o
  .text.USBHwCmdWrite
-                0x0000000000008504       0x20 ../common/lpcusb/target/usbhw_lpc.o
+                0x0000000000008658       0x20 ../common/lpcusb/target/usbhw_lpc.o
  .text.USBHwEPConfig
-                0x0000000000008524       0x38 ../common/lpcusb/target/usbhw_lpc.o
-                0x0000000000008524                USBHwEPConfig
+                0x0000000000008678       0x38 ../common/lpcusb/target/usbhw_lpc.o
+                0x0000000000008678                USBHwEPConfig
  .text.USBHwRegisterEPIntHandler
-                0x000000000000855c       0x34 ../common/lpcusb/target/usbhw_lpc.o
-                0x000000000000855c                USBHwRegisterEPIntHandler
+                0x00000000000086b0       0x34 ../common/lpcusb/target/usbhw_lpc.o
+                0x00000000000086b0                USBHwRegisterEPIntHandler
  .text.USBHwRegisterDevIntHandler
-                0x0000000000008590       0x18 ../common/lpcusb/target/usbhw_lpc.o
-                0x0000000000008590                USBHwRegisterDevIntHandler
+                0x00000000000086e4       0x18 ../common/lpcusb/target/usbhw_lpc.o
+                0x00000000000086e4                USBHwRegisterDevIntHandler
  .text.USBHwSetAddress
-                0x00000000000085a8        0xa ../common/lpcusb/target/usbhw_lpc.o
-                0x00000000000085a8                USBHwSetAddress
+                0x00000000000086fc        0xa ../common/lpcusb/target/usbhw_lpc.o
+                0x00000000000086fc                USBHwSetAddress
  .text.USBHwConnect
-                0x00000000000085b2        0xc ../common/lpcusb/target/usbhw_lpc.o
-                0x00000000000085b2                USBHwConnect
+                0x0000000000008706        0xc ../common/lpcusb/target/usbhw_lpc.o
+                0x0000000000008706                USBHwConnect
  .text.USBHwNakIntEnable
-                0x00000000000085be        0x8 ../common/lpcusb/target/usbhw_lpc.o
-                0x00000000000085be                USBHwNakIntEnable
- *fill*         0x00000000000085c6        0x2 
+                0x0000000000008712        0x8 ../common/lpcusb/target/usbhw_lpc.o
+                0x0000000000008712                USBHwNakIntEnable
+ *fill*         0x000000000000871a        0x2 
  .text.USBHwEPGetStatus
-                0x00000000000085c8       0x34 ../common/lpcusb/target/usbhw_lpc.o
-                0x00000000000085c8                USBHwEPGetStatus
+                0x000000000000871c       0x34 ../common/lpcusb/target/usbhw_lpc.o
+                0x000000000000871c                USBHwEPGetStatus
  .text.USBHwEPStall
-                0x00000000000085fc       0x18 ../common/lpcusb/target/usbhw_lpc.o
-                0x00000000000085fc                USBHwEPStall
+                0x0000000000008750       0x18 ../common/lpcusb/target/usbhw_lpc.o
+                0x0000000000008750                USBHwEPStall
  .text.USBHwEPWrite
-                0x0000000000008614       0x60 ../common/lpcusb/target/usbhw_lpc.o
-                0x0000000000008614                USBHwEPWrite
+                0x0000000000008768       0x60 ../common/lpcusb/target/usbhw_lpc.o
+                0x0000000000008768                USBHwEPWrite
  .text.USBHwEPRead
-                0x0000000000008674       0x6c ../common/lpcusb/target/usbhw_lpc.o
-                0x0000000000008674                USBHwEPRead
+                0x00000000000087c8       0x6c ../common/lpcusb/target/usbhw_lpc.o
+                0x00000000000087c8                USBHwEPRead
  .text.USBHwConfigDevice
-                0x00000000000086e0        0xc ../common/lpcusb/target/usbhw_lpc.o
-                0x00000000000086e0                USBHwConfigDevice
+                0x0000000000008834        0xc ../common/lpcusb/target/usbhw_lpc.o
+                0x0000000000008834                USBHwConfigDevice
  .text.USBHwISR
-                0x00000000000086ec       0xcc ../common/lpcusb/target/usbhw_lpc.o
-                0x00000000000086ec                USBHwISR
+                0x0000000000008840       0xcc ../common/lpcusb/target/usbhw_lpc.o
+                0x0000000000008840                USBHwISR
  .text.USBHwInit
-                0x00000000000087b8       0xb0 ../common/lpcusb/target/usbhw_lpc.o
-                0x00000000000087b8                USBHwInit
+                0x000000000000890c       0xb0 ../common/lpcusb/target/usbhw_lpc.o
+                0x000000000000890c                USBHwInit
  .text.USBFilterOsVendorMessage
-                0x0000000000008868       0x68 ../common/lpcusb/target/usbstdreq.o
-                0x0000000000008868                USBFilterOsVendorMessage
+                0x00000000000089bc       0x68 ../common/lpcusb/target/usbstdreq.o
+                0x00000000000089bc                USBFilterOsVendorMessage
  .text.USBRegisterWinusbInterface
-                0x00000000000088d0       0x34 ../common/lpcusb/target/usbstdreq.o
-                0x00000000000088d0                USBRegisterWinusbInterface
+                0x0000000000008a24       0x34 ../common/lpcusb/target/usbstdreq.o
+                0x0000000000008a24                USBRegisterWinusbInterface
  .text.USBRegisterDescriptors
-                0x0000000000008904        0xc ../common/lpcusb/target/usbstdreq.o
-                0x0000000000008904                USBRegisterDescriptors
+                0x0000000000008a58        0xc ../common/lpcusb/target/usbstdreq.o
+                0x0000000000008a58                USBRegisterDescriptors
  .text.USBGetDescriptor
-                0x0000000000008910       0x58 ../common/lpcusb/target/usbstdreq.o
-                0x0000000000008910                USBGetDescriptor
+                0x0000000000008a64       0x58 ../common/lpcusb/target/usbstdreq.o
+                0x0000000000008a64                USBGetDescriptor
  .text.USBHandleStandardRequest
-                0x0000000000008968      0x138 ../common/lpcusb/target/usbstdreq.o
-                0x0000000000008968                USBHandleStandardRequest
- .text          0x0000000000008aa0       0x18 /usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m/libgcc.a(_ashldi3.o)
-                0x0000000000008aa0                __ashldi3
-                0x0000000000008aa0                __aeabi_llsl
- .text.memcmp   0x0000000000008ab8       0x68 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcmp.o)
-                0x0000000000008ab8                memcmp
- .text          0x0000000000008b20       0xec /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcpy.o)
-                0x0000000000008b20                memcpy
- .text.strlen   0x0000000000008c0c       0x60 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-strlen.o)
-                0x0000000000008c0c                strlen
+                0x0000000000008abc      0x138 ../common/lpcusb/target/usbstdreq.o
+                0x0000000000008abc                USBHandleStandardRequest
+ .text          0x0000000000008bf4       0x18 /usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m/libgcc.a(_ashldi3.o)
+                0x0000000000008bf4                __ashldi3
+                0x0000000000008bf4                __aeabi_llsl
+ .text.memcmp   0x0000000000008c0c       0x68 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcmp.o)
+                0x0000000000008c0c                memcmp
+ .text          0x0000000000008c74       0xec /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcpy.o)
+                0x0000000000008c74                memcpy
+ .text.strlen   0x0000000000008d60       0x60 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-strlen.o)
+                0x0000000000008d60                strlen
  *(.rodata .rodata.* .gnu.linkonce.r.*)
  .rodata.str1.4
-                0x0000000000008c6c        0x4 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-impure.o)
+                0x0000000000008dc0        0x4 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-impure.o)
  .rodata._global_impure_ptr
-                0x0000000000008c70        0x4 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-impure.o)
-                0x0000000000008c70                _global_impure_ptr
- .rodata        0x0000000000008c74      0x8c4 bluetooth_rxtx.o
-                0x0000000000008d1b                compile_info
+                0x0000000000008dc4        0x4 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-impure.o)
+                0x0000000000008dc4                _global_impure_ptr
+ .rodata        0x0000000000008dc8      0x8d4 bluetooth_rxtx.o
+                0x0000000000008e6f                compile_info
  .rodata.str1.1
-                0x0000000000009538        0xb bluetooth_rxtx.o
- .rodata        0x0000000000009543       0x1c bluetooth.o
+                0x000000000000969c        0xb bluetooth_rxtx.o
+ .rodata        0x00000000000096a7       0x1c bluetooth.o
  .rodata.str1.1
-                0x000000000000955f       0x27 ubertooth_usb.o
- *fill*         0x0000000000009586        0x2 
- .rodata        0x0000000000009588       0x54 ego.o
- .rodata        0x00000000000095dc        0x4 ../common/ubertooth.o
-                0x00000000000095dc                iap_entry
- .rodata        0x00000000000095e0       0x28 ../common/lpcusb/target/usbstdreq.o
+                0x00000000000096c3       0x27 ubertooth_usb.o
+ *fill*         0x00000000000096ea        0x2 
+ .rodata        0x00000000000096ec       0x54 ego.o
+ .rodata        0x0000000000009740        0x4 ../common/ubertooth.o
+                0x0000000000009740                iap_entry
+ .rodata        0x0000000000009744       0x28 ../common/lpcusb/target/usbstdreq.o
  *(.eh_frame_hdr)
  *(.eh_frame)
- .eh_frame      0x0000000000009608        0x0 /usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m/crtbegin.o
-                0x0000000000009608                . = ALIGN (0x4)
+ .eh_frame      0x000000000000976c        0x0 /usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m/crtbegin.o
+                0x000000000000976c                . = ALIGN (0x4)
  *(.init)
- .init          0x0000000000009608        0x4 /usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m/crti.o
-                0x0000000000009608                _init
- .init          0x000000000000960c        0x8 /usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m/crtn.o
-                0x0000000000009614                . = ALIGN (0x4)
-                0x0000000000009614                __preinit_array_start = .
+ .init          0x000000000000976c        0x4 /usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m/crti.o
+                0x000000000000976c                _init
+ .init          0x0000000000009770        0x8 /usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m/crtn.o
+                0x0000000000009778                . = ALIGN (0x4)
+                0x0000000000009778                __preinit_array_start = .
  *(.preinit_array)
-                0x0000000000009614                __preinit_array_end = .
-                0x0000000000009614                . = ALIGN (0x4)
-                0x0000000000009614                __init_array_start = .
+                0x0000000000009778                __preinit_array_end = .
+                0x0000000000009778                . = ALIGN (0x4)
+                0x0000000000009778                __init_array_start = .
  *(SORT(.init_array.*))
  .init_array.00000
-                0x0000000000009614        0x4 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-__call_atexit.o)
+                0x0000000000009778        0x4 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-__call_atexit.o)
  *(.init_array)
- .init_array    0x0000000000009618        0x4 /usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m/crtbegin.o
-                0x000000000000961c                __init_array_end = .
-                0x000000000000961c                . = ALIGN (0x4)
+ .init_array    0x000000000000977c        0x4 /usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m/crtbegin.o
+                0x0000000000009780                __init_array_end = .
+                0x0000000000009780                . = ALIGN (0x4)
  *crtbegin.o(.ctors)
  *(EXCLUDE_FILE(*crtend.o) .ctors)
  *(SORT(.ctors.*))
  *crtend.o(.ctors)
-                0x000000000000961c                . = ALIGN (0x4)
+                0x0000000000009780                . = ALIGN (0x4)
  *(.fini)
- .fini          0x000000000000961c        0x4 /usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m/crti.o
-                0x000000000000961c                _fini
- .fini          0x0000000000009620        0x8 /usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m/crtn.o
-                0x0000000000009628                . = ALIGN (0x4)
-                0x0000000000009628                __fini_array_start = .
+ .fini          0x0000000000009780        0x4 /usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m/crti.o
+                0x0000000000009780                _fini
+ .fini          0x0000000000009784        0x8 /usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m/crtn.o
+                0x000000000000978c                . = ALIGN (0x4)
+                0x000000000000978c                __fini_array_start = .
  *(.fini_array)
- .fini_array    0x0000000000009628        0x4 /usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m/crtbegin.o
+ .fini_array    0x000000000000978c        0x4 /usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m/crtbegin.o
  *(SORT(.fini_array.*))
-                0x000000000000962c                __fini_array_end = .
+                0x0000000000009790                __fini_array_end = .
  *crtbegin.o(.dtors)
  *(EXCLUDE_FILE(*crtend.o) .dtors)
  *(SORT(.dtors.*))
  *crtend.o(.dtors)
-                0x0000000000009630                . = ALIGN (0x8)
- *fill*         0x000000000000962c        0x4 
-                0x0000000000009630                _etext = .
+                0x0000000000009790                . = ALIGN (0x8)
+                0x0000000000009790                _etext = .
 
-.glue_7         0x0000000000009630        0x0
+.glue_7         0x0000000000009790        0x0
  .glue_7        0x0000000000000000        0x0 linker stubs
 
-.glue_7t        0x0000000000009630        0x0
+.glue_7t        0x0000000000009790        0x0
  .glue_7t       0x0000000000000000        0x0 linker stubs
 
-.vfp11_veneer   0x0000000000009630        0x0
+.vfp11_veneer   0x0000000000009790        0x0
  .vfp11_veneer  0x0000000000000000        0x0 linker stubs
 
-.v4_bx          0x0000000000009630        0x0
+.v4_bx          0x0000000000009790        0x0
  .v4_bx         0x0000000000000000        0x0 linker stubs
 
-.iplt           0x0000000000009630        0x0
+.iplt           0x0000000000009790        0x0
  .iplt          0x0000000000000000        0x0 /usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m/crtbegin.o
 
-.rel.dyn        0x0000000000009630        0x0
+.rel.dyn        0x0000000000009790        0x0
  .rel.iplt      0x0000000000000000        0x0 /usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m/crtbegin.o
 
 .ARM.extab
  *(.ARM.extab* .gnu.linkonce.armextab.*)
-                0x0000000000009630                __exidx_start = .
+                0x0000000000009790                __exidx_start = .
 
 .ARM.exidx
  *(.ARM.exidx* .gnu.linkonce.armexidx.*)
-                0x0000000000009630                __exidx_end = .
-                0x0000000000009630                _etext = .
+                0x0000000000009790                __exidx_end = .
+                0x0000000000009790                _etext = .
 
 .persistent     0x0000000010000000       0x20
                 0x0000000010000000                _persistent_start = .
@@ -900,7 +899,7 @@ END GROUP
                 0x0000000010000020                _persistent_end = .
                 0x000000001000001c                bootloader_ctrl = (_persistent_start + 0x1c)
 
-.data           0x0000000010000020      0x9dd load address 0x0000000000009630
+.data           0x0000000010000020      0x9dd load address 0x0000000000009790
                 0x0000000010000020                _data = .
  *(vtable)
  *(.data*)
@@ -920,20 +919,20 @@ END GROUP
  .data          0x0000000010000959       0xa4 ../common/lpcusb/target/usbstdreq.o
                 0x00000000100009fd                _edata = .
 
-.jcr            0x0000000010000a00        0x0 load address 0x000000000000a00d
+.jcr            0x0000000010000a00        0x0 load address 0x000000000000a16d
  .jcr           0x0000000010000a00        0x0 /usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m/crtbegin.o
 
 .tm_clone_table
-                0x0000000010000a00        0x0 load address 0x000000000000a00d
+                0x0000000010000a00        0x0 load address 0x000000000000a16d
  .tm_clone_table
                 0x0000000010000a00        0x0 /usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m/crtbegin.o
  .tm_clone_table
                 0x0000000010000a00        0x0 /usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m/crtend.o
 
-.igot.plt       0x0000000010000a00        0x0 load address 0x000000000000a00d
+.igot.plt       0x0000000010000a00        0x0 load address 0x000000000000a16d
  .igot.plt      0x0000000000000000        0x0 /usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m/crtbegin.o
 
-.bss            0x0000000010000a00     0x2954 load address 0x000000000000a00d
+.bss            0x0000000010000a00     0x2954 load address 0x000000000000a16d
                 0x0000000010000a00                _bss = .
                 0x0000000010000a00                __bss_start__ = .
  *(.bss*)
@@ -1024,7 +1023,7 @@ END GROUP
                 0x0000000010003354                _ebss = .
                 0x0000000010003354                __bss_end__ = .
 
-.cr_heap        0x0000000010003354        0x0 load address 0x000000000000a00d
+.cr_heap        0x0000000010003354        0x0 load address 0x000000000000a16d
                 0x0000000010003354                end = .
                 0x0000000010003354                __end__ = .
                 0x0000000010003354                _pvHeapStart = .
@@ -1132,7 +1131,7 @@ OUTPUT(bluetooth_rxtx.elf elf32-littlearm)
  .comment       0x0000000000000000       0x20 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-strlen.o)
  .comment       0x0000000000000000       0x20 /usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m/crtend.o
 
-.debug_info     0x0000000000000000     0xb7fe
+.debug_info     0x0000000000000000     0xb987
  .debug_info    0x0000000000000000      0x10a /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-atexit.o)
  .debug_info    0x000000000000010a       0xef /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-fini.o)
  .debug_info    0x00000000000001f9      0x894 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-impure.o)
@@ -1140,28 +1139,28 @@ OUTPUT(bluetooth_rxtx.elf elf32-littlearm)
  .debug_info    0x0000000000000b92      0x117 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memset.o)
  .debug_info    0x0000000000000ca9      0x934 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-__atexit.o)
  .debug_info    0x00000000000015dd      0x9aa /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-__call_atexit.o)
- .debug_info    0x0000000000001f87     0x36fe bluetooth_rxtx.o
- .debug_info    0x0000000000005685      0x4cf bluetooth.o
- .debug_info    0x0000000000005b54      0x536 bluetooth_le.o
- .debug_info    0x000000000000608a      0x7fb ubertooth_usb.o
- .debug_info    0x0000000000006885      0x208 ubertooth_rssi.o
- .debug_info    0x0000000000006a8d      0x266 ubertooth_cs.o
- .debug_info    0x0000000000006cf3      0x16c ubertooth_clock.o
- .debug_info    0x0000000000006e5f      0x24d ubertooth_dma.o
- .debug_info    0x00000000000070ac      0x83c cc2400_rangetest.o
- .debug_info    0x00000000000078e8      0xd0b ego.o
- .debug_info    0x00000000000085f3      0x9b9 ../common/usb_serial.o
- .debug_info    0x0000000000008fac      0x117 ../common/LPC17xx_Startup.o
- .debug_info    0x00000000000090c3       0x7d ../common/LPC17xx_Interrupts.o
- .debug_info    0x0000000000009140      0xa96 ../common/ubertooth.o
- .debug_info    0x0000000000009bd6      0x47d ../common/lpcusb/target/usbcontrol.o
- .debug_info    0x000000000000a053      0x297 ../common/lpcusb/target/usbinit.o
- .debug_info    0x000000000000a2ea      0xab0 ../common/lpcusb/target/usbhw_lpc.o
- .debug_info    0x000000000000ad9a      0x74b ../common/lpcusb/target/usbstdreq.o
- .debug_info    0x000000000000b4e5       0x9f /usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m/libgcc.a(_ashldi3.o)
- .debug_info    0x000000000000b584      0x113 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcmp.o)
- .debug_info    0x000000000000b697       0xb2 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcpy.o)
- .debug_info    0x000000000000b749       0xb5 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-strlen.o)
+ .debug_info    0x0000000000001f87     0x3887 bluetooth_rxtx.o
+ .debug_info    0x000000000000580e      0x4cf bluetooth.o
+ .debug_info    0x0000000000005cdd      0x536 bluetooth_le.o
+ .debug_info    0x0000000000006213      0x7fb ubertooth_usb.o
+ .debug_info    0x0000000000006a0e      0x208 ubertooth_rssi.o
+ .debug_info    0x0000000000006c16      0x266 ubertooth_cs.o
+ .debug_info    0x0000000000006e7c      0x16c ubertooth_clock.o
+ .debug_info    0x0000000000006fe8      0x24d ubertooth_dma.o
+ .debug_info    0x0000000000007235      0x83c cc2400_rangetest.o
+ .debug_info    0x0000000000007a71      0xd0b ego.o
+ .debug_info    0x000000000000877c      0x9b9 ../common/usb_serial.o
+ .debug_info    0x0000000000009135      0x117 ../common/LPC17xx_Startup.o
+ .debug_info    0x000000000000924c       0x7d ../common/LPC17xx_Interrupts.o
+ .debug_info    0x00000000000092c9      0xa96 ../common/ubertooth.o
+ .debug_info    0x0000000000009d5f      0x47d ../common/lpcusb/target/usbcontrol.o
+ .debug_info    0x000000000000a1dc      0x297 ../common/lpcusb/target/usbinit.o
+ .debug_info    0x000000000000a473      0xab0 ../common/lpcusb/target/usbhw_lpc.o
+ .debug_info    0x000000000000af23      0x74b ../common/lpcusb/target/usbstdreq.o
+ .debug_info    0x000000000000b66e       0x9f /usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m/libgcc.a(_ashldi3.o)
+ .debug_info    0x000000000000b70d      0x113 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcmp.o)
+ .debug_info    0x000000000000b820       0xb2 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcpy.o)
+ .debug_info    0x000000000000b8d2       0xb5 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-strlen.o)
 
 .debug_abbrev   0x0000000000000000     0x2ef0
  .debug_abbrev  0x0000000000000000       0xb8 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-atexit.o)
@@ -1194,30 +1193,30 @@ OUTPUT(bluetooth_rxtx.elf elf32-littlearm)
  .debug_abbrev  0x0000000000002e6c       0x14 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcpy.o)
  .debug_abbrev  0x0000000000002e80       0x70 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-strlen.o)
 
-.debug_loc      0x0000000000000000     0x56e4
+.debug_loc      0x0000000000000000     0x5a13
  .debug_loc     0x0000000000000000       0x2c /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-atexit.o)
  .debug_loc     0x000000000000002c       0x5c /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-fini.o)
  .debug_loc     0x0000000000000088       0xae /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-init.o)
  .debug_loc     0x0000000000000136      0x18b /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memset.o)
  .debug_loc     0x00000000000002c1      0x14d /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-__atexit.o)
  .debug_loc     0x000000000000040e      0x155 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-__call_atexit.o)
- .debug_loc     0x0000000000000563     0x21bf bluetooth_rxtx.o
- .debug_loc     0x0000000000002722      0x75b bluetooth.o
- .debug_loc     0x0000000000002e7d      0x37c bluetooth_le.o
- .debug_loc     0x00000000000031f9      0x2c6 ubertooth_usb.o
- .debug_loc     0x00000000000034bf       0x8c ubertooth_rssi.o
- .debug_loc     0x000000000000354b       0x7d ubertooth_cs.o
- .debug_loc     0x00000000000035c8       0x1f ubertooth_dma.o
- .debug_loc     0x00000000000035e7      0x295 cc2400_rangetest.o
- .debug_loc     0x000000000000387c      0x2fa ego.o
- .debug_loc     0x0000000000003b76      0x319 ../common/usb_serial.o
- .debug_loc     0x0000000000003e8f       0x97 ../common/LPC17xx_Startup.o
- .debug_loc     0x0000000000003f26      0x692 ../common/ubertooth.o
- .debug_loc     0x00000000000045b8      0x182 ../common/lpcusb/target/usbcontrol.o
- .debug_loc     0x000000000000473a      0x720 ../common/lpcusb/target/usbhw_lpc.o
- .debug_loc     0x0000000000004e5a      0x786 ../common/lpcusb/target/usbstdreq.o
- .debug_loc     0x00000000000055e0       0xe3 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcmp.o)
- .debug_loc     0x00000000000056c3       0x21 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-strlen.o)
+ .debug_loc     0x0000000000000563     0x24ee bluetooth_rxtx.o
+ .debug_loc     0x0000000000002a51      0x75b bluetooth.o
+ .debug_loc     0x00000000000031ac      0x37c bluetooth_le.o
+ .debug_loc     0x0000000000003528      0x2c6 ubertooth_usb.o
+ .debug_loc     0x00000000000037ee       0x8c ubertooth_rssi.o
+ .debug_loc     0x000000000000387a       0x7d ubertooth_cs.o
+ .debug_loc     0x00000000000038f7       0x1f ubertooth_dma.o
+ .debug_loc     0x0000000000003916      0x295 cc2400_rangetest.o
+ .debug_loc     0x0000000000003bab      0x2fa ego.o
+ .debug_loc     0x0000000000003ea5      0x319 ../common/usb_serial.o
+ .debug_loc     0x00000000000041be       0x97 ../common/LPC17xx_Startup.o
+ .debug_loc     0x0000000000004255      0x692 ../common/ubertooth.o
+ .debug_loc     0x00000000000048e7      0x182 ../common/lpcusb/target/usbcontrol.o
+ .debug_loc     0x0000000000004a69      0x720 ../common/lpcusb/target/usbhw_lpc.o
+ .debug_loc     0x0000000000005189      0x786 ../common/lpcusb/target/usbstdreq.o
+ .debug_loc     0x000000000000590f       0xe3 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcmp.o)
+ .debug_loc     0x00000000000059f2       0x21 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-strlen.o)
 
 .debug_aranges  0x0000000000000000      0x858
  .debug_aranges
@@ -1307,7 +1306,7 @@ OUTPUT(bluetooth_rxtx.elf elf32-littlearm)
  .debug_ranges  0x0000000000000890       0x10 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcmp.o)
  .debug_ranges  0x00000000000008a0       0x10 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-strlen.o)
 
-.debug_line     0x0000000000000000     0x33b6
+.debug_line     0x0000000000000000     0x33e2
  .debug_line    0x0000000000000000       0xa6 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-atexit.o)
  .debug_line    0x00000000000000a6       0x9c /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-fini.o)
  .debug_line    0x0000000000000142       0xd6 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-impure.o)
@@ -1315,30 +1314,30 @@ OUTPUT(bluetooth_rxtx.elf elf32-littlearm)
  .debug_line    0x00000000000002cd       0xff /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memset.o)
  .debug_line    0x00000000000003cc      0x160 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-__atexit.o)
  .debug_line    0x000000000000052c      0x19a /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-__call_atexit.o)
- .debug_line    0x00000000000006c6      0xe35 bluetooth_rxtx.o
- .debug_line    0x00000000000014fb      0x1b8 bluetooth.o
- .debug_line    0x00000000000016b3      0x149 bluetooth_le.o
- .debug_line    0x00000000000017fc      0x21d ubertooth_usb.o
- .debug_line    0x0000000000001a19       0xfe ubertooth_rssi.o
- .debug_line    0x0000000000001b17       0xfd ubertooth_cs.o
- .debug_line    0x0000000000001c14       0xbe ubertooth_clock.o
- .debug_line    0x0000000000001cd2      0x134 ubertooth_dma.o
- .debug_line    0x0000000000001e06      0x23d cc2400_rangetest.o
- .debug_line    0x0000000000002043      0x2af ego.o
- .debug_line    0x00000000000022f2      0x203 ../common/usb_serial.o
- .debug_line    0x00000000000024f5       0x96 ../common/LPC17xx_Startup.o
- .debug_line    0x000000000000258b       0x4e ../common/LPC17xx_Interrupts.o
- .debug_line    0x00000000000025d9      0x44d ../common/ubertooth.o
- .debug_line    0x0000000000002a26       0xf3 ../common/lpcusb/target/usbcontrol.o
- .debug_line    0x0000000000002b19       0xa0 ../common/lpcusb/target/usbinit.o
- .debug_line    0x0000000000002bb9      0x357 ../common/lpcusb/target/usbhw_lpc.o
- .debug_line    0x0000000000002f10      0x1af ../common/lpcusb/target/usbstdreq.o
- .debug_line    0x00000000000030bf       0x6f /usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m/libgcc.a(_ashldi3.o)
- .debug_line    0x000000000000312e       0xf6 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcmp.o)
- .debug_line    0x0000000000003224       0xbb /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcpy.o)
- .debug_line    0x00000000000032df       0xd7 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-strlen.o)
+ .debug_line    0x00000000000006c6      0xe61 bluetooth_rxtx.o
+ .debug_line    0x0000000000001527      0x1b8 bluetooth.o
+ .debug_line    0x00000000000016df      0x149 bluetooth_le.o
+ .debug_line    0x0000000000001828      0x21d ubertooth_usb.o
+ .debug_line    0x0000000000001a45       0xfe ubertooth_rssi.o
+ .debug_line    0x0000000000001b43       0xfd ubertooth_cs.o
+ .debug_line    0x0000000000001c40       0xbe ubertooth_clock.o
+ .debug_line    0x0000000000001cfe      0x134 ubertooth_dma.o
+ .debug_line    0x0000000000001e32      0x23d cc2400_rangetest.o
+ .debug_line    0x000000000000206f      0x2af ego.o
+ .debug_line    0x000000000000231e      0x203 ../common/usb_serial.o
+ .debug_line    0x0000000000002521       0x96 ../common/LPC17xx_Startup.o
+ .debug_line    0x00000000000025b7       0x4e ../common/LPC17xx_Interrupts.o
+ .debug_line    0x0000000000002605      0x44d ../common/ubertooth.o
+ .debug_line    0x0000000000002a52       0xf3 ../common/lpcusb/target/usbcontrol.o
+ .debug_line    0x0000000000002b45       0xa0 ../common/lpcusb/target/usbinit.o
+ .debug_line    0x0000000000002be5      0x357 ../common/lpcusb/target/usbhw_lpc.o
+ .debug_line    0x0000000000002f3c      0x1af ../common/lpcusb/target/usbstdreq.o
+ .debug_line    0x00000000000030eb       0x6f /usr/lib/gcc/arm-none-eabi/4.8.2/armv7-m/libgcc.a(_ashldi3.o)
+ .debug_line    0x000000000000315a       0xf6 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcmp.o)
+ .debug_line    0x0000000000003250       0xbb /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcpy.o)
+ .debug_line    0x000000000000330b       0xd7 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-strlen.o)
 
-.debug_str      0x0000000000000000     0x2d79
+.debug_str      0x0000000000000000     0x2ee0
  .debug_str     0x0000000000000000      0x199 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-atexit.o)
                                         0x1d9 (size before relaxing)
  .debug_str     0x0000000000000199       0xaf /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-fini.o)
@@ -1353,71 +1352,71 @@ OUTPUT(bluetooth_rxtx.elf elf32-littlearm)
                                         0x5b5 (size before relaxing)
  .debug_str     0x0000000000000792       0x7c /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-__call_atexit.o)
                                         0x5cd (size before relaxing)
- .debug_str     0x000000000000080e     0x1470 bluetooth_rxtx.o
-                                       0x1644 (size before relaxing)
- .debug_str     0x0000000000001c7e       0x98 bluetooth.o
+ .debug_str     0x000000000000080e     0x15d7 bluetooth_rxtx.o
+                                       0x17ab (size before relaxing)
+ .debug_str     0x0000000000001de5       0x98 bluetooth.o
                                         0x2d9 (size before relaxing)
- .debug_str     0x0000000000001d16       0x52 bluetooth_le.o
+ .debug_str     0x0000000000001e7d       0x52 bluetooth_le.o
                                         0x43f (size before relaxing)
- .debug_str     0x0000000000001d68      0x1a2 ubertooth_usb.o
+ .debug_str     0x0000000000001ecf      0x1a2 ubertooth_usb.o
                                         0x4c5 (size before relaxing)
- .debug_str     0x0000000000001f0a       0x30 ubertooth_rssi.o
+ .debug_str     0x0000000000002071       0x30 ubertooth_rssi.o
                                         0x271 (size before relaxing)
- .debug_str     0x0000000000001f3a       0x69 ubertooth_cs.o
+ .debug_str     0x00000000000020a1       0x69 ubertooth_cs.o
                                         0x305 (size before relaxing)
- .debug_str     0x0000000000001fa3       0x12 ubertooth_clock.o
+ .debug_str     0x000000000000210a       0x12 ubertooth_clock.o
                                         0x270 (size before relaxing)
- .debug_str     0x0000000000001fb5       0x60 ubertooth_dma.o
+ .debug_str     0x000000000000211c       0x60 ubertooth_dma.o
                                         0x28c (size before relaxing)
- .debug_str     0x0000000000002015       0x58 cc2400_rangetest.o
+ .debug_str     0x000000000000217c       0x58 cc2400_rangetest.o
                                         0x327 (size before relaxing)
- .debug_str     0x000000000000206d      0x1d4 ego.o
+ .debug_str     0x00000000000021d4      0x1d4 ego.o
                                         0x65c (size before relaxing)
- .debug_str     0x0000000000002241      0x216 ../common/usb_serial.o
+ .debug_str     0x00000000000023a8      0x216 ../common/usb_serial.o
                                         0x4d2 (size before relaxing)
- .debug_str     0x0000000000002457       0x9b ../common/LPC17xx_Startup.o
+ .debug_str     0x00000000000025be       0x9b ../common/LPC17xx_Startup.o
                                         0x225 (size before relaxing)
- .debug_str     0x00000000000024f2       0x51 ../common/LPC17xx_Interrupts.o
+ .debug_str     0x0000000000002659       0x51 ../common/LPC17xx_Interrupts.o
                                         0x187 (size before relaxing)
- .debug_str     0x0000000000002543       0xe7 ../common/ubertooth.o
+ .debug_str     0x00000000000026aa       0xe7 ../common/ubertooth.o
                                         0x3a6 (size before relaxing)
- .debug_str     0x000000000000262a       0xdf ../common/lpcusb/target/usbcontrol.o
+ .debug_str     0x0000000000002791       0xdf ../common/lpcusb/target/usbcontrol.o
                                         0x2ef (size before relaxing)
- .debug_str     0x0000000000002709       0x56 ../common/lpcusb/target/usbinit.o
+ .debug_str     0x0000000000002870       0x56 ../common/lpcusb/target/usbinit.o
                                         0x283 (size before relaxing)
- .debug_str     0x000000000000275f      0x305 ../common/lpcusb/target/usbhw_lpc.o
+ .debug_str     0x00000000000028c6      0x305 ../common/lpcusb/target/usbhw_lpc.o
                                         0x5cd (size before relaxing)
- .debug_str     0x0000000000002a64      0x262 ../common/lpcusb/target/usbstdreq.o
+ .debug_str     0x0000000000002bcb      0x262 ../common/lpcusb/target/usbstdreq.o
                                         0x4d1 (size before relaxing)
- .debug_str     0x0000000000002cc6       0x2e /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcmp.o)
+ .debug_str     0x0000000000002e2d       0x2e /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcmp.o)
                                         0x19c (size before relaxing)
- .debug_str     0x0000000000002cf4       0x85 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-strlen.o)
+ .debug_str     0x0000000000002e5b       0x85 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-strlen.o)
                                         0x1a9 (size before relaxing)
 
-.debug_frame    0x0000000000000000     0x1460
+.debug_frame    0x0000000000000000     0x1468
  .debug_frame   0x0000000000000000       0x20 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-atexit.o)
  .debug_frame   0x0000000000000020       0x2c /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-fini.o)
  .debug_frame   0x000000000000004c       0x2c /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-init.o)
  .debug_frame   0x0000000000000078       0x2c /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memset.o)
  .debug_frame   0x00000000000000a4       0x30 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-__atexit.o)
  .debug_frame   0x00000000000000d4       0x48 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-__call_atexit.o)
- .debug_frame   0x000000000000011c      0x510 bluetooth_rxtx.o
- .debug_frame   0x000000000000062c       0x90 bluetooth.o
- .debug_frame   0x00000000000006bc       0xac bluetooth_le.o
- .debug_frame   0x0000000000000768       0xe8 ubertooth_usb.o
- .debug_frame   0x0000000000000850       0x68 ubertooth_rssi.o
- .debug_frame   0x00000000000008b8       0x6c ubertooth_cs.o
- .debug_frame   0x0000000000000924       0x4c ubertooth_clock.o
- .debug_frame   0x0000000000000970       0x78 ubertooth_dma.o
- .debug_frame   0x00000000000009e8       0x8c cc2400_rangetest.o
- .debug_frame   0x0000000000000a74      0x190 ego.o
- .debug_frame   0x0000000000000c04      0x130 ../common/usb_serial.o
- .debug_frame   0x0000000000000d34       0x2c ../common/LPC17xx_Startup.o
- .debug_frame   0x0000000000000d60       0x20 ../common/LPC17xx_Interrupts.o
- .debug_frame   0x0000000000000d80      0x2e8 ../common/ubertooth.o
- .debug_frame   0x0000000000001068       0x84 ../common/lpcusb/target/usbcontrol.o
- .debug_frame   0x00000000000010ec       0x3c ../common/lpcusb/target/usbinit.o
- .debug_frame   0x0000000000001128      0x220 ../common/lpcusb/target/usbhw_lpc.o
- .debug_frame   0x0000000000001348       0xcc ../common/lpcusb/target/usbstdreq.o
- .debug_frame   0x0000000000001414       0x2c /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcmp.o)
- .debug_frame   0x0000000000001440       0x20 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-strlen.o)
+ .debug_frame   0x000000000000011c      0x518 bluetooth_rxtx.o
+ .debug_frame   0x0000000000000634       0x90 bluetooth.o
+ .debug_frame   0x00000000000006c4       0xac bluetooth_le.o
+ .debug_frame   0x0000000000000770       0xe8 ubertooth_usb.o
+ .debug_frame   0x0000000000000858       0x68 ubertooth_rssi.o
+ .debug_frame   0x00000000000008c0       0x6c ubertooth_cs.o
+ .debug_frame   0x000000000000092c       0x4c ubertooth_clock.o
+ .debug_frame   0x0000000000000978       0x78 ubertooth_dma.o
+ .debug_frame   0x00000000000009f0       0x8c cc2400_rangetest.o
+ .debug_frame   0x0000000000000a7c      0x190 ego.o
+ .debug_frame   0x0000000000000c0c      0x130 ../common/usb_serial.o
+ .debug_frame   0x0000000000000d3c       0x2c ../common/LPC17xx_Startup.o
+ .debug_frame   0x0000000000000d68       0x20 ../common/LPC17xx_Interrupts.o
+ .debug_frame   0x0000000000000d88      0x2e8 ../common/ubertooth.o
+ .debug_frame   0x0000000000001070       0x84 ../common/lpcusb/target/usbcontrol.o
+ .debug_frame   0x00000000000010f4       0x3c ../common/lpcusb/target/usbinit.o
+ .debug_frame   0x0000000000001130      0x220 ../common/lpcusb/target/usbhw_lpc.o
+ .debug_frame   0x0000000000001350       0xcc ../common/lpcusb/target/usbstdreq.o
+ .debug_frame   0x000000000000141c       0x2c /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-memcmp.o)
+ .debug_frame   0x0000000000001448       0x20 /usr/lib/gcc/arm-none-eabi/4.8.2/../../../arm-none-eabi/lib/armv7-m/libc.a(lib_a-strlen.o)

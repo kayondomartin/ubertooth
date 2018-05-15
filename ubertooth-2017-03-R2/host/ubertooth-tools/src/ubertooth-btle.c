@@ -87,6 +87,7 @@ static void usage(void)
 	printf("\t-A<index> advertising channel index (default 37)\n");
 	printf("\t-v[01] verify CRC mode, get status or enable/disable\n");
 	printf("\t-x<n> allow n access address offenses (default 32)\n");
+	printf("\t-l<0-7> set ubertooth btle slave tx power level from 0 to 7 (default 0)\n");
 
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
 	printf("In get/set mode no capture occurs.\n");
@@ -100,6 +101,8 @@ int main(int argc, char *argv[])
 	int do_crc;
 	int do_adv_index;
 	int do_slave_mode;
+	// JWHUR POWER CONTROL
+	int pwr_level;
 	int do_target;
 	enum jam_modes jam_mode = JAM_NONE;
 	int ubertooth_device = -1;
@@ -116,8 +119,9 @@ int main(int argc, char *argv[])
 	do_crc = -1; // 0 and 1 mean set, 2 means get
 	do_adv_index = 37;
 	do_slave_mode = do_target = 0;
+	pwr_level = 0;
 
-	while ((opt=getopt(argc,argv,"a::r:hfpU:v::A:s:t:x:c:q:jJiI")) != EOF) {
+	while ((opt=getopt(argc,argv,"a::r:hfpU:v::A:s:l:t:x:c:q:jJiI")) != EOF) {
 		switch(opt) {
 		case 'a':
 			if (optarg == NULL) {
@@ -211,6 +215,9 @@ int main(int argc, char *argv[])
 		case 'I':
 		case 'J':
 			jam_mode = JAM_CONTINUOUS;
+			break;
+		case 'l':
+			pwr_level = atoi(optarg);
 			break;
 		case 'h':
 		default:
@@ -309,7 +316,7 @@ int main(int argc, char *argv[])
 			channel = 2480;
 		cmd_set_channel(ut->devh, channel);
 
-		cmd_btle_slave(ut->devh, mac_address);
+		cmd_btle_slave(ut->devh, mac_address, pwr_level);
 		printf("JWHUR do_slave_mode\n");
 	}
 

@@ -4,5 +4,5 @@
 # compile C with /usr/bin/cc
 C_FLAGS = -fPIC -I/usr/include/libusb-1.0 -I/usr/local/include   
 
-C_DEFINES = -DRELEASE=\"2017-03-R2\" -DVERSION=\"1.0\" -Dubertooth_EXPORTS
+C_DEFINES = -DRELEASE="\"git-3dc4440*\"" -DVERSION=\"1.0\" -Dubertooth_EXPORTS
 

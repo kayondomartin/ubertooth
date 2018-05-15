@@ -49,6 +49,15 @@ enum operating_modes {
 	MODE_AFH           = 14,
 	MODE_RX_GENERIC    = 15,
 	MODE_TX_GENERIC    = 16,
+	//JWHUR BT SLAVE power control
+	MODE_BT_SLAVE_LE_P0 = 17,
+	MODE_BT_SLAVE_LE_P1 = 18,
+	MODE_BT_SLAVE_LE_P2 = 19,
+	MODE_BT_SLAVE_LE_P3 = 20,
+	MODE_BT_SLAVE_LE_P4 = 21,
+	MODE_BT_SLAVE_LE_P5 = 22,
+	MODE_BT_SLAVE_LE_P6 = 23,
+	MODE_BT_SLAVE_LE_P7 = 24,
 };
 
 /* hardware identification number */
