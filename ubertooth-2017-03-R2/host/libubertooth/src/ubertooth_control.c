@@ -923,34 +923,42 @@ int cmd_btle_slave(struct libusb_device_handle* devh, u8 *mac_address, int pwr_l
 		case 0:
 			r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_SLAVE_P0, 0, 0,
 					mac_address, 6, 1000);
+		printf("JWHUR pwr_level 0\n");
 			break;
 		case 1:
 			r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_SLAVE_P1, 0, 0,
 					mac_address, 6, 1000);
+		printf("JWHUR pwr_level 1\n");
 			break;
 		case 2:
 			r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_SLAVE_P2, 0, 0,
 					mac_address, 6, 1000);
+		printf("JWHUR pwr_level 2\n");
 			break;
 		case 3:
 			r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_SLAVE_P3, 0, 0,
 					mac_address, 6, 1000);
+		printf("JWHUR pwr_level 3\n");
 			break;
 		case 4:
 			r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_SLAVE_P4, 0, 0,
 					mac_address, 6, 1000);
+		printf("JWHUR pwr_level 4\n");
 			break;
 		case 5:
 			r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_SLAVE_P5, 0, 0,
 					mac_address, 6, 1000);
+		printf("JWHUR pwr_level 5\n");
 			break;
 		case 6:
 			r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_SLAVE_P6, 0, 0,
 					mac_address, 6, 1000);
+		printf("JWHUR pwr_level 6\n");
 			break;
 		case 7:
 			r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_SLAVE_P7, 0, 0,
 					mac_address, 6, 1000);
+		printf("JWHUR pwr_level 7\n");
 			break;
 		default:
 			r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_SLAVE, 0, 0,

@@ -2383,6 +2383,7 @@ void bt_slave_le(u16 tx_pwr) {
 			|| requested_mode == MODE_BT_SLAVE_LE_P5
 			|| requested_mode == MODE_BT_SLAVE_LE_P6
 			|| requested_mode == MODE_BT_SLAVE_LE_P7) {
+		if (requested_mode != mode) break;
 		ICER0 = ICER0_ICE_USB;
 		ICER0 = ICER0_ICE_DMA;
 		le_transmit(0x8e89bed6, adv_ind_len+3, adv_ind, tx_pwr);
@@ -2644,6 +2645,7 @@ int main()
 					bt_promisc_le();
 					break;
 				case MODE_BT_SLAVE_LE:
+					mode = MODE_BT_SLAVE_LE;
 					bt_slave_le(0x000f);
 					break;
 				case MODE_TX_TEST:
@@ -2681,27 +2683,35 @@ int main()
 					break;
 				// JWHUR POWER CONTROL
 				case MODE_BT_SLAVE_LE_P0:
+					mode = MODE_BT_SLAVE_LE_P0;
 					bt_slave_le(0x0008);
 					break;
 				case MODE_BT_SLAVE_LE_P1:
+					mode = MODE_BT_SLAVE_LE_P1;
 					bt_slave_le(0x0009);
 					break;
 				case MODE_BT_SLAVE_LE_P2:
+					mode = MODE_BT_SLAVE_LE_P2;
 					bt_slave_le(0x000a);
 					break;
 				case MODE_BT_SLAVE_LE_P3:
+					mode = MODE_BT_SLAVE_LE_P3;
 					bt_slave_le(0x000b);
 					break;
 				case MODE_BT_SLAVE_LE_P4:
+					mode = MODE_BT_SLAVE_LE_P4;
 					bt_slave_le(0x000c);
 					break;
 				case MODE_BT_SLAVE_LE_P5:
+					mode = MODE_BT_SLAVE_LE_P5;
 					bt_slave_le(0x000d);
 					break;
 				case MODE_BT_SLAVE_LE_P6:
+					mode = MODE_BT_SLAVE_LE_P6;
 					bt_slave_le(0x000e);
 					break;
 				case MODE_BT_SLAVE_LE_P7:
+					mode = MODE_BT_SLAVE_LE_P7;
 					bt_slave_le(0x000f);
 					break;
 				
