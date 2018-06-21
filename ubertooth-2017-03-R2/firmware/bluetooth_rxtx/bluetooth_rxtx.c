@@ -2332,9 +2332,9 @@ void bt_slave_le(u16 tx_pwr) {
 
 	u8 adv_ind[] = {
 		// LL header
-		0x42, 0x1e, // adv_nonconn_ind
+		0x42, 0x1b, // adv_nonconn_ind
 
-		// AdvA (6 bytes) + AdvData (upto 31 bytes)
+		// AdvA (6 bytes) + AdvData (upto 21 bytes)
 
 		// advertising address
 		0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -2346,15 +2346,13 @@ void bt_slave_le(u16 tx_pwr) {
 		0x03, 0x03, 0xaa, 0xfe, //len, type, eddystone UUID
 		
 		// len(3 + URL frame + Eddystone URL), type, eddystone UUID
-		0x13, 0x16, 0xaa, 0xfe, 
+		0x10, 0x16, 0xaa, 0xfe, 
 
 		// URL frame
 		0x10, 0x00, 0x02, // frametype (URL), tx power, URL scheme prefix (0x02: http://)
 
 		// Eddystone URL (available data, 0~20 bytes)
-		0xaa, 'M', 'W', 'N', 'L', '_', '3', '0', '1', // Preamble, SSID
-
-		0xaa, 'm', 'w', 'n', //'l', 'w', 'l', 'a', 'n', // Preamble, PASSWD
+		0xaa, 'N', 'W', 'N', 'L', '_', 'M', 'E', 'S', 'H', // Preamble, SSID
 
 		// CRC (calc)
 		0xff, 0xff, 0xff,

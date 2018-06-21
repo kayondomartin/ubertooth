@@ -60,6 +60,22 @@ int convert_mac_address(char *s, uint8_t *o) {
 	return 1;
 }
 
+//JWHUR set advertising data
+int convert_data(char *s, uint8_t *o) {
+	int i, slen;
+
+	printf("data: ");
+	slen = strlen(s);
+	for (i=0; i < slen; i++) {
+		uint8_t byte;
+		sscanf(&s[i], "%c", &byte);
+		o[i] = byte;
+		printf("%u ", o[i]);
+	}
+	printf("\n");
+	return 1;
+}
+
 static void usage(void)
 {
 	printf("ubertooth-btle - passive Bluetooth Low Energy monitoring\n");
@@ -88,6 +104,7 @@ static void usage(void)
 	printf("\t-v[01] verify CRC mode, get status or enable/disable\n");
 	printf("\t-x<n> allow n access address offenses (default 32)\n");
 	printf("\t-l<0-7> set ubertooth btle slave tx power level from 0 to 7 (default 0)\n");
+	printf("\t-d set ubertooth advertising data\n");
 
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
 	printf("In get/set mode no capture occurs.\n");
@@ -103,6 +120,8 @@ int main(int argc, char *argv[])
 	int do_slave_mode;
 	// JWHUR POWER CONTROL
 	int pwr_level;
+	// JWHUR set advertising data
+	int dlen;
 	int do_target;
 	enum jam_modes jam_mode = JAM_NONE;
 	int ubertooth_device = -1;
@@ -121,7 +140,7 @@ int main(int argc, char *argv[])
 	do_slave_mode = do_target = 0;
 	pwr_level = 0;
 
-	while ((opt=getopt(argc,argv,"a::r:hfpU:v::A:s:l:t:x:c:q:jJiI")) != EOF) {
+	while ((opt=getopt(argc,argv,"a::r:hfpU:v::A:s:d:l:t:x:c:q:jJiI")) != EOF) {
 		switch(opt) {
 		case 'a':
 			if (optarg == NULL) {
@@ -191,6 +210,12 @@ int main(int argc, char *argv[])
 				usage();
 				return 1;
 			}
+			break;
+		//JWHUR set advertising data
+		case 'd':
+			dlen = strlen(optarg);
+			uint8_t *data = (uint8_t*) malloc(sizeof(uint8_t) * dlen);
+			r = convert_data(optarg, data);
 			break;
 		case 't':
 			do_target = 1;
