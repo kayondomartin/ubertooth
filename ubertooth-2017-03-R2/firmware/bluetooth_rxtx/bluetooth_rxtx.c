@@ -21,6 +21,7 @@
  */
 
 #include <string.h>
+#include <stdlib.h>
 
 #include "ubertooth.h"
 #include "ubertooth_usb.h"
@@ -74,6 +75,8 @@ volatile int8_t rssi_threshold = -30;  // -54dBm - 30 = -84dBm
 generic_tx_packet tx_pkt;
 
 /* le stuff */
+int dlen = 0;
+uint8_t *slave_mac_address_data;
 uint8_t slave_mac_address[6] = { 0, };
 
 le_state_t le = {
@@ -188,6 +191,7 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 	usb_pkt_rx* p = NULL;
 	uint16_t reg_val;
 	uint8_t i;
+	dlen = *data_len;
 
 	switch (request) {
 
@@ -638,41 +642,50 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 		break;
 
 	case UBERTOOTH_BTLE_SLAVE:
-		memcpy(slave_mac_address, data, 6);
+		slave_mac_address_data = (uint8_t*) malloc(sizeof(uint8_t)*dlen);
+		memcpy(slave_mac_address_data, data, dlen);
 		requested_mode = MODE_BT_SLAVE_LE;
 		break;
 	
 	// WJHUR Power control
 	case UBERTOOTH_BTLE_SLAVE_P0:
-		memcpy(slave_mac_address, data, 6);
+		slave_mac_address_data = (uint8_t*) malloc(sizeof(uint8_t)*dlen);
+		memcpy(slave_mac_address_data, data, dlen);
 		requested_mode = MODE_BT_SLAVE_LE_P0;
 		break;
 	case UBERTOOTH_BTLE_SLAVE_P1:
-		memcpy(slave_mac_address, data, 6);
+		slave_mac_address_data = (uint8_t*) malloc(sizeof(uint8_t)*dlen);
+		memcpy(slave_mac_address, data, dlen);
 		requested_mode = MODE_BT_SLAVE_LE_P1;
 		break;
 	case UBERTOOTH_BTLE_SLAVE_P2:
-		memcpy(slave_mac_address, data, 6);
+		slave_mac_address_data = (uint8_t*) malloc(sizeof(uint8_t)*dlen);
+		memcpy(slave_mac_address_data, data, dlen);
 		requested_mode = MODE_BT_SLAVE_LE_P2;
 		break;
 	case UBERTOOTH_BTLE_SLAVE_P3:
-		memcpy(slave_mac_address, data, 6);
+		slave_mac_address_data = (uint8_t*) malloc(sizeof(uint8_t)*dlen);
+		memcpy(slave_mac_address_data, data, dlen);
 		requested_mode = MODE_BT_SLAVE_LE_P3;
 		break;
 	case UBERTOOTH_BTLE_SLAVE_P4:
-		memcpy(slave_mac_address, data, 6);
+		slave_mac_address_data = (uint8_t*) malloc(sizeof(uint8_t)*dlen);
+		memcpy(slave_mac_address_data, data, dlen);
 		requested_mode = MODE_BT_SLAVE_LE_P4;
 		break;
 	case UBERTOOTH_BTLE_SLAVE_P5:
-		memcpy(slave_mac_address, data, 6);
+		slave_mac_address_data = (uint8_t*) malloc(sizeof(uint8_t)*dlen);
+		memcpy(slave_mac_address_data, data, dlen);
 		requested_mode = MODE_BT_SLAVE_LE_P5;
 		break;
 	case UBERTOOTH_BTLE_SLAVE_P6:
-		memcpy(slave_mac_address, data, 6);
+		slave_mac_address_data = (uint8_t*) malloc(sizeof(uint8_t)*dlen);
+		memcpy(slave_mac_address_data, data, dlen);
 		requested_mode = MODE_BT_SLAVE_LE_P6;
 		break;
 	case UBERTOOTH_BTLE_SLAVE_P7:
-		memcpy(slave_mac_address, data, 6);
+		slave_mac_address_data = (uint8_t*) malloc(sizeof(uint8_t)*dlen);
+		memcpy(slave_mac_address_data, data, dlen);
 		requested_mode = MODE_BT_SLAVE_LE_P7;
 		break;
 
@@ -1078,10 +1091,12 @@ static void cc2400_tx_sync(uint32_t sync)
  * should not be pre-whitened, but the CRC should be calculated and
  * included in the data length.
  */
-void le_transmit(u32 aa, u8 len, u8 *data, u16 tx_pwr)
+void le_transmit(u32 aa, u8 len, u8 *data, u16 tx_pwr, u16 ch)
 {
 	unsigned i, j;
 	int bit;
+	uint16_t jw_channel = 2402;
+	jw_channel = ch;
 	u8 txbuf[64];
 	u8 tx_len;
 	u8 byte;
@@ -1101,7 +1116,7 @@ void le_transmit(u32 aa, u8 len, u8 *data, u16 tx_pwr)
 	}
 
 	// whiten the data and copy it into the txbuf
-	int idx = whitening_index[btle_channel_index(channel-2402)];
+	int idx = whitening_index[btle_channel_index(jw_channel-2402)];
 	for (i = 0; i < len; ++i) {
 		byte = data[i];
 		txbuf[i+4] = 0;
@@ -1128,7 +1143,7 @@ void le_transmit(u32 aa, u8 len, u8 *data, u16 tx_pwr)
 	//      |  +-----------------> packet mode
 	//      +--------------------> buffered mode
 
-	cc2400_set(FSDIV,   channel);
+	cc2400_set(FSDIV,   jw_channel);
 	// JWHUR cc2400 data sheet about power control
 	// lsb 3 bit : dbm
 	// 000 : -25
@@ -2328,46 +2343,64 @@ void bt_promisc_le() {
 
 void bt_slave_le(u16 tx_pwr) {
 	u32 calc_crc;
-	int i;
+	int i, j;
+	int num_adv_ind = 1;
+	int fin_adv_len = 0;
+	u8 **adv_ind;
+	u8 adv_ind_len;
+	u16 ch[] = {2402, 2426, 2480};
 
-	u8 adv_ind[] = {
-		// LL header
-		0x42, 0x1b, // adv_nonconn_ind
+	u8 adv_overhead[20] = {0x42, 0x1d,	// adv_nonconn_ind, length 29 (__01 1101)
+						   0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // adv mac address
+						   0x03, 0x03, 0xaa, 0xfe, // service advertised - len, type, eddystone UUID
+						   0x12, 0x16, 0xaa, 0xfe, // len(3 + URL frame + Eddystone URL), type, eddystone UUID
+						   0x10, 0x00, 0x02, // URL frame - frametype(URL), tx power, URL scheme prefix (0x02: http://)
+						   0xaa }; // preamble 0xaa
 
-		// AdvA (6 bytes) + AdvData (upto 21 bytes)
+	for (i = 0; i < 6; i++)
+		slave_mac_address[i] = slave_mac_address_data[i];
 
-		// advertising address
-		0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	// Standards said maximum advertising channel PDU length 39 bytes (adv payload 19 + 1 (preamble))
+	// There's a probem, actual maximum length 34 bytes (adv payload 14 + 1 (preamble)) in ubertooth
+	// Nexsus 5 smartphone can not receive BLE packet which has length over 31 bytes (adv payload 11 + 1 (preamble))
+	fin_adv_len = (dlen-6) % 11;
+	if (dlen > 11 + 6) {
+		num_adv_ind = (dlen-6)/11 + 1;
+		fin_adv_len = (dlen-6) % 11;
+		if (fin_adv_len == 0) {
+			fin_adv_len = 11;
+			num_adv_ind = num_adv_ind - 1;}
+	}
 
-		// advertising flags, standards
-		// 0x02, 0x01, 0x06, 
+	adv_ind = (u8**) malloc(sizeof(u8*)*num_adv_ind);
+	for (i=0; i< num_adv_ind-1; i++) {
+		adv_ind[i] = (u8*) malloc(sizeof(u8)*31);
+	}
+	adv_ind[num_adv_ind-1] = (u8*) malloc(sizeof(u8)*(fin_adv_len + 1 + 3 + 4 + 4 + 6 + 2 + 3));
+
+	for (i=0; i< num_adv_ind; i++) {
+		for (j=0; j<20; j++) adv_ind[i][j] = adv_overhead[j];
+		for (j=0; j<6; j++) adv_ind[i][j+2] = slave_mac_address[5-j];
+		adv_ind[i][17] = (u8) num_adv_ind;
+		adv_ind[i][19] = adv_overhead[19] + (u8) i;
+		if (i < num_adv_ind -1) {
+			for (j=0; j<11; j++) adv_ind[i][j+20] = slave_mac_address_data[6+11*i+j];
+			adv_ind_len = (u8) 31;
+		} else {
+			u8 tot_len = (u8)(fin_adv_len + 18);
+			u8 adv_len = (u8)(fin_adv_len + 7);
+			for (j=0; j<fin_adv_len; j++) adv_ind[i][j+20] = slave_mac_address_data[6+11*i+j];
+			adv_ind[i][1] = tot_len;
+			adv_ind[i][12] = adv_len;
+			adv_ind_len = (u8) (fin_adv_len + 20);
+		}
 		
-		// service advertised
-		0x03, 0x03, 0xaa, 0xfe, //len, type, eddystone UUID
-		
-		// len(3 + URL frame + Eddystone URL), type, eddystone UUID
-		0x10, 0x16, 0xaa, 0xfe, 
-
-		// URL frame
-		0x10, 0x00, 0x02, // frametype (URL), tx power, URL scheme prefix (0x02: http://)
-
-		// Eddystone URL (available data, 0~20 bytes)
-		0xaa, 'N', 'W', 'N', 'L', '_', 'M', 'E', 'S', 'H', // Preamble, SSID
-
-		// CRC (calc)
-		0xff, 0xff, 0xff,
-	};
-
-	u8 adv_ind_len = sizeof(adv_ind) - 3;
-
-	// copy the user-specified mac address
-	for (i = 0; i < 6; ++i)
-		adv_ind[i+2] = slave_mac_address[5-i];
-
-	calc_crc = btle_calc_crc(le.crc_init_reversed, adv_ind, adv_ind_len);
-	adv_ind[adv_ind_len+0] = (calc_crc >>  0) & 0xff;
-	adv_ind[adv_ind_len+1] = (calc_crc >>  8) & 0xff;
-	adv_ind[adv_ind_len+2] = (calc_crc >> 16) & 0xff;
+		calc_crc = btle_calc_crc(le.crc_init_reversed, adv_ind[i], adv_ind_len);
+		adv_ind_len = (int) adv_ind_len;
+		adv_ind[i][adv_ind_len+0] = (calc_crc >> 0) & 0xff;
+		adv_ind[i][adv_ind_len+1] = (calc_crc >> 8) & 0xff;
+		adv_ind[i][adv_ind_len+2] = (calc_crc >> 16) & 0xff;
+	}
 
 	clkn_start();
 
@@ -2384,10 +2417,22 @@ void bt_slave_le(u16 tx_pwr) {
 		if (requested_mode != mode) break;
 		ICER0 = ICER0_ICE_USB;
 		ICER0 = ICER0_ICE_DMA;
-		le_transmit(0x8e89bed6, adv_ind_len+3, adv_ind, tx_pwr);
+		for(i=0; i<3; i++) {
+			for(j=0; j<num_adv_ind; j++) {
+				if (j < num_adv_ind -1) {
+					adv_ind_len = (u8) (31 + 3);
+					le_transmit(0x8e89bed6, adv_ind_len, adv_ind[j], tx_pwr, ch[i]);
+				} else {
+					adv_ind_len = (u8) (fin_adv_len + 20 + 3);
+					le_transmit(0x8e89bed6, adv_ind_len, adv_ind[j], tx_pwr, ch[i]);
+				}
+				msleep(10);
+			}
+			msleep(5);
+		}
 		ISER0 = ISER0_ISE_USB;
 		ISER0 = ISER0_ISE_DMA;
-		msleep(100);
+		msleep(1000);
 	}
 }
 

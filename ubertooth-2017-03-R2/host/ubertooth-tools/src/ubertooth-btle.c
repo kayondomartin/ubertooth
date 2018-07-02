@@ -117,10 +117,11 @@ int main(int argc, char *argv[])
 	int do_get_aa, do_set_aa;
 	int do_crc;
 	int do_adv_index;
-	int do_slave_mode;
+	int do_slave_mode, do_data_mode;
 	// JWHUR POWER CONTROL
 	int pwr_level;
 	// JWHUR set advertising data
+	uint8_t *data;
 	int dlen;
 	int do_target;
 	enum jam_modes jam_mode = JAM_NONE;
@@ -137,8 +138,9 @@ int main(int argc, char *argv[])
 	do_get_aa = do_set_aa = 0;
 	do_crc = -1; // 0 and 1 mean set, 2 means get
 	do_adv_index = 37;
-	do_slave_mode = do_target = 0;
+	do_slave_mode = do_target = do_data_mode = 0;
 	pwr_level = 0;
+	dlen = 0;
 
 	while ((opt=getopt(argc,argv,"a::r:hfpU:v::A:s:d:l:t:x:c:q:jJiI")) != EOF) {
 		switch(opt) {
@@ -213,8 +215,9 @@ int main(int argc, char *argv[])
 			break;
 		//JWHUR set advertising data
 		case 'd':
+			do_data_mode = 1;
 			dlen = strlen(optarg);
-			uint8_t *data = (uint8_t*) malloc(sizeof(uint8_t) * dlen);
+			data = (uint8_t*) malloc(sizeof(uint8_t) * dlen);
 			r = convert_data(optarg, data);
 			break;
 		case 't':
@@ -341,7 +344,15 @@ int main(int argc, char *argv[])
 			channel = 2480;
 		cmd_set_channel(ut->devh, channel);
 
-		cmd_btle_slave(ut->devh, mac_address, pwr_level);
+		//JWHUR add advertising data
+		uint8_t *tot_data = (uint8_t*) malloc(sizeof(uint8_t) * (dlen + 6));
+		int i;
+		for(i=0; i<6; i++) tot_data[i] = mac_address[i];
+		if (do_data_mode) {
+			for(i=6; i< (dlen + 6); i++) tot_data[i] = data[i-6];
+		}
+		//cmd_btle_slave(ut->devh, mac_address, pwr_level);
+		cmd_btle_slave(ut->devh, tot_data, pwr_level, dlen+6);
 		printf("JWHUR do_slave_mode\n");
 	}
 
