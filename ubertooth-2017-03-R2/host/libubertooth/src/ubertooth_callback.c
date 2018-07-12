@@ -427,6 +427,34 @@ void cb_btle(ubertooth_t* ut, void* args)
 
 	fflush(stdout);
 }
+
+//JWHUR cb_btle_cfo
+void cb_btle_cfo(ubertooth_t* ut, void* args)
+{
+	lell_packet* pkt;
+	btle_options* opts = (btle_options*) args;
+	int i;
+	int len;
+	usb_pkt_rx usb = fifo_pop(ut->fifo);
+	usb_pkt_rx* rx = &usb;
+
+	static u32 prev_ts = 0;
+	uint32_t refAA;
+	int8_t sig, noise;
+
+	if (rx->pkt_type == MESSAGE) {
+		struct timeval tv;
+		gettimeofday(&tv, NULL);
+		double time_in_null = (tv.tv_sec) * 1000 + (tv.tv_usec)/1000;
+		printf("\nMESSAGE systime %f, Device: %d\n", time_in_null, rx->reserved[0]);
+	len = (rx->data[DMA_SIZE - 1] & 0x03f) + 6 + 3;
+	for (i = 0; i < len - 4; i++)
+		printf("%02x ", rx->data[i]);
+	printf("\n\n");
+	fflush(stdout);
+	}
+}
+
 /*
  * Sniff E-GO packets
  */

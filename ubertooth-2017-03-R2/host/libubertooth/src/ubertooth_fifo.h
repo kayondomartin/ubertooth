@@ -39,6 +39,7 @@ void fifo_inc_write_ptr(fifo_t* fifo);
 
 void fifo_push(fifo_t* fifo, const usb_pkt_rx* packet);
 usb_pkt_rx fifo_pop(fifo_t* fifo);
+usb_pkt_rx fifo_get(fifo_t* fifo);
 usb_pkt_rx* fifo_get_write_element(fifo_t* fifo);
 
 uint8_t fifo_empty(fifo_t* fifo);

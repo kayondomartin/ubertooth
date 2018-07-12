@@ -64,6 +64,13 @@ usb_pkt_rx fifo_pop(fifo_t* fifo)
 	return fifo->packets[selected];
 }
 
+usb_pkt_rx fifo_get(fifo_t* fifo)
+{
+	size_t selected = fifo->read_ptr;
+	
+	return fifo->packets[selected];
+}
+
 usb_pkt_rx* fifo_get_write_element(fifo_t* fifo)
 {
 	return &(fifo->packets[fifo->write_ptr]);

@@ -58,6 +58,8 @@ enum operating_modes {
 	MODE_BT_SLAVE_LE_P5 = 22,
 	MODE_BT_SLAVE_LE_P6 = 23,
 	MODE_BT_SLAVE_LE_P7 = 24,
+	//JWHUR BT FOLLOW cfo estimation tracking
+	MODE_BT_CFO_LE = 25,
 };
 
 /* hardware identification number */
@@ -334,6 +336,7 @@ u32 cc2400_spi(u8 len, u32 data);
 u16 cc2400_get(u8 reg);
 void cc2400_set(u8 reg, u16 val);
 u8 cc2400_get8(u8 reg);
+u8 cc2400_get_rev(u8 reg);
 void cc2400_set8(u8 reg, u8 val);
 void cc2400_fifo_write(u8 len, u8 *data);
 void cc2400_fifo_read(u8 len, u8 *buf);

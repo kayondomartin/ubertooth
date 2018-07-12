@@ -22,6 +22,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <sys/time.h>
 
 #include "ubertooth.h"
 #include "ubertooth_usb.h"
@@ -549,6 +550,18 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 		queue_init();
 		cs_threshold_calc_and_set(channel);
 		break;
+	
+	// JWHUR cfo estimation tracking
+	case UBERTOOTH_BTLE_CFO:
+		*data_len = 0;
+
+		do_hop = 0;
+		hop_mode = HOP_BTLE;
+		requested_mode = MODE_BT_CFO_LE;
+
+		queue_init();
+		cs_threshold_calc_and_set(channel);
+		break;
 
 	case UBERTOOTH_GET_ACCESS_ADDRESS:
 		for(int i=0; i < 4; i++) {
@@ -688,7 +701,6 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 		memcpy(slave_mac_address_data, data, dlen);
 		requested_mode = MODE_BT_SLAVE_LE_P7;
 		break;
-
 
 	case UBERTOOTH_BTLE_SET_TARGET:
 		// Addresses appear in packets in reverse-octet order.
@@ -833,6 +845,7 @@ void DMA_IRQHandler()
 	   || mode == MODE_BT_FOLLOW
 	   || mode == MODE_SPECAN
 	   || mode == MODE_BT_FOLLOW_LE
+	   || mode == MODE_BT_CFO_LE
 	   || mode == MODE_BT_PROMISC_LE
 	   || mode == MODE_BT_SLAVE_LE
 	   || mode == MODE_BT_SLAVE_LE_P0
@@ -938,7 +951,8 @@ static void cc2400_rx()
 		}
 		cc2400_set(MANAND,  0x7fff);
 		cc2400_set(LMTST,   0x2b22);
-		cc2400_set(MDMTST0, 0x134b); // without PRNG
+		cc2400_set(MDMTST0, 0x104b); // JWHUR test AFC_SETTLING MAX MIN PAIRS
+		//cc2400_set(MDMTST0, 0x134b); // without PRNG
 		cc2400_set(GRMDM,   0x0101); // un-buffered mode, GFSK
 		// 0 00 00 0 010 00 0 00 0 1
 		//      |  | |   |  +--------> CRC off
@@ -1121,8 +1135,9 @@ void le_transmit(u32 aa, u8 len, u8 *data, u16 tx_pwr, u16 ch)
 		byte = data[i];
 		txbuf[i+4] = 0;
 		for (j = 0; j < 8; ++j) {
-			bit = (byte & 1) ^ whitening[idx];
-			idx = (idx + 1) % sizeof(whitening);
+			//bit = (byte & 1) ^ whitening[idx];
+			//idx = (idx + 1) % sizeof(whitening);
+			bit = (byte & 1);
 			byte >>= 1;
 			txbuf[i+4] |= bit << (7 - j);
 		}
@@ -1191,6 +1206,7 @@ void le_transmit(u32 aa, u8 len, u8 *data, u16 tx_pwr, u16 ch)
 
 	//JWHUR cc2400 fifo write
 	while (GIO6) ;
+	if (len > 46) len = 46;
 	cc2400_fifo_write(len, txbuf);
 
 	while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
@@ -1907,7 +1923,186 @@ cleanup:
 	cs_trigger_disable();
 }
 
+//JWHUR cfo estimation tracking
+void bt_le_sync_cfo(u8 active_mode) 
+{
+	int i;
+	int8_t rssi;
+	static int restart_jamming = 0;
+	u8 cfo_buf[DMA_SIZE] = {0, };
 
+	// to measure time value
+	struct timeval tv;
+
+	modulation = MOD_BT_LOW_ENERGY;
+	mode = active_mode;
+
+	le.link_state = LINK_LISTENING;
+
+	ISER0 = ISER0_ISE_USB;
+	RXLED_CLR;
+	queue_init();
+	dio_ssp_init();
+	dma_init_le();
+	dio_ssp_start();
+
+	cc2400_rx_sync(rbit(le.access_address));
+
+	while (requested_mode == active_mode) {
+		if (requested_channel != 0) {
+			cc2400_strobe(SRFOFF);
+			while ((cc2400_status() & FS_LOCK));
+			cc2400_set(FSDIV, channel - 1);
+			cc2400_strobe(SFSON);
+			while (!(cc2400_status() & FS_LOCK));
+			cc2400_strobe(SRX);
+			requested_channel = 0;
+		}
+		RXLED_CLR;
+		rssi_reset();
+		while ((rx_tc == 0) && (rx_err == 0) && (do_hop == 0) && requested_mode == active_mode) ;
+		rssi = (int8_t)(cc2400_get(RSSI) >> 8);
+		rssi_min = rssi_max = rssi;
+
+		if (requested_mode != active_mode) {
+			goto cleanup;
+		}
+		if (rx_err) {
+			status |= DMA_ERROR;
+		}
+		if (do_hop)
+			goto rx_flush;
+		if (!rx_tc)
+			continue;
+		
+		uint32_t packet[48/4+1] = {0, };
+		u8 *p = (u8 *)packet;
+
+		while (!(cc2400_status () & SYNC_RECEIVED));
+	
+		//JWHUR buffering carrier frequency offset estimation
+		for (i = 0; i < DMA_SIZE; i++) {
+			gettimeofday(&tv, NULL);
+			//cfo_buf[i] = (u8)(cc2400_get(RSSI) >> 8);
+			cfo_buf[i] = cc2400_get_rev(FREQEST);
+		}
+
+		packet[0] = le.access_address;
+		
+		const uint32_t *whit = whitening_word[btle_channel_index(channel-2402)];
+		for (i=0; i<4; i+= 4) {
+			uint32_t v = rxbuf1[i+0] << 24
+					   | rxbuf1[i+1] << 16
+					   | rxbuf1[i+2] << 8
+					   | rxbuf1[i+3] << 0;
+			//packet[i/4+1] = rbit(v) ^ whit[i/4];
+			packet[i/4+1] = rbit(v);
+		}
+
+		unsigned len = (p[5] & 0x3f) + 2;
+		cfo_buf[DMA_SIZE - 1] = p[5];	
+
+		if (len > 39)
+			goto rx_flush;
+
+		unsigned total_transfers = ((len + 3) + 4 - 1) / 4;
+		if (total_transfers < 11) {
+			while (DMACC0DestAddr < (uint32_t)rxbuf1 + 4 * total_transfers && rx_err == 0) ;
+		} else { while (DMACC0Config & DMACCxConfig_E && rx_err == 0) ;
+		}
+
+		DIO_SSP_DMACR &= ~SSPDMACR_RXDMAE;
+		cc2400_strobe(SFSON);
+
+		for (i=4; i<44; i+=4) {
+			uint32_t v = rxbuf1[i+0] << 24
+					   | rxbuf1[i+1] << 16
+					   | rxbuf1[i+2] << 8
+					   | rxbuf1[i+3] << 0;
+		//	packet[i/4+1] = rbit(v) ^ whit[i/4];
+			packet[i/4+1] = rbit(v);
+		}
+
+		if (le.crc_verify) {
+			u32 calc_crc = btle_crcgen_lut(le.crc_init_reversed, p + 4, len);
+			u32 wire_crc = (p[4+len+2] << 16)
+						 | (p[4+len+1] << 8)
+						 | (p[4+len+0] << 0);
+			if (calc_crc != wire_crc)
+				goto rx_flush;
+		}
+
+		RXLED_SET;
+		packet_cb((uint8_t *)packet);
+
+		ICER0 = ICER0_ICE_USB;
+		//if (p[22] == 0x02 && p[23] >= 0xaa) {
+		if (p[22] == 0x55 && p[23] == 0x55) {
+			enqueue(LE_PACKET, (uint8_t *)packet);
+			enqueue(MESSAGE, (uint8_t *)cfo_buf); 
+		}
+		ISER0 = ISER0_ISE_USB;
+
+		le.last_packet = CLK100NS;
+
+	rx_flush:
+		cc2400_strobe(SFSON);
+		DIO_SSP_DMACR &= ~SSPDMACR_RXDMAE;
+		while (SSP1SR & SSPSR_RNE) {
+			u8 tmp = (u8) DIO_SSP_DR;
+		}
+		u32 now = CLK100NS;
+		if (now <le.last_packet)
+			now += 3276800000;
+		if ( ((le.link_state == LINK_CONNECTED || le.link_state == LINK_CONN_PENDING) && (now - le.last_packet > 50000000)) || (le_jam_count == 1) ) {
+			reset_le();
+			le_jam_count = 0;
+			TXLED_CLR;
+			if (jam_mode == JAM_ONCE) {
+				jam_mode = JAM_NONE;
+				requested_mode = MODE_IDLE;
+				goto cleanup;
+			}
+			le.link_state = LINK_LISTENING;
+			cc2400_strobe(SRFOFF);
+			while ((cc2400_status() & FS_LOCK));
+
+			channel = le_adv_channel != 0 ? le_adv_channel : 2402;
+			restart_jamming = 1;
+		}
+
+		cc2400_set(SYNCL, le.syncl);
+		cc2400_set(SYNCH, le.synch);
+
+		if (do_hop)
+			hop();
+		if (le_jam_count > 0) {
+			le_jam();
+			--le_jam_count;
+		} else {
+			dma_init_le();
+			dio_ssp_start();
+
+			if (restart_jamming) {
+				cc2400_rx_sync(rbit(le.access_address));
+				restart_jamming = 0;
+			} else {
+				while (!(cc2400_status() & FS_LOCK));
+				cc2400_strobe(SRX);
+			}
+		}
+		rx_tc = 0;
+		rx_err = 0;
+
+	}
+	goto cleanup;
+
+cleanup:
+	ICER0 = ICER0_ICE_USB;
+	cc2400_idle();
+	dio_ssp_stop ();
+	cs_trigger_disable();
+}
 
 /* low energy connection following
  * follows a known AA around */
@@ -2085,6 +2280,14 @@ void bt_follow_le() {
 	bt_generic_le(MODE_BT_FOLLOW_LE);
 	*/
 
+	mode = MODE_IDLE;
+}
+
+//JWHUR cfo estimation tracking
+void bt_tracking_le() {
+	reset_le();
+	packet_cb = connection_follow_cb;
+	bt_le_sync_cfo(MODE_BT_CFO_LE);
 	mode = MODE_IDLE;
 }
 
@@ -2394,6 +2597,15 @@ void bt_slave_le(u16 tx_pwr) {
 			adv_ind[i][12] = adv_len;
 			adv_ind_len = (u8) (fin_adv_len + 20);
 		}
+
+		// To test cfo estimation, modify all packet value to 0x55 (U)
+		if (i < num_adv_ind - 1)
+			for (j=0; j<31; j++) adv_ind[i][j] = 0x55;
+		else
+			for (j=0; j< 20+fin_adv_len; j++) adv_ind[i][j] = 0x55;
+
+		adv_ind[i][10] = 0xff;
+		////////
 		
 		calc_crc = btle_calc_crc(le.crc_init_reversed, adv_ind[i], adv_ind_len);
 		adv_ind_len = (int) adv_ind_len;
@@ -2428,11 +2640,11 @@ void bt_slave_le(u16 tx_pwr) {
 				}
 				msleep(10);
 			}
-			msleep(5);
+			//msleep(5);
 		}
 		ISER0 = ISER0_ISE_USB;
 		ISER0 = ISER0_ISE_DMA;
-		msleep(1000);
+		//msleep(1000);
 	}
 }
 
@@ -2683,6 +2895,10 @@ int main()
 					break;
 				case MODE_BT_FOLLOW_LE:
 					bt_follow_le();
+					break;
+				//JWHUR cfo estimation tracking
+				case MODE_BT_CFO_LE:
+					bt_tracking_le();
 					break;
 				case MODE_BT_PROMISC_LE:
 					bt_promisc_le();

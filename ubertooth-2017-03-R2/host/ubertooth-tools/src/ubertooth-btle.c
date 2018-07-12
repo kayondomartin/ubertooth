@@ -105,6 +105,7 @@ static void usage(void)
 	printf("\t-x<n> allow n access address offenses (default 32)\n");
 	printf("\t-l<0-7> set ubertooth btle slave tx power level from 0 to 7 (default 0)\n");
 	printf("\t-d set ubertooth advertising data\n");
+	printf("\t-o center frequency offset tracking\n");
 
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
 	printf("In get/set mode no capture occurs.\n");
@@ -113,7 +114,7 @@ static void usage(void)
 int main(int argc, char *argv[])
 {
 	int opt;
-	int do_follow, do_promisc;
+	int do_follow, do_promisc, do_tracking;
 	int do_get_aa, do_set_aa;
 	int do_crc;
 	int do_adv_index;
@@ -135,6 +136,7 @@ int main(int argc, char *argv[])
 	uint8_t mac_address[6] = { 0, };
 
 	do_follow = do_promisc = 0;
+	do_tracking = 0;
 	do_get_aa = do_set_aa = 0;
 	do_crc = -1; // 0 and 1 mean set, 2 means get
 	do_adv_index = 37;
@@ -142,7 +144,7 @@ int main(int argc, char *argv[])
 	pwr_level = 0;
 	dlen = 0;
 
-	while ((opt=getopt(argc,argv,"a::r:hfpU:v::A:s:d:l:t:x:c:q:jJiI")) != EOF) {
+	while ((opt=getopt(argc,argv,"a::r:hfopU:v::A:s:d:l:t:x:c:o:q:jJiI")) != EOF) {
 		switch(opt) {
 		case 'a':
 			if (optarg == NULL) {
@@ -155,6 +157,8 @@ int main(int argc, char *argv[])
 		case 'f':
 			do_follow = 1;
 			break;
+		case 'o':
+			do_tracking = 1;
 		case 'p':
 			do_promisc = 1;
 			break;
@@ -273,7 +277,8 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (do_follow || do_promisc) {
+	// JWHUR add do_tracking
+	if (do_follow || do_promisc || do_tracking) {
 		usb_pkt_rx rx;
 
 		r = cmd_set_jam_mode(ut->devh, jam_mode);
@@ -283,7 +288,7 @@ int main(int argc, char *argv[])
 		}
 		cmd_set_modulation(ut->devh, MOD_BT_LOW_ENERGY);
 
-		if (do_follow) {
+		if (do_follow || do_tracking) {
 			u16 channel;
 			if (do_adv_index == 37)
 				channel = 2402;
@@ -292,7 +297,8 @@ int main(int argc, char *argv[])
 			else
 				channel = 2480;
 			cmd_set_channel(ut->devh, channel);
-			cmd_btle_sniffing(ut->devh, 2);
+			if (do_follow) cmd_btle_sniffing(ut->devh, 2);
+			if (do_tracking) cmd_btle_tracking(ut->devh, 2);
 		} else {
 			cmd_btle_promisc(ut->devh);
 		}
@@ -306,6 +312,17 @@ int main(int argc, char *argv[])
 			if (r == sizeof(usb_pkt_rx)) {
 				fifo_push(ut->fifo, &rx);
 				cb_btle(ut, &cb_opts);
+				if (do_tracking) {
+					int m = cmd_poll(ut->devh, &rx);
+					if (m < 0) {
+						printf("USB error \n");
+						break;
+					}
+					if (m == sizeof(usb_pkt_rx)) {
+						fifo_push(ut->fifo, &rx);
+						cb_btle_cfo(ut, &cb_opts);
+					}
+				}
 			}
 			usleep(500);
 		}

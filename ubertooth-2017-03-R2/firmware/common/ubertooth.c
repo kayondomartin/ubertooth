@@ -323,6 +323,25 @@ u8 cc2400_get8(u8 reg)
 	return in & 0xFF;
 }
 
+//JWHUR cc2400_get_rev
+u8 cc2400_get_rev (u8 reg)
+{
+	u32 out = (reg | 0x80) << 8;
+	u32 msb = 1 << 15;
+	u8 len = 16;
+	CSN_CLR;
+	while (len--) {
+		if (out & msb) MOSI_SET;
+		else MOSI_CLR;
+		out <<= 1;
+		SCLK_SET;
+		if (MISO) out |= 1;
+		SCLK_CLR;
+	}
+	CSN_SET;
+	return out & 0xFF;
+}
+
 /* write 8 bit value to a register */
 void cc2400_set8(u8 reg, u8 val)
 {
