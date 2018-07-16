@@ -295,6 +295,24 @@ usb_pkt_rx *usb_enqueue(void)
 
 }
 
+//JWHUR
+usb_time_rx *usb_enqueue_time(void)
+{
+	u8 h = head & 0x7F;
+	u8 t = tail & 0x7F;
+	u8 n = (t + 1) & 0x7F;
+
+	/* fail if queue is full */
+	if (h == n) {
+		return NULL;
+	}
+
+	++tail;
+	return &fifo[t];
+
+}
+
+
 usb_pkt_rx *dequeue(void)
 {
 	u8 h = head & 0x7F;

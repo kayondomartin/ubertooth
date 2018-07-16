@@ -448,12 +448,28 @@ void cb_btle_cfo(ubertooth_t* ut, void* args)
 		double time_in_null = (tv.tv_sec) * 1000 + (tv.tv_usec)/1000;
 		printf("\nMESSAGE systime %f, Device: %d\n", time_in_null, rx->reserved[0]);
 	len = (rx->data[DMA_SIZE - 1] & 0x03f) + 6 + 3;
-	for (i = 0; i < len - 4; i++)
+	printf("cfo estimation : ");
+	for (i = 0; i < 64; i++)
 		printf("%02x ", rx->data[i]);
 	printf("\n\n");
 	fflush(stdout);
 	}
 }
+
+//JWHUR cb_btle_time
+void cb_btle_time(ubertooth_t *ut, void *args)
+{
+	int i;
+	btle_options* opts = (btle_options*) args;
+	usb_pkt_rx usb = fifo_pop(ut->fifo);
+	usb_time_rx* rx = &usb;
+
+	printf("time measurement : ");
+	for (i = 0; i < 16; i++)
+		printf("%ld ", (long)rx->time[i]);
+	printf("\n\n");
+	fflush(stdout);
+}	
 
 /*
  * Sniff E-GO packets

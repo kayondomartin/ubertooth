@@ -22,7 +22,6 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include <sys/time.h>
 
 #include "ubertooth.h"
 #include "ubertooth_usb.h"
@@ -79,6 +78,9 @@ generic_tx_packet tx_pkt;
 int dlen = 0;
 uint8_t *slave_mac_address_data;
 uint8_t slave_mac_address[6] = { 0, };
+
+//JWHUR time measurement
+u32 cfo_time[16] = {0,};
 
 le_state_t le = {
 	.access_address = 0x8e89bed6,           // advertising channel access address
@@ -157,6 +159,19 @@ static int enqueue(uint8_t type, uint8_t* buf)
 
 	return 1;
 }
+
+//JWHUR usb_time_rx
+static int enqueue_time(uint8_t* buf)
+{
+	usb_time_rx* f = usb_enqueue_time();
+	if  (f == NULL) {
+		status |= FIFO_OVERFLOW;
+		return 0;
+	}
+	memcpy(f->time, buf, 16 * sizeof(long));
+	return 1;
+}
+//
 
 int enqueue_with_ts(uint8_t type, uint8_t* buf, uint32_t ts)
 {
@@ -951,8 +966,7 @@ static void cc2400_rx()
 		}
 		cc2400_set(MANAND,  0x7fff);
 		cc2400_set(LMTST,   0x2b22);
-		cc2400_set(MDMTST0, 0x104b); // JWHUR test AFC_SETTLING MAX MIN PAIRS
-		//cc2400_set(MDMTST0, 0x134b); // without PRNG
+		cc2400_set(MDMTST0, 0x134b); // without PRNG 16 MAX MIN PAIRS
 		cc2400_set(GRMDM,   0x0101); // un-buffered mode, GFSK
 		// 0 00 00 0 010 00 0 00 0 1
 		//      |  | |   |  +--------> CRC off
@@ -1014,7 +1028,8 @@ static void cc2400_rx_sync(u32 sync)
 	cc2400_set(MANAND,  0x7fff);
 	cc2400_set(LMTST,   0x2b22);
 
-	cc2400_set(MDMTST0, 0x124b);
+	cc2400_set(MDMTST0, 0x134b); //JWHUR AFC settling = 16 maxmin pairs
+	//cc2400_set(MDMTST0, 0x124b);
 	// 1      2      4b
 	// 00 0 1 0 0 10 01001011
 	//    | | | | |  +---------> AFC_DELTA = ??
@@ -1135,9 +1150,9 @@ void le_transmit(u32 aa, u8 len, u8 *data, u16 tx_pwr, u16 ch)
 		byte = data[i];
 		txbuf[i+4] = 0;
 		for (j = 0; j < 8; ++j) {
-			//bit = (byte & 1) ^ whitening[idx];
-			//idx = (idx + 1) % sizeof(whitening);
-			bit = (byte & 1);
+			bit = (byte & 1) ^ whitening[idx];
+			idx = (idx + 1) % sizeof(whitening);
+			//bit = (byte & 1);
 			byte >>= 1;
 			txbuf[i+4] |= bit << (7 - j);
 		}
@@ -1931,9 +1946,6 @@ void bt_le_sync_cfo(u8 active_mode)
 	static int restart_jamming = 0;
 	u8 cfo_buf[DMA_SIZE] = {0, };
 
-	// to measure time value
-	struct timeval tv;
-
 	modulation = MOD_BT_LOW_ENERGY;
 	mode = active_mode;
 
@@ -1961,6 +1973,8 @@ void bt_le_sync_cfo(u8 active_mode)
 		RXLED_CLR;
 		rssi_reset();
 		while ((rx_tc == 0) && (rx_err == 0) && (do_hop == 0) && requested_mode == active_mode) ;
+		//JWHUR get time
+		cfo_time[0] = (u32) CLK100NS;
 		rssi = (int8_t)(cc2400_get(RSSI) >> 8);
 		rssi_min = rssi_max = rssi;
 
@@ -1976,13 +1990,12 @@ void bt_le_sync_cfo(u8 active_mode)
 			continue;
 		
 		uint32_t packet[48/4+1] = {0, };
+		uint32_t whiten_packet[48/4+1] = {0, };
 		u8 *p = (u8 *)packet;
 
-		while (!(cc2400_status () & SYNC_RECEIVED));
-	
 		//JWHUR buffering carrier frequency offset estimation
 		for (i = 0; i < DMA_SIZE; i++) {
-			gettimeofday(&tv, NULL);
+			if (i < 15) cfo_time[i+1] = (u32) CLK100NS;
 			//cfo_buf[i] = (u8)(cc2400_get(RSSI) >> 8);
 			cfo_buf[i] = cc2400_get_rev(FREQEST);
 		}
@@ -1995,8 +2008,8 @@ void bt_le_sync_cfo(u8 active_mode)
 					   | rxbuf1[i+1] << 16
 					   | rxbuf1[i+2] << 8
 					   | rxbuf1[i+3] << 0;
-			//packet[i/4+1] = rbit(v) ^ whit[i/4];
-			packet[i/4+1] = rbit(v);
+			packet[i/4+1] = rbit(v) ^ whit[i/4];
+			whiten_packet[i/4+1] = rbit(v);
 		}
 
 		unsigned len = (p[5] & 0x3f) + 2;
@@ -2019,8 +2032,8 @@ void bt_le_sync_cfo(u8 active_mode)
 					   | rxbuf1[i+1] << 16
 					   | rxbuf1[i+2] << 8
 					   | rxbuf1[i+3] << 0;
-		//	packet[i/4+1] = rbit(v) ^ whit[i/4];
-			packet[i/4+1] = rbit(v);
+			packet[i/4+1] = rbit(v) ^ whit[i/4];
+			whiten_packet[i/4+1] = rbit(v);
 		}
 
 		if (le.crc_verify) {
@@ -2036,10 +2049,11 @@ void bt_le_sync_cfo(u8 active_mode)
 		packet_cb((uint8_t *)packet);
 
 		ICER0 = ICER0_ICE_USB;
-		//if (p[22] == 0x02 && p[23] >= 0xaa) {
-		if (p[22] == 0x55 && p[23] == 0x55) {
+		if (p[22] == 0x02 && p[23] >= 0xaa) {
 			enqueue(LE_PACKET, (uint8_t *)packet);
-			enqueue(MESSAGE, (uint8_t *)cfo_buf); 
+			enqueue(MESSAGE, (uint8_t *)cfo_buf);
+			//enqueue(MESSAGE, (uint8_t *)whiten_packet);
+			enqueue_time((uint8_t *)cfo_time);
 		}
 		ISER0 = ISER0_ISE_USB;
 
@@ -2598,13 +2612,19 @@ void bt_slave_le(u16 tx_pwr) {
 			adv_ind_len = (u8) (fin_adv_len + 20);
 		}
 
-		// To test cfo estimation, modify all packet value to 0x55 (U)
-		if (i < num_adv_ind - 1)
-			for (j=0; j<31; j++) adv_ind[i][j] = 0x55;
-		else
-			for (j=0; j< 20+fin_adv_len; j++) adv_ind[i][j] = 0x55;
+		//To stabilize carrier frequency offset
+		// sequence which is {0x55, } after whitening :
+		// 0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39
+		// 27 78 fd 0b 97 0d cc 1a df 9b bb e2 3c dd 52 49 ec 43 01 7a 34 f9 99 72 10 32 a2 8e 61 91 56 db 09 5e ff c2 65 03 b3 c6
+		adv_ind[i][20] = 0x34;
+		adv_ind[i][21] = 0xf9;
+		adv_ind[i][22] = 0x99;
+		adv_ind[i][23] = 0x72;
+		adv_ind[i][24] = 0x10;
+		adv_ind[i][25] = 0x32;
+		adv_ind[i][26] = 0xa2;
+		adv_ind[i][27] = 0x8e;
 
-		adv_ind[i][10] = 0xff;
 		////////
 		
 		calc_crc = btle_calc_crc(le.crc_init_reversed, adv_ind[i], adv_ind_len);

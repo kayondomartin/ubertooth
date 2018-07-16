@@ -322,6 +322,16 @@ int main(int argc, char *argv[])
 						fifo_push(ut->fifo, &rx);
 						cb_btle_cfo(ut, &cb_opts);
 					}
+					//JWHUR to measure time
+					m = cmd_poll(ut->devh, &rx);
+					if (m < 0) {
+						printf("USB error \n");
+						break;
+					}
+					if (m == sizeof(usb_time_rx)) {
+						fifo_push(ut->fifo, &rx);
+						cb_btle_time(ut, &cb_opts);
+					} //
 				}
 			}
 			usleep(500);

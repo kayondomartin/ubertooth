@@ -181,6 +181,11 @@ typedef struct {
 	u8     data[DMA_SIZE];
 } usb_pkt_rx;
 
+//JWHUR to measure time
+typedef struct {
+	u32    time[16];
+} usb_time_rx;
+
 typedef struct {
 	u64    address;
 	u64    syncword;
