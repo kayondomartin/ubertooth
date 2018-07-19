@@ -2612,21 +2612,26 @@ void bt_slave_le(u16 tx_pwr) {
 			adv_ind_len = (u8) (fin_adv_len + 20);
 		}
 
-		//To stabilize carrier frequency offset
-		// sequence which is {0x55, } after whitening :
+		// To stabilize carrier frequency offset
+		// bit is transmitted in reversed sequence, (ex, 1010 1010 -> transmitted 0101 0101)
+		// sequence which is {0x55, } after whitening : (0101 0101 -> 1010 1010)
 		// 0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39
 		// 27 78 fd 0b 97 0d cc 1a df 9b bb e2 3c dd 52 49 ec 43 01 7a 34 f9 99 72 10 32 a2 8e 61 91 56 db 09 5e ff c2 65 03 b3 c6
-		// sequence which is {0xab, } after whitening :
+		// sequence which is {0xaa, } after whitening : (1010 1010 -> 0101 0101)
+		// d8 87 02 f4 68 f2 33 e5 20 64 44 1d c3 22 ad b6 13 bc fe 85 cb 06 66 8d ef cd 5d 71 9e 6e a9 24 f6 a1 00 3d 9a fc 4c 39 
+		// sequence which is {0xab, } after whitening : (1010 1011 -> 1101 0101)
 		// 58 07 82 74 e8 72 b3 65 a0 e4 c4 9d 43 a2 2d 36 93 3c 7e 05 4b 86 e6 0d 6f 4d dd f1 1e ee 29 a4 76 21 80 bd 1a 7c cc b9
+		// sequence which is {0xd5, } after whitening : (1101 0101 -> 1010 1011)
+		// 26 79 fc 0a 96 0c cd 1b de 9a ba e3 3d dc 53 48 ed 42 00 7b 35 f8 98 73 11 33 a3 8f 60 90 57 da 08 5f fe c3 64 02 b2 c7
 
-		adv_ind[i][20] = 0x34;
-		adv_ind[i][21] = 0xf9;
-		adv_ind[i][22] = 0x99;
-		adv_ind[i][23] = 0x72;
-		adv_ind[i][24] = 0x10;
-		adv_ind[i][25] = 0x32;
-		adv_ind[i][26] = 0xa2;
-		adv_ind[i][27] = 0x8e;
+		adv_ind[i][20] = 0x35;
+		adv_ind[i][21] = 0xf8;
+		adv_ind[i][22] = 0x98;
+		adv_ind[i][23] = 0x73;
+		adv_ind[i][24] = 0x11;
+		adv_ind[i][25] = 0x33;
+		adv_ind[i][26] = 0xa3;
+		adv_ind[i][27] = 0x8f;
 		
 		////////
 		
