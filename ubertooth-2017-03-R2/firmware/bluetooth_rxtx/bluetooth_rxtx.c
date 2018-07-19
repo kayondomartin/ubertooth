@@ -1028,7 +1028,7 @@ static void cc2400_rx_sync(u32 sync)
 	cc2400_set(MANAND,  0x7fff);
 	cc2400_set(LMTST,   0x2b22);
 
-	cc2400_set(MDMTST0, 0x134b); //JWHUR AFC settling = 16 maxmin pairs
+	cc2400_set(MDMTST0, 0x104b); //JWHUR AFC settling = 2 maxmin pairs
 	//cc2400_set(MDMTST0, 0x124b);
 	// 1      2      4b
 	// 00 0 1 0 0 10 01001011
@@ -2013,7 +2013,7 @@ void bt_le_sync_cfo(u8 active_mode)
 		}
 
 		unsigned len = (p[5] & 0x3f) + 2;
-		cfo_buf[DMA_SIZE - 1] = p[5];	
+		cfo_buf[DMA_SIZE - 1] = p[5];
 
 		if (len > 39)
 			goto rx_flush;
@@ -2616,6 +2616,9 @@ void bt_slave_le(u16 tx_pwr) {
 		// sequence which is {0x55, } after whitening :
 		// 0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39
 		// 27 78 fd 0b 97 0d cc 1a df 9b bb e2 3c dd 52 49 ec 43 01 7a 34 f9 99 72 10 32 a2 8e 61 91 56 db 09 5e ff c2 65 03 b3 c6
+		// sequence which is {0xab, } after whitening :
+		// 58 07 82 74 e8 72 b3 65 a0 e4 c4 9d 43 a2 2d 36 93 3c 7e 05 4b 86 e6 0d 6f 4d dd f1 1e ee 29 a4 76 21 80 bd 1a 7c cc b9
+
 		adv_ind[i][20] = 0x34;
 		adv_ind[i][21] = 0xf9;
 		adv_ind[i][22] = 0x99;
@@ -2624,7 +2627,7 @@ void bt_slave_le(u16 tx_pwr) {
 		adv_ind[i][25] = 0x32;
 		adv_ind[i][26] = 0xa2;
 		adv_ind[i][27] = 0x8e;
-
+		
 		////////
 		
 		calc_crc = btle_calc_crc(le.crc_init_reversed, adv_ind[i], adv_ind_len);

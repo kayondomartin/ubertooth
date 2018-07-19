@@ -449,7 +449,7 @@ void cb_btle_cfo(ubertooth_t* ut, void* args)
 		printf("\nMESSAGE systime %f, Device: %d\n", time_in_null, rx->reserved[0]);
 	len = (rx->data[DMA_SIZE - 1] & 0x03f) + 6 + 3;
 	printf("cfo estimation : ");
-	for (i = 0; i < 64; i++)
+	for (i = 0; i < 35; i++)
 		printf("%02x ", rx->data[i]);
 	printf("\n\n");
 	fflush(stdout);
