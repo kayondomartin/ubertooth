@@ -1563,7 +1563,8 @@ void reset_le() {
 	le_set_access_address(0x8e89bed6);     // advertising channel access address
 	le.crc_init  = 0x555555;               // advertising channel CRCInit
 	le.crc_init_reversed = 0xAAAAAA;
-	le.crc_verify = 0;
+	//JWHUR crc verify on
+	le.crc_verify = 1;
 	le.last_packet = 0;
 
 	le.link_state = LINK_INACTIVE;
@@ -2626,7 +2627,7 @@ void bt_slave_le(u16 tx_pwr) {
 		// 58 07 82 74 e8 72 b3 65 a0 e4 c4 9d 43 a2 2d 36 93 3c 7e 05 4b 86 e6 0d 6f 4d dd f1 1e ee 29 a4 76 21 80 bd 1a 7c cc b9
 		// sequence which is {0xd5, } after whitening : (1101 0101 -> 1010 1011)
 		// 26 79 fc 0a 96 0c cd 1b de 9a ba e3 3d dc 53 48 ed 42 00 7b 35 f8 98 73 11 33 a3 8f 60 90 57 da 08 5f fe c3 64 02 b2 c7
-		
+		/*
 		adv_ind[i][8] = 0xdf;
 		adv_ind[i][9] = 0x9b;
 		adv_ind[i][10] = 0xbb;
@@ -2647,7 +2648,7 @@ void bt_slave_le(u16 tx_pwr) {
 		adv_ind[i][25] = 0x33;
 		adv_ind[i][26] = 0xa3;
 		adv_ind[i][27] = 0x8f;
-		
+		*/
 		////////
 		
 		calc_crc = btle_calc_crc(le.crc_init_reversed, adv_ind[i], adv_ind_len);

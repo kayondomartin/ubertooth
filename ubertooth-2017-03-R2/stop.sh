@@ -1,4 +1,5 @@
 #!/bin/bash
+u=$1
 
-sudo ubertooth-util -r -U 0
+sudo ubertooth-util -r -U $u
 
