@@ -79,9 +79,6 @@ int dlen = 0;
 uint8_t *slave_mac_address_data;
 uint8_t slave_mac_address[6] = { 0, };
 
-//JWHUR time measurement
-u32 cfo_time[16] = {0,};
-
 le_state_t le = {
 	.access_address = 0x8e89bed6,           // advertising channel access address
 	.synch = 0x6b7d,                        // bit-reversed adv channel AA
@@ -1772,8 +1769,7 @@ void bt_le_sync(u8 active_mode)
 
 		/* Wait for DMA. Meanwhile keep track of RSSI. */
 		rssi_reset();
-		while ((rx_tc == 0) && (rx_err == 0) && (do_hop == 0) && requested_mode == active_mode)
-			;
+		while ((rx_tc == 0) && (rx_err == 0) && (do_hop == 0) && requested_mode == active_mode)	;
 
 		rssi = (int8_t)(cc2400_get(RSSI) >> 8);
 		rssi_min = rssi_max = rssi;
@@ -1977,8 +1973,6 @@ void bt_le_sync_cfo(u8 active_mode)
 		RXLED_CLR;
 		rssi_reset();
 		while ((rx_tc == 0) && (rx_err == 0) && (do_hop == 0) && requested_mode == active_mode) ;
-		//JWHUR get time
-		cfo_time[0] = (u32) CLK100NS;
 		rssi = (int8_t)(cc2400_get(RSSI) >> 8);
 		rssi_min = rssi_max = rssi;
 
@@ -1999,9 +1993,7 @@ void bt_le_sync_cfo(u8 active_mode)
 
 		//JWHUR buffering carrier frequency offset estimation
 		for (i = 0; i < DMA_SIZE; i++) {
-			if (i < 15) cfo_time[i+1] = (u32) CLK100NS;
-			cfo_buf[i] = (u8)(cc2400_get(RSSI) >> 8);
-			//cfo_buf[i] = cc2400_get_rev(FREQEST);
+			cfo_buf[i] = cc2400_get_rev(FREQEST);
 		}
 
 		packet[0] = le.access_address;
@@ -2055,9 +2047,8 @@ void bt_le_sync_cfo(u8 active_mode)
 		ICER0 = ICER0_ICE_USB;
 		if (p[10] == 0x55 && p[11] == 0xec) {
 			enqueue(LE_PACKET, (uint8_t *)packet);
-			enqueue(MESSAGE, (uint8_t *)cfo_buf);
+			enqueue(CFO_TRACK, (uint8_t *)cfo_buf);
 			//enqueue(MESSAGE, (uint8_t *)whiten_packet);
-			enqueue_time((uint8_t *)cfo_time);
 		}
 		ISER0 = ISER0_ISE_USB;
 
@@ -2115,6 +2106,75 @@ void bt_le_sync_cfo(u8 active_mode)
 	}
 	goto cleanup;
 
+cleanup:
+	ICER0 = ICER0_ICE_USB;
+	cc2400_idle();
+	dio_ssp_stop ();
+	cs_trigger_disable();
+}
+
+//JWHUR rssi tracking
+void bt_le_sync_rssi(u8 active_mode) 
+{
+	int i;
+	int8_t rssi;
+	static int restart_jamming = 0;
+	u8 rssi_buf[DMA_SIZE] = {0, };
+
+	modulation = MOD_BT_LOW_ENERGY;
+	mode = active_mode;
+
+	le.link_state = LINK_LISTENING;
+
+	ISER0 = ISER0_ISE_USB;
+	RXLED_CLR;
+	queue_init();
+	dio_ssp_init();
+	dma_init_le();
+	dio_ssp_start();
+
+	cc2400_rx_sync(rbit(le.access_address));
+
+	while (requested_mode == active_mode) {
+		if (requested_channel != 0) {
+			cc2400_strobe(SRFOFF);
+			while ((cc2400_status() & FS_LOCK));
+			cc2400_set(FSDIV, channel - 1);
+			cc2400_strobe(SFSON);
+			while (!(cc2400_status() & FS_LOCK));
+			cc2400_strobe(SRX);
+			requested_channel = 0;
+		}
+		RXLED_CLR;
+		
+		if (requested_mode != active_mode) {
+			goto cleanup;
+		}
+
+		//JWHUR buffering carrier frequency offset estimation
+		u32 time_buf1[16] = {0, };
+		u32 time_buf2[16] = {0, };
+		u32 time_buf3[16] = {0, };
+		u32 time_buf4[16] = {0, };
+		for (i = 0; i < DMA_SIZE; i++) {
+			if (i<16) time_buf1[i] = CLK100NS;
+			if (15<i && i<32) time_buf2[i-16] = CLK100NS;
+			if (31<i && i<48) time_buf3[i-32] = CLK100NS;
+			if (47<i) time_buf4[i-48] = CLK100NS;
+			rssi_buf[i] = (u8)(cc2400_get(RSSI) >> 8);
+			volatile u32 j = 598; while (--j); // empty for loop ~= 70ns, 598 empty while loop ~= 41.8us
+		}
+
+		RXLED_SET;
+
+		ICER0 = ICER0_ICE_USB;
+		enqueue_with_ts(RSSI_TRACK, (uint8_t *)rssi_buf, CLK100NS);
+		enqueue_time((uint8_t *) time_buf1);
+		enqueue_time((uint8_t *) time_buf2);
+		enqueue_time((uint8_t *) time_buf3);
+		enqueue_time((uint8_t *) time_buf4);
+		ISER0 = ISER0_ISE_USB;
+	}
 cleanup:
 	ICER0 = ICER0_ICE_USB;
 	cc2400_idle();
@@ -2305,7 +2365,8 @@ void bt_follow_le() {
 void bt_tracking_le() {
 	reset_le();
 	packet_cb = connection_follow_cb;
-	bt_le_sync_cfo(MODE_BT_CFO_LE);
+	//bt_le_sync_cfo(MODE_BT_CFO_LE);
+	bt_le_sync_rssi(MODE_BT_CFO_LE);
 	mode = MODE_IDLE;
 }
 

@@ -433,26 +433,36 @@ void cb_btle_cfo(ubertooth_t* ut, void* args)
 {
 	lell_packet* pkt;
 	btle_options* opts = (btle_options*) args;
-	int i;
-	int len;
+	int i, len;
 	usb_pkt_rx usb = fifo_pop(ut->fifo);
 	usb_pkt_rx* rx = &usb;
 
 	static u32 prev_ts = 0;
-	uint32_t refAA;
-	int8_t sig, noise;
+	int8_t rssi;
 
-	if (rx->pkt_type == MESSAGE) {
+	if (rx->pkt_type == CFO_TRACK) {
 		struct timeval tv;
 		gettimeofday(&tv, NULL);
 		double time_in_null = (tv.tv_sec) * 1000 + (tv.tv_usec)/1000;
-		printf("\nMESSAGE systime %f, Device: %d\n", time_in_null, rx->reserved[0]);
+		printf("\nCFO systime %f, Device: %d\n", time_in_null, rx->reserved[0]);
 	len = (rx->data[DMA_SIZE - 1] & 0x03f) + 6 + 3;
 	printf("cfo estimation : ");
 	for (i = 0; i < 35; i++)
 		printf("%02x ", rx->data[i]);
 	printf("\n\n");
 	fflush(stdout);
+	} else if (rx->pkt_type == RSSI_TRACK) {
+		u32 rx_ts = rx->clk100ns;
+		if (rx_ts < prev_ts) rx_ts += 327600000;
+		printf("\nRSSI systime(us) %.01f, Device: %d\n", rx_ts/10.0, rx->reserved[0]);
+		printf("rssi samples : ");
+		for (i = 0; i < 50; i++)
+		{
+			rssi = (int8_t)rx->data[i];
+			printf("%d ", rssi-54);
+		}
+		printf("\n\n");
+		fflush(stdout);
 	}
 }
 
@@ -460,13 +470,32 @@ void cb_btle_cfo(ubertooth_t* ut, void* args)
 void cb_btle_time(ubertooth_t *ut, void *args)
 {
 	int i;
+	u32 ts;
 	btle_options* opts = (btle_options*) args;
 	usb_pkt_rx usb = fifo_pop(ut->fifo);
 	usb_time_rx* rx = &usb;
 
-	printf("time measurement : ");
-	for (i = 0; i < 16; i++)
-		printf("%ld ", (long)rx->time[i]);
+	for (i = 0; i < 16; i++) {
+		ts = rx->time[i];
+		printf("%ld ", (long)ts);
+	}
+	fflush(stdout);
+}	
+
+
+//JWHUR cb_btle_time_last
+void cb_btle_time_last(ubertooth_t *ut, void *args)
+{
+	int i;
+	u32 ts;
+	btle_options* opts = (btle_options*) args;
+	usb_pkt_rx usb = fifo_pop(ut->fifo);
+	usb_time_rx* rx = &usb;
+
+	for (i = 0; i < 2; i++) {
+		ts = rx->time[i];
+		printf("%ld ", (long)ts);
+	}
 	printf("\n\n");
 	fflush(stdout);
 }	

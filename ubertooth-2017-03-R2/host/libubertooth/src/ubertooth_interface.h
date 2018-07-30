@@ -144,6 +144,8 @@ enum usb_pkt_types {
 	SPECAN     = 4,
 	LE_PROMISC = 5,
 	EGO_PACKET = 6,
+	CFO_TRACK = 7,
+	RSSI_TRACK = 8,
 };
 
 enum hop_mode {
