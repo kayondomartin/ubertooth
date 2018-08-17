@@ -310,8 +310,9 @@ out:
 /*
  * Sniff Bluetooth Low Energy packets.
  */
-void cb_btle(ubertooth_t* ut, void* args)
+int cb_btle(ubertooth_t* ut, void* args)
 {
+	int uuuuu = 0;
 	lell_packet* pkt;
 	btle_options* opts = (btle_options*) args;
 	int i;
@@ -420,12 +421,18 @@ void cb_btle(ubertooth_t* ut, void* args)
 		printf("%02x ", rx->data[i]);
 	printf("\n");
 
+	//JWHUR test synchronization protocol
+	//When receive 'UUUUU', stop ble scanning
+	if (rx->data[24] == 0x55 && rx->data[25] == 0x55 && rx->data[26] == 0x55 && rx->data[27] == 0x55 && rx->data[28] == 0x55) 
+		uuuuu = 1;
+
 	lell_print(pkt);
 	printf("\n");
 
 	lell_packet_unref(pkt);
 
 	fflush(stdout);
+	return uuuuu;
 }
 
 //JWHUR cb_btle_tracking

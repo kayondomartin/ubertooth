@@ -678,49 +678,14 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 		memcpy(slave_mac_address_data, data, dlen);
 		requested_mode = MODE_BT_SLAVE_LE;
 		break;
-	
-	// WJHUR Power control
-	case UBERTOOTH_BTLE_SLAVE_P0:
-		slave_mac_address_data = (uint8_t*) malloc(sizeof(uint8_t)*dlen);
-		memcpy(slave_mac_address_data, data, dlen);
-		requested_mode = MODE_BT_SLAVE_LE_P0;
-		break;
-	case UBERTOOTH_BTLE_SLAVE_P1:
-		slave_mac_address_data = (uint8_t*) malloc(sizeof(uint8_t)*dlen);
-		memcpy(slave_mac_address, data, dlen);
-		requested_mode = MODE_BT_SLAVE_LE_P1;
-		break;
-	case UBERTOOTH_BTLE_SLAVE_P2:
-		slave_mac_address_data = (uint8_t*) malloc(sizeof(uint8_t)*dlen);
-		memcpy(slave_mac_address_data, data, dlen);
-		requested_mode = MODE_BT_SLAVE_LE_P2;
-		break;
-	case UBERTOOTH_BTLE_SLAVE_P3:
-		slave_mac_address_data = (uint8_t*) malloc(sizeof(uint8_t)*dlen);
-		memcpy(slave_mac_address_data, data, dlen);
-		requested_mode = MODE_BT_SLAVE_LE_P3;
-		break;
-	case UBERTOOTH_BTLE_SLAVE_P4:
-		slave_mac_address_data = (uint8_t*) malloc(sizeof(uint8_t)*dlen);
-		memcpy(slave_mac_address_data, data, dlen);
-		requested_mode = MODE_BT_SLAVE_LE_P4;
-		break;
-	case UBERTOOTH_BTLE_SLAVE_P5:
-		slave_mac_address_data = (uint8_t*) malloc(sizeof(uint8_t)*dlen);
-		memcpy(slave_mac_address_data, data, dlen);
-		requested_mode = MODE_BT_SLAVE_LE_P5;
-		break;
-	case UBERTOOTH_BTLE_SLAVE_P6:
-		slave_mac_address_data = (uint8_t*) malloc(sizeof(uint8_t)*dlen);
-		memcpy(slave_mac_address_data, data, dlen);
-		requested_mode = MODE_BT_SLAVE_LE_P6;
-		break;
-	case UBERTOOTH_BTLE_SLAVE_P7:
-		slave_mac_address_data = (uint8_t*) malloc(sizeof(uint8_t)*dlen);
-		memcpy(slave_mac_address_data, data, dlen);
-		requested_mode = MODE_BT_SLAVE_LE_P7;
-		break;
 
+	//JWHUR for rssi sampling synchronization
+	case UBERTOOTH_BTLE_SYNC:
+		slave_mac_address_data = (uint8_t*) malloc(sizeof(uint8_t)*dlen);
+		memcpy(slave_mac_address_data, data, dlen);
+		requested_mode = MODE_BT_SYNC_LE;
+		break;
+	
 	case UBERTOOTH_BTLE_SET_TARGET:
 		// Addresses appear in packets in reverse-octet order.
 		// Store the target address in reverse order so that we can do a simple memcmp later
@@ -868,14 +833,7 @@ void DMA_IRQHandler()
 	   || mode == MODE_BT_RSSI_LE
 	   || mode == MODE_BT_PROMISC_LE
 	   || mode == MODE_BT_SLAVE_LE
-	   || mode == MODE_BT_SLAVE_LE_P0
-	   || mode == MODE_BT_SLAVE_LE_P1
-	   || mode == MODE_BT_SLAVE_LE_P2
-	   || mode == MODE_BT_SLAVE_LE_P3
-	   || mode == MODE_BT_SLAVE_LE_P4
-	   || mode == MODE_BT_SLAVE_LE_P5
-	   || mode == MODE_BT_SLAVE_LE_P6
-	   || mode == MODE_BT_SLAVE_LE_P7
+	   || mode == MODE_BT_SYNC_LE
 	   || mode == MODE_RX_GENERIC)
 	{
 		/* interrupt on channel 0 */
@@ -1128,7 +1086,7 @@ static void cc2400_tx_sync(uint32_t sync)
  * should not be pre-whitened, but the CRC should be calculated and
  * included in the data length.
  */
-void le_transmit(u32 aa, u8 len, u8 *data, u16 tx_pwr, u16 ch)
+void le_transmit(u32 aa, u8 len, u8 *data, u16 ch)
 {
 	unsigned i, j;
 	int bit;
@@ -1139,7 +1097,7 @@ void le_transmit(u32 aa, u8 len, u8 *data, u16 tx_pwr, u16 ch)
 	u8 byte;
 	u16 gio_save;
 	//JWHUR tx power control
-	tx_pwr = (tx_pwr & 0x000f);
+	u8 tx_pwr = 0x0007;
 
 	// first four bytes: AA
 	for (i = 0; i < 4; ++i) {
@@ -1738,16 +1696,6 @@ void bt_le_sync(u8 active_mode)
 	int8_t rssi;
 	static int restart_jamming = 0;
 
-	// rssi sampling for only 100 ms
-	uint32_t now = (clkn & 0xffffff);
-	uint32_t stop_at = now + 1000 * 10000 / 3125; // millis -> clkn ticks
-	int overflow = 0;
-	// handle clkn overflow
-	if (stop_at >= ((uint32_t)1<<28)) {
-		stop_at -= ((uint32_t)1<<28);
-		overflow = 1;
-	}
-
 	modulation = MOD_BT_LOW_ENERGY;
 	mode = active_mode;
 
@@ -1871,15 +1819,6 @@ void bt_le_sync(u8 active_mode)
 
 		le.last_packet = CLK100NS;
 	
-		// JWHUR beacon receiving time
-		if (overflow == 0) {
-			if ((clkn & 0xffffff) > stop_at)
-				goto cleanup;
-		} else {
-			if ((clkn & 0xffffff) < now && (clkn & 0xffffff) > stop_at)
-				goto cleanup;
-		}
-
 	rx_flush:
 		// this might happen twice, but it's safe to do so
 		cc2400_strobe(SFSON);
@@ -2669,7 +2608,7 @@ void bt_promisc_le() {
 	}
 }
 
-void bt_slave_le(u16 tx_pwr) {
+void bt_slave_le() {
 	u32 calc_crc;
 	int i, j;
 	int num_adv_ind = 1;
@@ -2768,15 +2707,7 @@ void bt_slave_le(u16 tx_pwr) {
 	clkn_start();
 
 	// spam advertising packets
-	while (requested_mode == MODE_BT_SLAVE_LE 
-			|| requested_mode == MODE_BT_SLAVE_LE_P0
-			|| requested_mode == MODE_BT_SLAVE_LE_P1
-			|| requested_mode == MODE_BT_SLAVE_LE_P2
-			|| requested_mode == MODE_BT_SLAVE_LE_P3
-			|| requested_mode == MODE_BT_SLAVE_LE_P4
-			|| requested_mode == MODE_BT_SLAVE_LE_P5
-			|| requested_mode == MODE_BT_SLAVE_LE_P6
-			|| requested_mode == MODE_BT_SLAVE_LE_P7) {
+	while (requested_mode == MODE_BT_SLAVE_LE) {
 		if (requested_mode != mode) break;
 		ICER0 = ICER0_ICE_USB;
 		ICER0 = ICER0_ICE_DMA;
@@ -2784,10 +2715,10 @@ void bt_slave_le(u16 tx_pwr) {
 			for(j=0; j<num_adv_ind; j++) {
 				if (j < num_adv_ind -1) {
 					adv_ind_len = (u8) (31 + 3);
-					le_transmit(0x8e89bed7, adv_ind_len, adv_ind[j], tx_pwr, ch[i]);
+					le_transmit(0x8e89bed7, adv_ind_len, adv_ind[j], ch[i]);
 				} else {
 					adv_ind_len = (u8) (fin_adv_len + 20 + 3);
-					le_transmit(0x8e89bed7, adv_ind_len, adv_ind[j], tx_pwr, ch[i]);
+					le_transmit(0x8e89bed7, adv_ind_len, adv_ind[j], ch[i]);
 				}
 				msleep(10);
 			}
@@ -2795,8 +2726,30 @@ void bt_slave_le(u16 tx_pwr) {
 		}
 		ISER0 = ISER0_ISE_USB;
 		ISER0 = ISER0_ISE_DMA;
-		//msleep(1000);
+		msleep(10);
 	}
+	if (requested_mode == MODE_BT_SYNC_LE) {
+		ICER0 = ICER0_ICE_USB;
+		ICER0 = ICER0_ICE_DMA;
+		for(i=0; i<3; i++) {
+			for(j=0; j<num_adv_ind; j++) {
+				if (j < num_adv_ind -1) {
+					adv_ind_len = (u8) (31 + 3);
+					le_transmit(0x8e89bed7, adv_ind_len, adv_ind[j], ch[i]);
+				} else {
+					adv_ind_len = (u8) (fin_adv_len + 20 + 3);
+					le_transmit(0x8e89bed7, adv_ind_len, adv_ind[j], ch[i]);
+				}
+				msleep(10);
+			}
+			msleep(10);
+		}
+		ICER0 = ICER0_ICE_USB;
+		cc2400_idle();
+		dio_ssp_stop ();
+		cs_trigger_disable();
+	}
+
 }
 
 void rx_generic_sync(void) {
@@ -3059,7 +3012,11 @@ int main()
 					break;
 				case MODE_BT_SLAVE_LE:
 					mode = MODE_BT_SLAVE_LE;
-					bt_slave_le(0x000f);
+					bt_slave_le();
+					break;
+				case MODE_BT_SYNC_LE:
+					mode = MODE_BT_SYNC_LE;
+					bt_slave_le();
 					break;
 				case MODE_TX_TEST:
 					mode = MODE_TX_TEST;
@@ -3093,39 +3050,6 @@ int main()
 					break;
 				case MODE_IDLE:
 					cc2400_idle();
-					break;
-				// JWHUR POWER CONTROL
-				case MODE_BT_SLAVE_LE_P0:
-					mode = MODE_BT_SLAVE_LE_P0;
-					bt_slave_le(0x0008);
-					break;
-				case MODE_BT_SLAVE_LE_P1:
-					mode = MODE_BT_SLAVE_LE_P1;
-					bt_slave_le(0x0009);
-					break;
-				case MODE_BT_SLAVE_LE_P2:
-					mode = MODE_BT_SLAVE_LE_P2;
-					bt_slave_le(0x000a);
-					break;
-				case MODE_BT_SLAVE_LE_P3:
-					mode = MODE_BT_SLAVE_LE_P3;
-					bt_slave_le(0x000b);
-					break;
-				case MODE_BT_SLAVE_LE_P4:
-					mode = MODE_BT_SLAVE_LE_P4;
-					bt_slave_le(0x000c);
-					break;
-				case MODE_BT_SLAVE_LE_P5:
-					mode = MODE_BT_SLAVE_LE_P5;
-					bt_slave_le(0x000d);
-					break;
-				case MODE_BT_SLAVE_LE_P6:
-					mode = MODE_BT_SLAVE_LE_P6;
-					bt_slave_le(0x000e);
-					break;
-				case MODE_BT_SLAVE_LE_P7:
-					mode = MODE_BT_SLAVE_LE_P7;
-					bt_slave_le(0x000f);
 					break;
 				
 				default:

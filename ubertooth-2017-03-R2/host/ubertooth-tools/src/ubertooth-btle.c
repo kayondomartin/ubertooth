@@ -103,10 +103,10 @@ static void usage(void)
 	printf("\t-A<index> advertising channel index (default 37)\n");
 	printf("\t-v[01] verify CRC mode, get status or enable/disable\n");
 	printf("\t-x<n> allow n access address offenses (default 32)\n");
-	printf("\t-l<0-7> set ubertooth btle slave tx power level from 0 to 7 (default 0)\n");
 	printf("\t-d set ubertooth advertising data\n");
 	printf("\t-o center frequency offset tracking\n");
 	printf("\t-R RSSI tracking\n");
+	printf("\t-S Rssi sampling synchronization mode");
 
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
 	printf("In get/set mode no capture occurs.\n");
@@ -119,9 +119,7 @@ int main(int argc, char *argv[])
 	int do_get_aa, do_set_aa;
 	int do_crc;
 	int do_adv_index;
-	int do_slave_mode, do_data_mode;
-	// JWHUR POWER CONTROL
-	int pwr_level;
+	int do_slave_mode, do_data_mode, do_sync_mode;
 	// JWHUR set advertising data
 	uint8_t *data;
 	int dlen;
@@ -142,11 +140,10 @@ int main(int argc, char *argv[])
 	do_get_aa = do_set_aa = 0;
 	do_crc = -1; // 0 and 1 mean set, 2 means get
 	do_adv_index = 37;
-	do_slave_mode = do_target = do_data_mode = 0;
-	pwr_level = 0;
+	do_slave_mode = do_target = do_data_mode = do_sync_mode = 0;
 	dlen = 0;
 
-	while ((opt=getopt(argc,argv,"a::r:hfoRpU:v::A:s:d:l:t:x:c:o:q:jJiI")) != EOF) {
+	while ((opt=getopt(argc,argv,"a::r:hfoRpU:v::A:s:d:S:l:t:x:c:o:q:jJiI")) != EOF) {
 		switch(opt) {
 		case 'a':
 			if (optarg == NULL) {
@@ -228,6 +225,13 @@ int main(int argc, char *argv[])
 			data = (uint8_t*) malloc(sizeof(uint8_t) * dlen);
 			r = convert_data(optarg, data);
 			break;
+		//JWHUR rssi sampling synchronization mode
+		case 'S':
+			do_sync_mode = 1;
+			dlen = strlen(optarg);
+			data = (uint8_t*) malloc(sizeof(uint8_t) * dlen);
+			r = convert_data(optarg, data);
+			break;
 		case 't':
 			do_target = 1;
 			r = convert_mac_address(optarg, mac_address);
@@ -251,9 +255,6 @@ int main(int argc, char *argv[])
 		case 'I':
 		case 'J':
 			jam_mode = JAM_CONTINUOUS;
-			break;
-		case 'l':
-			pwr_level = atoi(optarg);
 			break;
 		case 'h':
 		default:
@@ -307,10 +308,11 @@ int main(int argc, char *argv[])
 		} else {
 			cmd_btle_promisc(ut->devh);
 		}
-		
+	
+		int uuuuu = 0; //JWHUR test for synchronization
 		struct timeval tv;
 		gettimeofday(&tv, NULL);
-		double start = (tv.tv_sec) * 1000 + (tv.tv_usec)/1000;
+		double sync_start, start = (tv.tv_sec) * 1000 + (tv.tv_usec)/1000;
 		while (1) {
 			int r = cmd_poll(ut->devh, &rx);
 			if (r < 0) {
@@ -319,7 +321,12 @@ int main(int argc, char *argv[])
 			}
 			if (r == sizeof(usb_pkt_rx)) {
 				fifo_push(ut->fifo, &rx);
-				if(!do_rssi) cb_btle(ut, &cb_opts);
+				if(!do_rssi) uuuuu = cb_btle(ut, &cb_opts);
+				if(uuuuu == 1) {
+					gettimeofday(&tv, NULL);
+					sync_start = (tv.tv_sec)*1000 + (tv.tv_usec)/1000;
+					break;
+				}
 				if(do_rssi) {
 					cb_btle_tracking(ut, &cb_opts);
 					printf("time measurement : ");
@@ -360,14 +367,76 @@ int main(int argc, char *argv[])
 						cb_btle_tracking(ut, &cb_opts);
 					}
 				}
-				gettimeofday(&tv, NULL);
-				double now = (tv.tv_sec) * 1000 + (tv.tv_usec)/1000;
-				if (now - start > 1000)
-					break;
 			}
 			usleep(500);
 		}
 		ubertooth_stop(ut);
+
+		if(uuuuu == 1) {	
+			r = ubertooth_connect(ut, ubertooth_device);
+			if (r < 0) {
+				usage();
+				return 1;
+			}
+
+			/* Clean up on exit. */
+			register_cleanup_handler(ut, 1);
+
+			r = cmd_set_jam_mode(ut->devh, jam_mode);
+			cmd_set_modulation(ut->devh, MOD_BT_LOW_ENERGY);
+			cmd_set_channel(ut->devh, 2402);
+
+			while(1) {
+				gettimeofday(&tv, NULL);
+				double now = (tv.tv_sec)*1000 + (tv.tv_usec)/1000;
+				if (now - sync_start > 100)
+					break;
+			}
+			cmd_btle_tracking(ut->devh, 2, 1); // rssi tracking == 1 flag
+			do_rssi = 1;
+			gettimeofday(&tv, NULL);
+			start = (tv.tv_sec)*1000 + (tv.tv_usec)/1000;
+			while (1) {
+				int r = cmd_poll(ut->devh, &rx);
+				if (r < 0) {
+					printf("USB error\n");
+					break;
+				}
+				if (r == sizeof(usb_pkt_rx)) {
+					fifo_push(ut->fifo, &rx);
+					if(do_rssi) {
+						cb_btle_tracking(ut, &cb_opts);
+						printf("time measurement : ");
+						int time_count = 4;
+						while (--time_count) {
+						int m = cmd_poll(ut->devh, &rx);
+							if (m<0) {
+								printf("USB error \n");
+								break;
+							}
+							if (m == sizeof(usb_time_rx)) {
+								fifo_push(ut->fifo, &rx);
+								cb_btle_time(ut, &cb_opts);
+							}
+						}
+						int m = cmd_poll(ut->devh, &rx);
+						if (m<0) {
+							printf("USB error \n");
+							break;
+						}
+						if (m == sizeof(usb_time_rx)) {					
+							fifo_push(ut->fifo, &rx);
+							cb_btle_time_last(ut, &cb_opts);
+						}
+						gettimeofday(&tv, NULL);
+						double now = (tv.tv_sec) * 1000 + (tv.tv_usec)/1000;
+						if (now - start > 100)
+							break;
+						}
+				}
+				usleep(500);
+			} 
+		}
 	}
 
 	if (do_get_aa) {
@@ -408,10 +477,81 @@ int main(int argc, char *argv[])
 		for(i=0; i<6; i++) tot_data[i] = mac_address[i];
 		if (do_data_mode) {
 			for(i=6; i< (dlen + 6); i++) tot_data[i] = data[i-6];
-		}
-		//cmd_btle_slave(ut->devh, mac_address, pwr_level);
-		cmd_btle_slave(ut->devh, tot_data, pwr_level, dlen+6);
-		printf("JWHUR do_slave_mode\n");
+			cmd_btle_slave(ut->devh, tot_data, UBERTOOTH_BTLE_SLAVE, dlen+6);
+		} else if (do_sync_mode) {
+			for(i=6; i< (dlen + 6); i++) tot_data[i] = data[i-6];
+			cmd_btle_slave(ut->devh, tot_data, UBERTOOTH_BTLE_SYNC, dlen+6);
+			struct timeval tv;
+			gettimeofday(&tv, NULL);
+			double sync_start = (tv.tv_sec)*1000 + (tv.tv_usec)/1000;
+			ubertooth_stop(ut);
+			r = ubertooth_connect(ut, ubertooth_device);
+			if (r < 0) {
+				usage();
+				return 1;
+			}
+
+			/* Clean up on exit. */
+			register_cleanup_handler(ut, 1);
+
+			usb_pkt_rx rx;
+			r = cmd_set_jam_mode(ut->devh, jam_mode);
+			cmd_set_modulation(ut->devh, MOD_BT_LOW_ENERGY);
+			cmd_set_channel(ut->devh, 2402); // 2402 means channel 39, must be modified
+
+			while(1) {
+				gettimeofday(&tv, NULL);
+				double now = (tv.tv_sec)*1000 + (tv.tv_usec)/1000;
+				if (now - sync_start > 100)
+					break;
+			}
+			cmd_btle_tracking(ut->devh, 2, 1); // rssi tracking == 1 flag
+			do_rssi = 1;
+			gettimeofday(&tv, NULL);
+			double start = (tv.tv_sec)*1000 + (tv.tv_usec)/1000;
+			while (1) {
+				int r = cmd_poll(ut->devh, &rx);
+				if (r < 0) {
+					printf("USB error\n");
+					break;
+				}
+				if (r == sizeof(usb_pkt_rx)) {
+					fifo_push(ut->fifo, &rx);
+					if(do_rssi) {
+						cb_btle_tracking(ut, &cb_opts);
+						printf("time measurement : ");
+						int time_count = 4;
+						while (--time_count) {
+						int m = cmd_poll(ut->devh, &rx);
+							if (m<0) {
+								printf("USB error \n");
+								break;
+							}
+							if (m == sizeof(usb_time_rx)) {
+								fifo_push(ut->fifo, &rx);
+								cb_btle_time(ut, &cb_opts);
+							}
+						}
+						int m = cmd_poll(ut->devh, &rx);
+						if (m<0) {
+							printf("USB error \n");
+							break;
+						}
+						if (m == sizeof(usb_time_rx)) {					
+							fifo_push(ut->fifo, &rx);
+							cb_btle_time_last(ut, &cb_opts);
+						}
+						gettimeofday(&tv, NULL);
+						double now = (tv.tv_sec) * 1000 + (tv.tv_usec)/1000;
+						if (now - start > 100)
+							break;
+						}
+				}
+				usleep(500);
+			}
+			
+		} else 
+			cmd_btle_slave(ut->devh, tot_data, UBERTOOTH_BTLE_SLAVE, dlen+6); 
 	}
 
 	if (do_target) {

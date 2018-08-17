@@ -6,6 +6,30 @@
 
 #IncludeRegexTransform: 
 
+/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/ubertooth.c
+pthread.h
+-
+signal.h
+-
+stdio.h
+-
+stdlib.h
+-
+string.h
+-
+time.h
+-
+unistd.h
+-
+ubertooth.h
+/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/ubertooth.h
+ubertooth_callback.h
+/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/ubertooth_callback.h
+ubertooth_control.h
+/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/ubertooth_control.h
+ubertooth_interface.h
+/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/ubertooth_interface.h
+
 /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/ubertooth.h
 ubertooth_control.h
 /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/ubertooth_control.h
@@ -34,6 +58,14 @@ ubertooth_control.h
 ubertooth.h
 /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/ubertooth.h
 
+/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/ubertooth_control.c
+string.h
+-
+btbb.h
+-
+ubertooth_control.h
+/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/ubertooth_control.h
+
 /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/ubertooth_control.h
 libusb.h
 -
@@ -49,6 +81,16 @@ stdio.h
 -
 ubertooth_interface.h
 /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/ubertooth_interface.h
+
+/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/ubertooth_fifo.c
+ubertooth_fifo.h
+/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/ubertooth_fifo.h
+string.h
+-
+stdlib.h
+-
+stdio.h
+-
 
 /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/ubertooth_fifo.h
 ubertooth_control.h

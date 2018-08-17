@@ -928,16 +928,12 @@ int cmd_read_register(struct libusb_device_handle* devh, u8 reg)
 	return (data[0] << 8) | data[1];
 }
 
-int cmd_btle_slave(struct libusb_device_handle* devh, u8 *mac_address, int pwr_level, int len)
+int cmd_btle_slave(struct libusb_device_handle* devh, u8 *mac_address, int mode, int len)
 {
 	int r;
 	int req;
 
-	//r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_SLAVE_P6, 0, 0,
-	//		mac_address, 6, 1000);
-	// JWHUR POWER CONTROL
-	printf("JWHUR pwr_level %d\n", pwr_level);
-	req = UBERTOOTH_BTLE_SLAVE_P0 + pwr_level;
+	req = mode;
 	r = libusb_control_transfer(devh, CTRL_OUT, req, 0, 0, mac_address, len, 1000);
 	printf("JWHUR cmd_btle_slave\n");
 	if (r < 0) {
