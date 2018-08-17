@@ -428,8 +428,8 @@ void cb_btle(ubertooth_t* ut, void* args)
 	fflush(stdout);
 }
 
-//JWHUR cb_btle_cfo
-void cb_btle_cfo(ubertooth_t* ut, void* args)
+//JWHUR cb_btle_tracking
+void cb_btle_tracking(ubertooth_t* ut, void* args)
 {
 	lell_packet* pkt;
 	btle_options* opts = (btle_options*) args;

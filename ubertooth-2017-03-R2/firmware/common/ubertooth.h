@@ -60,6 +60,7 @@ enum operating_modes {
 	MODE_BT_SLAVE_LE_P7 = 24,
 	//JWHUR BT FOLLOW cfo estimation tracking
 	MODE_BT_CFO_LE = 25,
+	MODE_BT_RSSI_LE = 26,
 };
 
 /* hardware identification number */

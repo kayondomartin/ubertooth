@@ -741,11 +741,11 @@ int cmd_btle_sniffing(struct libusb_device_handle* devh, u16 num)
 	return 0;
 }
 
-int cmd_btle_tracking(struct libusb_device_handle* devh, u16 num)
+int cmd_btle_tracking(struct libusb_device_handle* devh, u16 num, int flag)
 {
 	int r;
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_CFO, num, 0, 
-			NULL, 0, 1000);
+	if (flag == 0) r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_CFO, num, 0, NULL, 0, 1000);
+	if (flag == 1) r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_RSSI, num, 0, NULL, 0, 1000);
 	if (r < 0) {
 		if (r == LIBUSB_ERROR_PIPE) {
 			fprintf(stderr, "control message unsupported\n");

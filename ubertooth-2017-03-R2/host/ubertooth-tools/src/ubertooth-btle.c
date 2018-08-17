@@ -115,7 +115,7 @@ static void usage(void)
 int main(int argc, char *argv[])
 {
 	int opt;
-	int do_follow, do_promisc, do_tracking, do_rssi;
+	int do_follow, do_promisc, do_cfo, do_rssi;
 	int do_get_aa, do_set_aa;
 	int do_crc;
 	int do_adv_index;
@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 	uint8_t mac_address[6] = { 0, };
 
 	do_follow = do_promisc = 0;
-	do_tracking = 0;
+	do_cfo = 0;
 	do_rssi = 0;
 	do_get_aa = do_set_aa = 0;
 	do_crc = -1; // 0 and 1 mean set, 2 means get
@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
 			do_follow = 1;
 			break;
 		case 'o':
-			do_tracking = 1;
+			do_cfo = 1;
 		case 'R':
 			do_rssi = 1;
 		case 'p':
@@ -281,8 +281,8 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	// JWHUR add do_tracking
-	if (do_follow || do_promisc || do_tracking || do_rssi) {
+	// JWHUR add do_cfo/ do_rssi
+	if (do_follow || do_promisc || do_cfo || do_rssi) {
 		usb_pkt_rx rx;
 
 		r = cmd_set_jam_mode(ut->devh, jam_mode);
@@ -292,7 +292,7 @@ int main(int argc, char *argv[])
 		}
 		cmd_set_modulation(ut->devh, MOD_BT_LOW_ENERGY);
 
-		if (do_follow || do_tracking || do_rssi) {
+		if (do_follow || do_cfo || do_rssi) {
 			u16 channel;
 			if (do_adv_index == 37)
 				channel = 2402;
@@ -302,11 +302,15 @@ int main(int argc, char *argv[])
 				channel = 2480;
 			cmd_set_channel(ut->devh, channel);
 			if (do_follow) cmd_btle_sniffing(ut->devh, 2);
-			if (do_tracking || do_rssi) cmd_btle_tracking(ut->devh, 2);
+			if (do_cfo) cmd_btle_tracking(ut->devh, 2, 0); // cfo tracking == 0 flag
+			if (do_rssi) cmd_btle_tracking(ut->devh, 2, 1); // rssi tracking == 1 flag
 		} else {
 			cmd_btle_promisc(ut->devh);
 		}
-
+		
+		struct timeval tv;
+		gettimeofday(&tv, NULL);
+		double start = (tv.tv_sec) * 1000 + (tv.tv_usec)/1000;
 		while (1) {
 			int r = cmd_poll(ut->devh, &rx);
 			if (r < 0) {
@@ -317,7 +321,7 @@ int main(int argc, char *argv[])
 				fifo_push(ut->fifo, &rx);
 				if(!do_rssi) cb_btle(ut, &cb_opts);
 				if(do_rssi) {
-					cb_btle_cfo(ut, &cb_opts);
+					cb_btle_tracking(ut, &cb_opts);
 					printf("time measurement : ");
 					int time_count = 4;
 					while (--time_count) {
@@ -340,8 +344,12 @@ int main(int argc, char *argv[])
 						fifo_push(ut->fifo, &rx);
 						cb_btle_time_last(ut, &cb_opts);
 					}
+					gettimeofday(&tv, NULL);
+					double now = (tv.tv_sec) * 1000 + (tv.tv_usec)/1000;
+					if (now - start > 100)
+						break;
 				}
-				if (do_tracking) {
+				if (do_cfo) {
 					int m = cmd_poll(ut->devh, &rx);
 					if (m < 0) {
 						printf("USB error \n");
@@ -349,9 +357,13 @@ int main(int argc, char *argv[])
 					}
 					if (m == sizeof(usb_pkt_rx)) {
 						fifo_push(ut->fifo, &rx);
-						cb_btle_cfo(ut, &cb_opts);
+						cb_btle_tracking(ut, &cb_opts);
 					}
 				}
+				gettimeofday(&tv, NULL);
+				double now = (tv.tv_sec) * 1000 + (tv.tv_usec)/1000;
+				if (now - start > 1000)
+					break;
 			}
 			usleep(500);
 		}

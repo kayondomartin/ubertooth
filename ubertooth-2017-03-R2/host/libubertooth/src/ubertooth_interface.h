@@ -121,6 +121,7 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_BTLE_SLAVE_P7 = 77,
 	// JWhUR UBERTOOTH CFO estimation data
 	UBERTOOTH_BTLE_CFO = 78,
+	UBERTOOTH_BTLE_RSSI = 79,
 };
 
 enum jam_modes {

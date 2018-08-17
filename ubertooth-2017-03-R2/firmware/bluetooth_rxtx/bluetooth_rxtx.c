@@ -565,11 +565,18 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 	
 	// JWHUR cfo estimation tracking
 	case UBERTOOTH_BTLE_CFO:
-		*data_len = 0;
-
 		do_hop = 0;
 		hop_mode = HOP_BTLE;
 		requested_mode = MODE_BT_CFO_LE;
+
+		queue_init();
+		cs_threshold_calc_and_set(channel);
+		break;
+
+	case UBERTOOTH_BTLE_RSSI:
+		do_hop = 0;
+		hop_mode = HOP_BTLE;
+		requested_mode = MODE_BT_RSSI_LE;
 
 		queue_init();
 		cs_threshold_calc_and_set(channel);
@@ -858,6 +865,7 @@ void DMA_IRQHandler()
 	   || mode == MODE_SPECAN
 	   || mode == MODE_BT_FOLLOW_LE
 	   || mode == MODE_BT_CFO_LE
+	   || mode == MODE_BT_RSSI_LE
 	   || mode == MODE_BT_PROMISC_LE
 	   || mode == MODE_BT_SLAVE_LE
 	   || mode == MODE_BT_SLAVE_LE_P0
@@ -1008,14 +1016,14 @@ static void cc2400_rx_sync(u32 sync)
 
 	} else if (modulation == MOD_BT_LOW_ENERGY) {
 		mdmctrl = 0x0040; // 250 kHz frequency deviation
-		grmdm = 0x0561; // un-buffered mode, packet w/ sync word detection
-		// 0 00 00 1 010 11 0 00 0 1
+		grmdm = 0x6561; // un-buffered mode, packet w/ sync word detection
+		// 0 11 00 1 010 11 0 00 0 1
 		//   |  |  | |   |  +--------> CRC off
 		//   |  |  | |   +-----------> sync word: 32 MSB bits of SYNC_WORD
 		//   |  |  | +---------------> 2 preamble bytes of 01010101
 		//   |  |  +-----------------> packet mode
 		//   |  +--------------------> un-buffered mode
-		//   +-----------------------> sync error bits: 0
+		//   +-----------------------> sync error bits: 3
 
 	} else {
 		/* oops */
@@ -1048,7 +1056,7 @@ static void cc2400_rx_sync(u32 sync)
 	cc2400_set(MDMCTRL, mdmctrl);
 
 	//JWHUR RSSI sampling symbols
-	cc2400_set(RSSI, 0x003d);
+	cc2400_set(RSSI, 0x003f);
 
 	// Set up CS register
 	cs_threshold_calc_and_set(channel);
@@ -1166,7 +1174,7 @@ void le_transmit(u32 aa, u8 len, u8 *data, u16 tx_pwr, u16 ch)
 	cc2400_set(MDMTST0, 0x134b);    // no PRNG
 
 	cc2400_set(GRMDM,   0x0c01);
-	// 0 00 01 1 000 00 0 00 0 1
+	// 0 00 01 1 001 00 0 00 0 1
 	//      |  | |   |  +--------> CRC off
 	//      |  | |   +-----------> sync word: 8 MSB bits of SYNC_WORD
 	//      |  | +---------------> 0 preamble bytes of 01010101
@@ -1730,6 +1738,16 @@ void bt_le_sync(u8 active_mode)
 	int8_t rssi;
 	static int restart_jamming = 0;
 
+	// rssi sampling for only 100 ms
+	uint32_t now = (clkn & 0xffffff);
+	uint32_t stop_at = now + 1000 * 10000 / 3125; // millis -> clkn ticks
+	int overflow = 0;
+	// handle clkn overflow
+	if (stop_at >= ((uint32_t)1<<28)) {
+		stop_at -= ((uint32_t)1<<28);
+		overflow = 1;
+	}
+
 	modulation = MOD_BT_LOW_ENERGY;
 	mode = active_mode;
 
@@ -1852,6 +1870,15 @@ void bt_le_sync(u8 active_mode)
 		ISER0 = ISER0_ISE_USB;
 
 		le.last_packet = CLK100NS;
+	
+		// JWHUR beacon receiving time
+		if (overflow == 0) {
+			if ((clkn & 0xffffff) > stop_at)
+				goto cleanup;
+		} else {
+			if ((clkn & 0xffffff) < now && (clkn & 0xffffff) > stop_at)
+				goto cleanup;
+		}
 
 	rx_flush:
 		// this might happen twice, but it's safe to do so
@@ -2121,6 +2148,16 @@ void bt_le_sync_rssi(u8 active_mode)
 	static int restart_jamming = 0;
 	u8 rssi_buf[DMA_SIZE] = {0, };
 
+	// rssi sampling for only 100 ms
+	uint32_t now = (clkn & 0xffffff);
+	uint32_t stop_at = now + 100 * 10000 / 3125; // millis -> clkn ticks
+	int overflow = 0;
+	// handle clkn overflow
+	if (stop_at >= ((uint32_t)1<<28)) {
+		stop_at -= ((uint32_t)1<<28);
+		overflow = 1;
+	}
+
 	modulation = MOD_BT_LOW_ENERGY;
 	mode = active_mode;
 
@@ -2151,7 +2188,7 @@ void bt_le_sync_rssi(u8 active_mode)
 			goto cleanup;
 		}
 
-		//JWHUR buffering carrier frequency offset estimation
+		//JWHUR buffering time information
 		u32 time_buf1[16] = {0, };
 		u32 time_buf2[16] = {0, };
 		u32 time_buf3[16] = {0, };
@@ -2174,6 +2211,15 @@ void bt_le_sync_rssi(u8 active_mode)
 		enqueue_time((uint8_t *) time_buf3);
 		enqueue_time((uint8_t *) time_buf4);
 		ISER0 = ISER0_ISE_USB;
+		
+		if (overflow == 0) {
+			if ((clkn & 0xffffff) > stop_at)
+				goto cleanup;
+		} else {
+			if ((clkn & 0xffffff) < now && (clkn & 0xffffff) > stop_at)
+				goto cleanup;
+		}
+		
 	}
 cleanup:
 	ICER0 = ICER0_ICE_USB;
@@ -2361,12 +2407,12 @@ void bt_follow_le() {
 	mode = MODE_IDLE;
 }
 
-//JWHUR cfo estimation tracking
-void bt_tracking_le() {
+//JWHUR rssi estimation tracking
+void bt_tracking_le(uint8_t tracking_mode) {
 	reset_le();
 	packet_cb = connection_follow_cb;
-	//bt_le_sync_cfo(MODE_BT_CFO_LE);
-	bt_le_sync_rssi(MODE_BT_CFO_LE);
+	if (tracking_mode == MODE_BT_CFO_LE) bt_le_sync_cfo(MODE_BT_CFO_LE);
+	if (tracking_mode == MODE_BT_RSSI_LE) bt_le_sync_rssi(MODE_BT_RSSI_LE);
 	mode = MODE_IDLE;
 }
 
@@ -2632,7 +2678,7 @@ void bt_slave_le(u16 tx_pwr) {
 	u8 adv_ind_len;
 	u16 ch[] = {2402, 2426, 2480};
 
-	u8 adv_overhead[20] = {0x42, 0x1d,	// adv_nonconn_ind, length 29 (__01 1101)
+	u8 adv_overhead[20] = {0x42, 0x1d,	// adv_nonconn_ind, length 29 (0001 1101)
 						   0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // adv mac address
 						   0x03, 0x03, 0xaa, 0xfe, // service advertised - len, type, eddystone UUID
 						   0x12, 0x16, 0xaa, 0xfe, // len(3 + URL frame + Eddystone URL), type, eddystone UUID
@@ -2738,10 +2784,10 @@ void bt_slave_le(u16 tx_pwr) {
 			for(j=0; j<num_adv_ind; j++) {
 				if (j < num_adv_ind -1) {
 					adv_ind_len = (u8) (31 + 3);
-					le_transmit(0x8e89bed6, adv_ind_len, adv_ind[j], tx_pwr, ch[i]);
+					le_transmit(0x8e89bed7, adv_ind_len, adv_ind[j], tx_pwr, ch[i]);
 				} else {
 					adv_ind_len = (u8) (fin_adv_len + 20 + 3);
-					le_transmit(0x8e89bed6, adv_ind_len, adv_ind[j], tx_pwr, ch[i]);
+					le_transmit(0x8e89bed7, adv_ind_len, adv_ind[j], tx_pwr, ch[i]);
 				}
 				msleep(10);
 			}
@@ -3003,7 +3049,10 @@ int main()
 					break;
 				//JWHUR cfo estimation tracking
 				case MODE_BT_CFO_LE:
-					bt_tracking_le();
+					bt_tracking_le(MODE_BT_CFO_LE);
+					break;
+				case MODE_BT_RSSI_LE:
+					bt_tracking_le(MODE_BT_RSSI_LE);
 					break;
 				case MODE_BT_PROMISC_LE:
 					bt_promisc_le();
