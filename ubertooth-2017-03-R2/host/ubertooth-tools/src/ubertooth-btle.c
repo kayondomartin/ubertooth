@@ -310,9 +310,9 @@ int main(int argc, char *argv[])
 		}
 	
 		int uuuuu = 0; //JWHUR test for synchronization
-		struct timeval tv;
-		gettimeofday(&tv, NULL);
-		double sync_start, start = (tv.tv_sec) * 1000 + (tv.tv_usec)/1000;
+		struct timespec tspec;
+		clock_gettime(CLOCK_MONOTONIC, &tspec);
+		uint64_t sync_start, start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
 		while (1) {
 			int r = cmd_poll(ut->devh, &rx);
 			if (r < 0) {
@@ -323,8 +323,8 @@ int main(int argc, char *argv[])
 				fifo_push(ut->fifo, &rx);
 				if(!do_rssi) uuuuu = cb_btle(ut, &cb_opts);
 				if(uuuuu == 1) {
-					gettimeofday(&tv, NULL);
-					sync_start = (tv.tv_sec)*1000 + (tv.tv_usec)/1000;
+					clock_gettime(CLOCK_MONOTONIC, &tspec);
+					sync_start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
 					break;
 				}
 				if(do_rssi) {
@@ -351,8 +351,8 @@ int main(int argc, char *argv[])
 						fifo_push(ut->fifo, &rx);
 						cb_btle_time_last(ut, &cb_opts);
 					}
-					gettimeofday(&tv, NULL);
-					double now = (tv.tv_sec) * 1000 + (tv.tv_usec)/1000;
+					clock_gettime(CLOCK_MONOTONIC, &tspec);
+					uint64_t now = (tspec.tv_sec) * 1000 + (tspec.tv_nsec)/1000000;
 					if (now - start > 100)
 						break;
 				}
@@ -387,15 +387,15 @@ int main(int argc, char *argv[])
 			cmd_set_channel(ut->devh, 2402);
 
 			while(1) {
-				gettimeofday(&tv, NULL);
-				double now = (tv.tv_sec)*1000 + (tv.tv_usec)/1000;
+				clock_gettime(CLOCK_MONOTONIC, &tspec);
+				uint64_t now = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
 				if (now - sync_start > 100)
 					break;
 			}
 			cmd_btle_tracking(ut->devh, 2, 1); // rssi tracking == 1 flag
 			do_rssi = 1;
-			gettimeofday(&tv, NULL);
-			start = (tv.tv_sec)*1000 + (tv.tv_usec)/1000;
+			clock_gettime(CLOCK_MONOTONIC, &tspec);
+			start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
 			while (1) {
 				int r = cmd_poll(ut->devh, &rx);
 				if (r < 0) {
@@ -428,8 +428,8 @@ int main(int argc, char *argv[])
 							fifo_push(ut->fifo, &rx);
 							cb_btle_time_last(ut, &cb_opts);
 						}
-						gettimeofday(&tv, NULL);
-						double now = (tv.tv_sec) * 1000 + (tv.tv_usec)/1000;
+						clock_gettime(CLOCK_MONOTONIC, &tspec);
+						uint64_t now = (tspec.tv_sec) * 1000 + (tspec.tv_nsec)/1000000;
 						if (now - start > 100)
 							break;
 						}
@@ -481,9 +481,9 @@ int main(int argc, char *argv[])
 		} else if (do_sync_mode) {
 			for(i=6; i< (dlen + 6); i++) tot_data[i] = data[i-6];
 			cmd_btle_slave(ut->devh, tot_data, UBERTOOTH_BTLE_SYNC, dlen+6);
-			struct timeval tv;
-			gettimeofday(&tv, NULL);
-			double sync_start = (tv.tv_sec)*1000 + (tv.tv_usec)/1000;
+			struct timespec tspec;
+			clock_gettime(CLOCK_MONOTONIC, &tspec);
+			uint64_t sync_start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
 			ubertooth_stop(ut);
 			r = ubertooth_connect(ut, ubertooth_device);
 			if (r < 0) {
@@ -499,16 +499,17 @@ int main(int argc, char *argv[])
 			cmd_set_modulation(ut->devh, MOD_BT_LOW_ENERGY);
 			cmd_set_channel(ut->devh, 2402); // 2402 means channel 39, must be modified
 
+			
 			while(1) {
-				gettimeofday(&tv, NULL);
-				double now = (tv.tv_sec)*1000 + (tv.tv_usec)/1000;
+				clock_gettime(CLOCK_MONOTONIC, &tspec);
+				uint64_t now = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
 				if (now - sync_start > 100)
 					break;
-			}
+			} 
 			cmd_btle_tracking(ut->devh, 2, 1); // rssi tracking == 1 flag
 			do_rssi = 1;
-			gettimeofday(&tv, NULL);
-			double start = (tv.tv_sec)*1000 + (tv.tv_usec)/1000;
+			clock_gettime(CLOCK_MONOTONIC, &tspec);
+			uint64_t start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
 			while (1) {
 				int r = cmd_poll(ut->devh, &rx);
 				if (r < 0) {
@@ -541,8 +542,8 @@ int main(int argc, char *argv[])
 							fifo_push(ut->fifo, &rx);
 							cb_btle_time_last(ut, &cb_opts);
 						}
-						gettimeofday(&tv, NULL);
-						double now = (tv.tv_sec) * 1000 + (tv.tv_usec)/1000;
+						clock_gettime(CLOCK_MONOTONIC, &tspec);
+						uint64_t now = (tspec.tv_sec) * 1000 + (tspec.tv_nsec)/1000000;
 						if (now - start > 100)
 							break;
 						}
