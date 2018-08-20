@@ -79,6 +79,9 @@ int dlen = 0;
 uint8_t *slave_mac_address_data;
 uint8_t slave_mac_address[6] = { 0, };
 
+//JWHUR for rssi sampling synchronization
+uint32_t now_sync = 0, start_sync =0;
+
 le_state_t le = {
 	.access_address = 0x8e89bed6,           // advertising channel access address
 	.synch = 0x6b7d,                        // bit-reversed adv channel AA
@@ -1689,12 +1692,108 @@ void bt_generic_le(u8 active_mode)
 	cs_trigger_disable();
 }
 
+//JWHUR rssi tracking
+void bt_le_sync_rssi(u8 active_mode) 
+{
+	int i;
+	int8_t rssi;
+	static int restart_jamming = 0;
+	u8 rssi_buf[DMA_SIZE] = {0, };
+
+	if (start_sync >= ((uint32_t)1<<28)) {
+		start_sync -= ((uint32_t)1<<28);
+		while ((clkn & 0xffffff) >= now_sync || (clkn & 0xffffff) < start_sync);
+	} else {
+		while ((clkn & 0xffffff) < start_sync);
+	}
+
+	// rssi sampling for only 100 ms
+	uint32_t now = (clkn & 0xffffff);
+	uint32_t stop_at = now + 100 * 10000 / 3125; // millis -> clkn ticks
+	int overflow = 0;
+	// handle clkn overflow
+	if (stop_at >= ((uint32_t)1<<28)) {
+		stop_at -= ((uint32_t)1<<28);
+		overflow = 1;
+	}
+
+	modulation = MOD_BT_LOW_ENERGY;
+	mode = active_mode;
+
+	le.link_state = LINK_LISTENING;
+
+	ISER0 = ISER0_ISE_USB;
+	RXLED_CLR;
+	queue_init();
+	dio_ssp_init();
+	dma_init_le();
+	dio_ssp_start();
+
+	cc2400_rx_sync(rbit(le.access_address));
+	
+	while (requested_mode == active_mode) {
+		if (requested_channel != 0) {
+			cc2400_strobe(SRFOFF);
+			while ((cc2400_status() & FS_LOCK));
+			cc2400_set(FSDIV, channel - 1);
+			cc2400_strobe(SFSON);
+			while (!(cc2400_status() & FS_LOCK));
+			cc2400_strobe(SRX);
+			requested_channel = 0;
+		}
+		RXLED_CLR;
+		
+		if (requested_mode != active_mode) {
+			goto cleanup;
+		}
+
+		//JWHUR buffering time information
+		u32 time_buf1[16] = {0, };
+		u32 time_buf2[16] = {0, };
+		u32 time_buf3[16] = {0, };
+		u32 time_buf4[16] = {0, };
+		for (i = 0; i < DMA_SIZE; i++) {
+			if (i<16) time_buf1[i] = CLK100NS;
+			if (15<i && i<32) time_buf2[i-16] = CLK100NS;
+			if (31<i && i<48) time_buf3[i-32] = CLK100NS;
+			if (47<i) time_buf4[i-48] = CLK100NS;
+			rssi_buf[i] = (u8)(cc2400_get(RSSI) >> 8);
+			volatile u32 j = 598; while (--j); // empty for loop ~= 70ns, 598 empty while loop ~= 41.8us
+		}
+
+		RXLED_SET;
+
+		ICER0 = ICER0_ICE_USB;
+		enqueue_with_ts(RSSI_TRACK, (uint8_t *)rssi_buf, CLK100NS);
+		enqueue_time((uint8_t *) time_buf1);
+		enqueue_time((uint8_t *) time_buf2);
+		enqueue_time((uint8_t *) time_buf3);
+		enqueue_time((uint8_t *) time_buf4);
+		ISER0 = ISER0_ISE_USB;
+		
+		if (overflow == 0) {
+			if ((clkn & 0xffffff) > stop_at)
+				goto cleanup;
+		} else {
+			if ((clkn & 0xffffff) < now_sync && (clkn & 0xffffff) > stop_at)
+				goto cleanup;
+		}
+		
+	}
+cleanup:
+	ICER0 = ICER0_ICE_USB;
+	cc2400_idle();
+	dio_ssp_stop ();
+	cs_trigger_disable();
+}
+
 
 void bt_le_sync(u8 active_mode)
 {
 	int i;
 	int8_t rssi;
 	static int restart_jamming = 0;
+	int uuuuu = 0; //JWHUR to detect packet with pdu uuuuu
 
 	modulation = MOD_BT_LOW_ENERGY;
 	mode = active_mode;
@@ -1808,6 +1907,14 @@ void bt_le_sync(u8 active_mode)
 				goto rx_flush;
 		}
 
+		//JWHUR rssi sampling synchronization test
+		//If a BLE advertising packet with pdu, uuuuu received, after 100ms goto le_sync_rssi
+		if (p[24] == 0x55 && p[25] == 0x55 && p[26] == 0x55 && p[27] == 0x55 && p[28] == 0x55) {
+			uuuuu = 1;
+			now_sync = (clkn & 0xffffff);
+			start_sync = now_sync + 100 * 10000 / 3125; // wait for 100 ms
+		}
+
 
 		RXLED_SET;
 		packet_cb((uint8_t *)packet);
@@ -1818,6 +1925,12 @@ void bt_le_sync(u8 active_mode)
 		ISER0 = ISER0_ISE_USB;
 
 		le.last_packet = CLK100NS;
+
+		//JWHUR if uuuuu receive
+		if (uuuuu == 1) {
+			requested_mode = MODE_BT_RSSI_LE;
+			bt_le_sync_rssi(MODE_BT_RSSI_LE);
+		}
 	
 	rx_flush:
 		// this might happen twice, but it's safe to do so
@@ -2072,94 +2185,6 @@ void bt_le_sync_cfo(u8 active_mode)
 	}
 	goto cleanup;
 
-cleanup:
-	ICER0 = ICER0_ICE_USB;
-	cc2400_idle();
-	dio_ssp_stop ();
-	cs_trigger_disable();
-}
-
-//JWHUR rssi tracking
-void bt_le_sync_rssi(u8 active_mode) 
-{
-	int i;
-	int8_t rssi;
-	static int restart_jamming = 0;
-	u8 rssi_buf[DMA_SIZE] = {0, };
-
-	// rssi sampling for only 100 ms
-	uint32_t now = (clkn & 0xffffff);
-	uint32_t stop_at = now + 100 * 10000 / 3125; // millis -> clkn ticks
-	int overflow = 0;
-	// handle clkn overflow
-	if (stop_at >= ((uint32_t)1<<28)) {
-		stop_at -= ((uint32_t)1<<28);
-		overflow = 1;
-	}
-
-	modulation = MOD_BT_LOW_ENERGY;
-	mode = active_mode;
-
-	le.link_state = LINK_LISTENING;
-
-	ISER0 = ISER0_ISE_USB;
-	RXLED_CLR;
-	queue_init();
-	dio_ssp_init();
-	dma_init_le();
-	dio_ssp_start();
-
-	cc2400_rx_sync(rbit(le.access_address));
-
-	while (requested_mode == active_mode) {
-		if (requested_channel != 0) {
-			cc2400_strobe(SRFOFF);
-			while ((cc2400_status() & FS_LOCK));
-			cc2400_set(FSDIV, channel - 1);
-			cc2400_strobe(SFSON);
-			while (!(cc2400_status() & FS_LOCK));
-			cc2400_strobe(SRX);
-			requested_channel = 0;
-		}
-		RXLED_CLR;
-		
-		if (requested_mode != active_mode) {
-			goto cleanup;
-		}
-
-		//JWHUR buffering time information
-		u32 time_buf1[16] = {0, };
-		u32 time_buf2[16] = {0, };
-		u32 time_buf3[16] = {0, };
-		u32 time_buf4[16] = {0, };
-		for (i = 0; i < DMA_SIZE; i++) {
-			if (i<16) time_buf1[i] = CLK100NS;
-			if (15<i && i<32) time_buf2[i-16] = CLK100NS;
-			if (31<i && i<48) time_buf3[i-32] = CLK100NS;
-			if (47<i) time_buf4[i-48] = CLK100NS;
-			rssi_buf[i] = (u8)(cc2400_get(RSSI) >> 8);
-			volatile u32 j = 598; while (--j); // empty for loop ~= 70ns, 598 empty while loop ~= 41.8us
-		}
-
-		RXLED_SET;
-
-		ICER0 = ICER0_ICE_USB;
-		enqueue_with_ts(RSSI_TRACK, (uint8_t *)rssi_buf, CLK100NS);
-		enqueue_time((uint8_t *) time_buf1);
-		enqueue_time((uint8_t *) time_buf2);
-		enqueue_time((uint8_t *) time_buf3);
-		enqueue_time((uint8_t *) time_buf4);
-		ISER0 = ISER0_ISE_USB;
-		
-		if (overflow == 0) {
-			if ((clkn & 0xffffff) > stop_at)
-				goto cleanup;
-		} else {
-			if ((clkn & 0xffffff) < now && (clkn & 0xffffff) > stop_at)
-				goto cleanup;
-		}
-		
-	}
 cleanup:
 	ICER0 = ICER0_ICE_USB;
 	cc2400_idle();
@@ -2731,7 +2756,7 @@ void bt_slave_le() {
 	if (requested_mode == MODE_BT_SYNC_LE) {
 		ICER0 = ICER0_ICE_USB;
 		ICER0 = ICER0_ICE_DMA;
-		for(i=0; i<3; i++) {
+		for(i=0; i<1; i++) {
 			for(j=0; j<num_adv_ind; j++) {
 				if (j < num_adv_ind -1) {
 					adv_ind_len = (u8) (31 + 3);
@@ -2740,10 +2765,19 @@ void bt_slave_le() {
 					adv_ind_len = (u8) (fin_adv_len + 20 + 3);
 					le_transmit(0x8e89bed7, adv_ind_len, adv_ind[j], ch[i]);
 				}
-				msleep(10);
+		//		msleep(10);
 			}
-			msleep(10);
+		//	msleep(10);
 		}
+		now_sync = (clkn & 0xffffff);
+		start_sync = now_sync + 100 * 10000 / 3125; // wait for 100 ms
+
+		ISER0 = ISER0_ISE_USB;
+		ISER0 = ISER0_ISE_DMA;
+
+		requested_mode = MODE_BT_RSSI_LE;
+		bt_le_sync_rssi(MODE_BT_RSSI_LE);
+		
 		ICER0 = ICER0_ICE_USB;
 		cc2400_idle();
 		dio_ssp_stop ();

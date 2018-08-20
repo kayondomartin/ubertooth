@@ -312,7 +312,7 @@ int main(int argc, char *argv[])
 		int uuuuu = 0; //JWHUR test for synchronization
 		struct timespec tspec;
 		clock_gettime(CLOCK_MONOTONIC, &tspec);
-		uint64_t sync_start, start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
+		uint64_t sync_start, start = 0;
 		while (1) {
 			int r = cmd_poll(ut->devh, &rx);
 			if (r < 0) {
@@ -322,12 +322,16 @@ int main(int argc, char *argv[])
 			if (r == sizeof(usb_pkt_rx)) {
 				fifo_push(ut->fifo, &rx);
 				if(!do_rssi) uuuuu = cb_btle(ut, &cb_opts);
-				if(uuuuu == 1) {
+				if(uuuuu == 1 && do_rssi == 0) {
 					clock_gettime(CLOCK_MONOTONIC, &tspec);
 					sync_start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
-					break;
-				}
-				if(do_rssi) {
+					do_rssi = 1;
+				//	break;
+				} else if(uuuuu == 1 && do_rssi == 1) {
+					if (start == 0) {
+						clock_gettime(CLOCK_MONOTONIC, &tspec);
+						start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
+					}
 					cb_btle_tracking(ut, &cb_opts);
 					printf("time measurement : ");
 					int time_count = 4;
@@ -351,10 +355,6 @@ int main(int argc, char *argv[])
 						fifo_push(ut->fifo, &rx);
 						cb_btle_time_last(ut, &cb_opts);
 					}
-					clock_gettime(CLOCK_MONOTONIC, &tspec);
-					uint64_t now = (tspec.tv_sec) * 1000 + (tspec.tv_nsec)/1000000;
-					if (now - start > 100)
-						break;
 				}
 				if (do_cfo) {
 					int m = cmd_poll(ut->devh, &rx);
@@ -369,74 +369,14 @@ int main(int argc, char *argv[])
 				}
 			}
 			usleep(500);
+			if (do_rssi == 1 && start != 0) {
+				clock_gettime(CLOCK_MONOTONIC, &tspec);
+				uint64_t now = (tspec.tv_sec) * 1000 + (tspec.tv_nsec)/1000000;
+				if (now - start > 100)
+					break;
+			}
 		}
 		ubertooth_stop(ut);
-
-		if(uuuuu == 1) {	
-			r = ubertooth_connect(ut, ubertooth_device);
-			if (r < 0) {
-				usage();
-				return 1;
-			}
-
-			/* Clean up on exit. */
-			register_cleanup_handler(ut, 1);
-
-			r = cmd_set_jam_mode(ut->devh, jam_mode);
-			cmd_set_modulation(ut->devh, MOD_BT_LOW_ENERGY);
-			cmd_set_channel(ut->devh, 2402);
-
-			while(1) {
-				clock_gettime(CLOCK_MONOTONIC, &tspec);
-				uint64_t now = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
-				if (now - sync_start > 100)
-					break;
-			}
-			cmd_btle_tracking(ut->devh, 2, 1); // rssi tracking == 1 flag
-			do_rssi = 1;
-			clock_gettime(CLOCK_MONOTONIC, &tspec);
-			start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
-			while (1) {
-				int r = cmd_poll(ut->devh, &rx);
-				if (r < 0) {
-					printf("USB error\n");
-					break;
-				}
-				if (r == sizeof(usb_pkt_rx)) {
-					fifo_push(ut->fifo, &rx);
-					if(do_rssi) {
-						cb_btle_tracking(ut, &cb_opts);
-						printf("time measurement : ");
-						int time_count = 4;
-						while (--time_count) {
-						int m = cmd_poll(ut->devh, &rx);
-							if (m<0) {
-								printf("USB error \n");
-								break;
-							}
-							if (m == sizeof(usb_time_rx)) {
-								fifo_push(ut->fifo, &rx);
-								cb_btle_time(ut, &cb_opts);
-							}
-						}
-						int m = cmd_poll(ut->devh, &rx);
-						if (m<0) {
-							printf("USB error \n");
-							break;
-						}
-						if (m == sizeof(usb_time_rx)) {					
-							fifo_push(ut->fifo, &rx);
-							cb_btle_time_last(ut, &cb_opts);
-						}
-						clock_gettime(CLOCK_MONOTONIC, &tspec);
-						uint64_t now = (tspec.tv_sec) * 1000 + (tspec.tv_nsec)/1000000;
-						if (now - start > 100)
-							break;
-						}
-				}
-				usleep(500);
-			} 
-		}
 	}
 
 	if (do_get_aa) {
@@ -484,32 +424,12 @@ int main(int argc, char *argv[])
 			struct timespec tspec;
 			clock_gettime(CLOCK_MONOTONIC, &tspec);
 			uint64_t sync_start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
-			ubertooth_stop(ut);
-			r = ubertooth_connect(ut, ubertooth_device);
-			if (r < 0) {
-				usage();
-				return 1;
-			}
-
-			/* Clean up on exit. */
-			register_cleanup_handler(ut, 1);
-
-			usb_pkt_rx rx;
-			r = cmd_set_jam_mode(ut->devh, jam_mode);
-			cmd_set_modulation(ut->devh, MOD_BT_LOW_ENERGY);
-			cmd_set_channel(ut->devh, 2402); // 2402 means channel 39, must be modified
-
 			
-			while(1) {
-				clock_gettime(CLOCK_MONOTONIC, &tspec);
-				uint64_t now = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
-				if (now - sync_start > 100)
-					break;
-			} 
-			cmd_btle_tracking(ut->devh, 2, 1); // rssi tracking == 1 flag
 			do_rssi = 1;
-			clock_gettime(CLOCK_MONOTONIC, &tspec);
-			uint64_t start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
+			uint64_t start = 0;
+	
+			usleep(1000);
+			usb_pkt_rx rx;
 			while (1) {
 				int r = cmd_poll(ut->devh, &rx);
 				if (r < 0) {
@@ -519,6 +439,10 @@ int main(int argc, char *argv[])
 				if (r == sizeof(usb_pkt_rx)) {
 					fifo_push(ut->fifo, &rx);
 					if(do_rssi) {
+						if (start == 0) {
+							clock_gettime(CLOCK_MONOTONIC, &tspec);
+							start = (tspec.tv_sec) * 1000 + (tspec.tv_nsec)/1000000;
+						}
 						cb_btle_tracking(ut, &cb_opts);
 						printf("time measurement : ");
 						int time_count = 4;
@@ -542,14 +466,17 @@ int main(int argc, char *argv[])
 							fifo_push(ut->fifo, &rx);
 							cb_btle_time_last(ut, &cb_opts);
 						}
-						clock_gettime(CLOCK_MONOTONIC, &tspec);
-						uint64_t now = (tspec.tv_sec) * 1000 + (tspec.tv_nsec)/1000000;
-						if (now - start > 100)
-							break;
-						}
+					}
 				}
+				if (do_rssi == 1 && start != 0) {
+					clock_gettime(CLOCK_MONOTONIC, &tspec);
+					uint64_t now = (tspec.tv_sec) * 1000 + (tspec.tv_nsec)/1000000;
+					if (now - start > 100)
+						break;
+				}		
 				usleep(500);
 			}
+			ubertooth_stop(ut);
 			
 		} else 
 			cmd_btle_slave(ut->devh, tot_data, UBERTOOTH_BTLE_SLAVE, dlen+6); 
