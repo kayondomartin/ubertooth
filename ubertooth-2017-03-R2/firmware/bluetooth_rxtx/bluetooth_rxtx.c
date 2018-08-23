@@ -1697,6 +1697,7 @@ void bt_le_sync_rssi(u8 active_mode)
 {
 	int i;
 	int8_t rssi;
+	// channel 37 = 2402, channel 38 = 2426, channel 39 = 2480
 	static int restart_jamming = 0;
 	u8 rssi_buf[DMA_SIZE] = {0, };
 
@@ -1735,7 +1736,7 @@ void bt_le_sync_rssi(u8 active_mode)
 		if (requested_channel != 0) {
 			cc2400_strobe(SRFOFF);
 			while ((cc2400_status() & FS_LOCK));
-			cc2400_set(FSDIV, channel - 1);
+			cc2400_set(FSDIV, channel);
 			cc2400_strobe(SFSON);
 			while (!(cc2400_status() & FS_LOCK));
 			cc2400_strobe(SRX);
@@ -1758,7 +1759,7 @@ void bt_le_sync_rssi(u8 active_mode)
 			if (31<i && i<48) time_buf3[i-32] = CLK100NS;
 			if (47<i) time_buf4[i-48] = CLK100NS;
 			rssi_buf[i] = (u8)(cc2400_get(RSSI) >> 8);
-			volatile u32 j = 598; while (--j); // empty for loop ~= 70ns, 598 empty while loop ~= 41.8us
+			volatile u32 j = 598; while (--j); // empty for loop ~= 70ns, 598 empty while loop ~= 41.8us, 240 loop ~= 16.8us
 		}
 
 		RXLED_SET;
@@ -2756,21 +2757,10 @@ void bt_slave_le() {
 	if (requested_mode == MODE_BT_SYNC_LE) {
 		ICER0 = ICER0_ICE_USB;
 		ICER0 = ICER0_ICE_DMA;
-		for(i=0; i<1; i++) {
-			for(j=0; j<num_adv_ind; j++) {
-				if (j < num_adv_ind -1) {
-					adv_ind_len = (u8) (31 + 3);
-					le_transmit(0x8e89bed7, adv_ind_len, adv_ind[j], ch[i]);
-				} else {
-					adv_ind_len = (u8) (fin_adv_len + 20 + 3);
-					le_transmit(0x8e89bed7, adv_ind_len, adv_ind[j], ch[i]);
-				}
-		//		msleep(10);
-			}
-		//	msleep(10);
-		}
+		adv_ind_len = (u8) (fin_adv_len + 20 + 3);
+		le_transmit(0x8e89bed7, adv_ind_len, adv_ind[0], (u16)2402);
 		now_sync = (clkn & 0xffffff);
-		start_sync = now_sync + 100 * 10000 / 3125; // wait for 100 ms
+		start_sync = now_sync + 100.2 * 10000 / 3125; // wait for 99.8 ms
 
 		ISER0 = ISER0_ISE_USB;
 		ISER0 = ISER0_ISE_DMA;
