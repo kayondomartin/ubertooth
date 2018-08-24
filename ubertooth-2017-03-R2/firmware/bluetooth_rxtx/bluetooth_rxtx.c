@@ -81,6 +81,7 @@ uint8_t slave_mac_address[6] = { 0, };
 
 //JWHUR for rssi sampling synchronization
 uint32_t now_sync = 0, start_sync =0;
+uint16_t sync_channel = 0;
 
 le_state_t le = {
 	.access_address = 0x8e89bed6,           // advertising channel access address
@@ -131,7 +132,7 @@ char unpacked[DMA_SIZE*8*2];
 static int enqueue(uint8_t type, uint8_t* buf)
 {
 	usb_pkt_rx* f = usb_enqueue();
-
+	
 	/* fail if queue is full */
 	if (f == NULL) {
 		status |= FIFO_OVERFLOW;
@@ -684,9 +685,11 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 
 	//JWHUR for rssi sampling synchronization
 	case UBERTOOTH_BTLE_SYNC:
-		slave_mac_address_data = (uint8_t*) malloc(sizeof(uint8_t)*dlen);
-		memcpy(slave_mac_address_data, data, dlen);
 		requested_mode = MODE_BT_SYNC_LE;
+		do_hop = 0;
+		hop_mode = HOP_BTLE;
+		queue_init();
+		cs_threshold_calc_and_set(channel);
 		break;
 	
 	case UBERTOOTH_BTLE_SET_TARGET:
@@ -803,7 +806,7 @@ void EINT3_IRQHandler()
 	DIO_SSEL_CLR;           // enable SPI
 	cs_trigger  = 1;        // signal trigger
 	if (hop_mode == HOP_BLUETOOTH)
-		dma_discard = 0;
+		dma_discard = 0; 
 
 }
 #endif // TC13BADGE
@@ -1719,6 +1722,7 @@ void bt_le_sync_rssi(u8 active_mode)
 	}
 
 	modulation = MOD_BT_LOW_ENERGY;
+	requested_mode = active_mode;
 	mode = active_mode;
 
 	le.link_state = LINK_LISTENING;
@@ -1743,10 +1747,9 @@ void bt_le_sync_rssi(u8 active_mode)
 			requested_channel = 0;
 		}
 		RXLED_CLR;
-		
-		if (requested_mode != active_mode) {
-			goto cleanup;
-		}
+//		if (requested_mode != active_mode) {
+//			goto cleanup;
+//		}
 
 		//JWHUR buffering time information
 		u32 time_buf1[16] = {0, };
@@ -1771,7 +1774,7 @@ void bt_le_sync_rssi(u8 active_mode)
 		enqueue_time((uint8_t *) time_buf3);
 		enqueue_time((uint8_t *) time_buf4);
 		ISER0 = ISER0_ISE_USB;
-		
+	/*	
 		if (overflow == 0) {
 			if ((clkn & 0xffffff) > stop_at)
 				goto cleanup;
@@ -1779,7 +1782,7 @@ void bt_le_sync_rssi(u8 active_mode)
 			if ((clkn & 0xffffff) < now_sync && (clkn & 0xffffff) > stop_at)
 				goto cleanup;
 		}
-		
+	*/	
 	}
 cleanup:
 	ICER0 = ICER0_ICE_USB;
@@ -1794,7 +1797,7 @@ void bt_le_sync(u8 active_mode)
 	int i;
 	int8_t rssi;
 	static int restart_jamming = 0;
-	int uuuuu = 0; //JWHUR to detect packet with pdu uuuuu
+	int sync_flag = 0; //JWHUR to detect packet with pdu sync
 
 	modulation = MOD_BT_LOW_ENERGY;
 	mode = active_mode;
@@ -1909,11 +1912,12 @@ void bt_le_sync(u8 active_mode)
 		}
 
 		//JWHUR rssi sampling synchronization test
-		//If a BLE advertising packet with pdu, uuuuu received, after 100ms goto le_sync_rssi
-		if (p[24] == 0x55 && p[25] == 0x55 && p[26] == 0x55 && p[27] == 0x55 && p[28] == 0x55) {
-			uuuuu = 1;
+		//If a BLE advertising packet with pdu preamble 0xff, data SYNC received, after 100ms goto le_sync_rssi
+		if (p[23] == 0xff && p[24] == 0x53 && p[25] == 0x59 && p[26] == 0x4e && p[27] == 0x43) {
+			sync_flag = 1;
 			now_sync = (clkn & 0xffffff);
 			start_sync = now_sync + 100 * 10000 / 3125; // wait for 100 ms
+			sync_channel = (u16)p[28];
 		}
 
 
@@ -1927,8 +1931,8 @@ void bt_le_sync(u8 active_mode)
 
 		le.last_packet = CLK100NS;
 
-		//JWHUR if uuuuu receive
-		if (uuuuu == 1) {
+		//JWHUR if sync_flag receive
+		if (sync_flag == 1) {
 			requested_mode = MODE_BT_RSSI_LE;
 			bt_le_sync_rssi(MODE_BT_RSSI_LE);
 		}
@@ -2378,7 +2382,7 @@ void bt_tracking_le(uint8_t tracking_mode) {
 	packet_cb = connection_follow_cb;
 	if (tracking_mode == MODE_BT_CFO_LE) bt_le_sync_cfo(MODE_BT_CFO_LE);
 	if (tracking_mode == MODE_BT_RSSI_LE) bt_le_sync_rssi(MODE_BT_RSSI_LE);
-	mode = MODE_IDLE;
+	requested_mode = MODE_IDLE;
 }
 
 // issue state change message
@@ -2688,41 +2692,6 @@ void bt_slave_le() {
 			adv_ind_len = (u8) (fin_adv_len + 20);
 		}
 
-		// To stabilize carrier frequency offset
-		// bit is transmitted in reversed sequence, (ex, 1010 1010 -> transmitted 0101 0101)
-		// sequence which is {0x55, } after whitening : (0101 0101 -> 1010 1010)
-		// 0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39
-		// 27 78 fd 0b 97 0d cc 1a df 9b bb e2 3c dd 52 49 ec 43 01 7a 34 f9 99 72 10 32 a2 8e 61 91 56 db 09 5e ff c2 65 03 b3 c6
-		// sequence which is {0xaa, } after whitening : (1010 1010 -> 0101 0101)
-		// d8 87 02 f4 68 f2 33 e5 20 64 44 1d c3 22 ad b6 13 bc fe 85 cb 06 66 8d ef cd 5d 71 9e 6e a9 24 f6 a1 00 3d 9a fc 4c 39 
-		// sequence which is {0xab, } after whitening : (1010 1011 -> 1101 0101)
-		// 58 07 82 74 e8 72 b3 65 a0 e4 c4 9d 43 a2 2d 36 93 3c 7e 05 4b 86 e6 0d 6f 4d dd f1 1e ee 29 a4 76 21 80 bd 1a 7c cc b9
-		// sequence which is {0xd5, } after whitening : (1101 0101 -> 1010 1011)
-		// 26 79 fc 0a 96 0c cd 1b de 9a ba e3 3d dc 53 48 ed 42 00 7b 35 f8 98 73 11 33 a3 8f 60 90 57 da 08 5f fe c3 64 02 b2 c7
-		/*
-		adv_ind[i][8] = 0xdf;
-		adv_ind[i][9] = 0x9b;
-		adv_ind[i][10] = 0xbb;
-		adv_ind[i][11] = 0xe2;
-		adv_ind[i][12] = 0x3c;
-		adv_ind[i][13] = 0xdd;
-		adv_ind[i][14] = 0x52;
-		adv_ind[i][15] = 0x49;
-		adv_ind[i][16] = 0xec;
-		adv_ind[i][17] = 0x43;
-		adv_ind[i][18] = 0x00;
-		adv_ind[i][19] = 0x7b;
-		adv_ind[i][20] = 0x35;
-		adv_ind[i][21] = 0xf8;
-		adv_ind[i][22] = 0x98;
-		adv_ind[i][23] = 0x73;
-		adv_ind[i][24] = 0x11;
-		adv_ind[i][25] = 0x33;
-		adv_ind[i][26] = 0xa3;
-		adv_ind[i][27] = 0x8f;
-		*/
-		////////
-		
 		calc_crc = btle_calc_crc(le.crc_init_reversed, adv_ind[i], adv_ind_len);
 		adv_ind_len = (int) adv_ind_len;
 		adv_ind[i][adv_ind_len+0] = (calc_crc >> 0) & 0xff;
@@ -2754,26 +2723,54 @@ void bt_slave_le() {
 		ISER0 = ISER0_ISE_DMA;
 		msleep(10);
 	}
-	if (requested_mode == MODE_BT_SYNC_LE) {
-		ICER0 = ICER0_ICE_USB;
-		ICER0 = ICER0_ICE_DMA;
-		adv_ind_len = (u8) (fin_adv_len + 20 + 3);
-		le_transmit(0x8e89bed7, adv_ind_len, adv_ind[0], (u16)2402);
-		now_sync = (clkn & 0xffffff);
-		start_sync = now_sync + 100.2 * 10000 / 3125; // wait for 99.8 ms
+	free(adv_ind);
+}
 
-		ISER0 = ISER0_ISE_USB;
-		ISER0 = ISER0_ISE_DMA;
+void bt_sync_le() {
+	u32 calc_crc;
+	int i, j;
+	int num_adv_ind = 1;
+	u8 adv_ind_len;
+	u8 *adv_ind;
+	u16 ch[] = {2402, 2426, 2480};
 
-		requested_mode = MODE_BT_RSSI_LE;
-		bt_le_sync_rssi(MODE_BT_RSSI_LE);
+	u8 adv_sync[24] = {0x42, 0x16,	// adv_nonconn_ind, length 22 (0001 0110)
+					  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // adv mac address
+					  0x03, 0x03, 0xaa, 0xfe, // service advertised - len, type, eddystone UUID
+					  0x0b, 0x16, 0xaa, 0xfe, // len(3 + URL frame + Eddystone URL), type, eddystone UUID
+					  0x10, 0x00, 0x02, // URL frame - frametype(URL), tx power, URL scheme prefix (0x02: http://)
+					  0xff, 0x53, 0x59, 0x4e, 0x43}; // preamble 0xff, S, Y, N, C
+
+	// Standards said maximum advertising channel PDU length 39 bytes (adv payload 19 + 1 (preamble))
+	// There's a probem, actual maximum length 34 bytes (adv payload 14 + 1 (preamble)) in ubertooth
+	// Nexsus 5 smartphone can not receive BLE packet which has length over 31 bytes (adv payload 11 + 1 (preamble))
+	adv_ind_len = 24; 
+	adv_ind = (u8*) malloc(sizeof(u8)*24);
+	for (i=0; i<24; i++)
+		adv_ind[i] = adv_sync[i];
+	calc_crc = btle_calc_crc(le.crc_init_reversed, adv_ind, adv_ind_len);
+	adv_ind_len = (int) adv_ind_len;
+	adv_ind[adv_ind_len+0] = (calc_crc >> 0) & 0xff;
+	adv_ind[adv_ind_len+1] = (calc_crc >> 8) & 0xff;
+	adv_ind[adv_ind_len+2] = (calc_crc >> 16) & 0xff;
+
+	clkn_start();
+
+	ICER0 = ICER0_ICE_USB;
+	ICER0 = ICER0_ICE_DMA;
+	adv_ind_len = (u8) (adv_ind_len + 3);
+	le_transmit(0x8e89bed7, adv_ind_len, adv_ind, ch[0]);
+	ISER0 = ISER0_ISE_USB;
+	ISER0 = ISER0_ISE_DMA;
+
+	free(adv_ind);
+	requested_mode = MODE_BT_RSSI_LE;
+	bt_tracking_le(MODE_BT_RSSI_LE);
 		
-		ICER0 = ICER0_ICE_USB;
-		cc2400_idle();
-		dio_ssp_stop ();
-		cs_trigger_disable();
-	}
-
+	ICER0 = ICER0_ICE_USB;
+	cc2400_idle();
+	dio_ssp_stop ();
+	cs_trigger_disable();
 }
 
 void rx_generic_sync(void) {
@@ -3040,7 +3037,7 @@ int main()
 					break;
 				case MODE_BT_SYNC_LE:
 					mode = MODE_BT_SYNC_LE;
-					bt_slave_le();
+					bt_sync_le();
 					break;
 				case MODE_TX_TEST:
 					mode = MODE_TX_TEST;

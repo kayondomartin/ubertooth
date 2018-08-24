@@ -934,7 +934,10 @@ int cmd_btle_slave(struct libusb_device_handle* devh, u8 *mac_address, int mode,
 	int req;
 
 	req = mode;
-	r = libusb_control_transfer(devh, CTRL_OUT, req, 0, 0, mac_address, len, 1000);
+	if (mode == UBERTOOTH_BTLE_SYNC) 
+		r = libusb_control_transfer(devh, CTRL_OUT, req, 0, 0, NULL, 0, 1000);
+	else 
+		r = libusb_control_transfer(devh, CTRL_OUT, req, 0, 0, mac_address, len, 1000);
 	printf("JWHUR cmd_btle_slave\n");
 	if (r < 0) {
 		if (r == LIBUSB_ERROR_PIPE) {

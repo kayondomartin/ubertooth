@@ -61,6 +61,18 @@ unistd.h
 -
 stdlib.h
 -
+sys/types.h
+-
+sys/stat.h
+-
+error.h
+-
+signal.h
+-
+syslog.h
+-
+stdio.h
+-
 
 /usr/include/libusb-1.0/libusb.h
 stdint.h

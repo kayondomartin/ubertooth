@@ -312,7 +312,7 @@ out:
  */
 int cb_btle(ubertooth_t* ut, void* args)
 {
-	int uuuuu = 0;
+	int sync = 0;
 	lell_packet* pkt;
 	btle_options* opts = (btle_options*) args;
 	int i;
@@ -422,9 +422,9 @@ int cb_btle(ubertooth_t* ut, void* args)
 	printf("\n");
 
 	//JWHUR test synchronization protocol
-	//When receive 'UUUUU', stop ble scanning
-	if (rx->data[24] == 0x55 && rx->data[25] == 0x55 && rx->data[26] == 0x55 && rx->data[27] == 0x55 && rx->data[28] == 0x55) 
-		uuuuu = 1;
+	//When receive 'SYNC', stop ble scanning
+	if (rx->data[23] == 0xff && rx->data[24] == 0x53 && rx->data[25] == 0x59 && rx->data[26] == 0x4e && rx->data[27] == 0x43) 
+		sync = 1;
 
 	lell_print(pkt);
 	printf("\n");
@@ -432,7 +432,7 @@ int cb_btle(ubertooth_t* ut, void* args)
 	lell_packet_unref(pkt);
 
 	fflush(stdout);
-	return uuuuu;
+	return sync;
 }
 
 //JWHUR cb_btle_tracking
