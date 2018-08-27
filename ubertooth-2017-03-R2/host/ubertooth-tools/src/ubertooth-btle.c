@@ -335,7 +335,6 @@ int main(int argc, char *argv[])
 					clock_gettime(CLOCK_MONOTONIC, &tspec);
 					sync_start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
 					do_rssi = 1;
-					break;
 				} else if(do_rssi == 1) {
 					if (start == 0) {
 						clock_gettime(CLOCK_MONOTONIC, &tspec);

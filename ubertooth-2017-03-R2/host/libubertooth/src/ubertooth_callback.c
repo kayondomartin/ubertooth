@@ -461,7 +461,6 @@ void cb_btle_tracking(ubertooth_t* ut, void* args)
 	} else if (rx->pkt_type == RSSI_TRACK) {
 		u32 rx_ts = rx->clk100ns;
 		if (rx_ts < prev_ts) rx_ts += 327600000;
-		printf("\nRSSI systime(us) %.01f, Device: %d\n", rx_ts/10.0, rx->reserved[0]);
 		printf("rssi samples : ");
 		for (i = 0; i < 50; i++)
 		{

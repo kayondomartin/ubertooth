@@ -1747,9 +1747,9 @@ void bt_le_sync_rssi(u8 active_mode)
 			requested_channel = 0;
 		}
 		RXLED_CLR;
-//		if (requested_mode != active_mode) {
-//			goto cleanup;
-//		}
+		if (requested_mode != active_mode) {
+			goto cleanup;
+		}
 
 		//JWHUR buffering time information
 		u32 time_buf1[16] = {0, };
@@ -1774,7 +1774,7 @@ void bt_le_sync_rssi(u8 active_mode)
 		enqueue_time((uint8_t *) time_buf3);
 		enqueue_time((uint8_t *) time_buf4);
 		ISER0 = ISER0_ISE_USB;
-	/*	
+	
 		if (overflow == 0) {
 			if ((clkn & 0xffffff) > stop_at)
 				goto cleanup;
@@ -1782,7 +1782,7 @@ void bt_le_sync_rssi(u8 active_mode)
 			if ((clkn & 0xffffff) < now_sync && (clkn & 0xffffff) > stop_at)
 				goto cleanup;
 		}
-	*/	
+	
 	}
 cleanup:
 	ICER0 = ICER0_ICE_USB;
@@ -1917,7 +1917,7 @@ void bt_le_sync(u8 active_mode)
 			sync_flag = 1;
 			now_sync = (clkn & 0xffffff);
 			start_sync = now_sync + 100 * 10000 / 3125; // wait for 100 ms
-			sync_channel = (u16)p[28];
+//			sync_channel = (u16)p[28];
 		}
 
 
@@ -1935,6 +1935,7 @@ void bt_le_sync(u8 active_mode)
 		if (sync_flag == 1) {
 			requested_mode = MODE_BT_RSSI_LE;
 			bt_le_sync_rssi(MODE_BT_RSSI_LE);
+			goto cleanup;
 		}
 	
 	rx_flush:
@@ -2760,6 +2761,9 @@ void bt_sync_le() {
 	ICER0 = ICER0_ICE_DMA;
 	adv_ind_len = (u8) (adv_ind_len + 3);
 	le_transmit(0x8e89bed7, adv_ind_len, adv_ind, ch[0]);
+	now_sync = (clkn & 0xffffff);
+	start_sync = now_sync + 100 * 10000 / 3125; // wait for 99.8 ms
+
 	ISER0 = ISER0_ISE_USB;
 	ISER0 = ISER0_ISE_DMA;
 
