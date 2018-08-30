@@ -26,9 +26,15 @@ float kMeans_clustering(int *rssi, int *cls1, int *cls2, int lenData, float *mu)
 
 	if (nCls1 != 0)
 		mu[0] = (float) sumCls1/nCls1;
+	else
+		mu[0] = mu[1] + 10;
 	if (nCls2 != 0)
 		mu[1] = (float) sumCls2/nCls2;
-	
+	else
+		mu[1] = mu[0] + 10;
+
+
+	printf("cost: %f\n", cost);
 	return cost;
 }
 
@@ -52,7 +58,10 @@ float kMeans(int *rssi, int lenData) {
 		cost = fcost;
 	}
 	threshold = (mu[0] + mu[1])/2;
-	return threshold;
+	if (threshold > -80)
+		return threshold;
+	else 
+		return -80;
 }
 
 float *maFilter(int *rssi, int lenData) {
@@ -95,7 +104,7 @@ int edgeDetect(int *time, int *rssi, int *eTime, int *eRssi, int lenData, float 
 	FILE *output;
 
 	for (i=1; i<lenData; i++) {
-		if (rssi[i-1] < threshold && rssi[i] >= threshold) {
+		if (rssi[i] >= threshold) {
 			eRssi[nEdge] = rssi[i];
 			eTime[nEdge] = time[i];
 			nEdge++;
@@ -211,6 +220,7 @@ int main() {
 	lenData1 = getData("time1.dat", "rssi1.dat", rTime1, rssi1);
 	
 	thr1 = kMeans(rssi1, lenData1);
+	printf("thr0: %f, thr1: %f\n", thr0, thr1);
 
 	int *eRssi1 = malloc(sizeof(int)*lenData1);
 	int *eTime1 = malloc(sizeof(int)*lenData1);

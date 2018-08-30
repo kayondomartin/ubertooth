@@ -1,10 +1,11 @@
 #!/bin/bash
 u=$1
 
-ssh mwnl2@192.168.70.172 "cd ~/JWHUR/ubertooth/ubertooth-2017-03-R2/ && ./rx_start.sh 1"
+# ssh mwnl1@192.168.86.24 "cd ~/JWHUR/ubertooth/ubertooth-2017-03-R2/ && ./rx_start.sh 1" 
 
-ubertooth-btle -s ec:55:f9:12:7c:c9 -S -U $u >& log$u
-scp mwnl2@192.168.70.172:~/JWHUR/ubertooth/ubertooth-2017-03-R2/log1 ./
+ubertooth-btle -s ec:55:f9:12:7c:c9 -S -A 39 -U $u >& log$u
+sleep 0.1
+scp mwnl1@192.168.86.24:~/JWHUR/ubertooth/ubertooth-2017-03-R2/log1 ./
 
 catTime=$(sed -n -e 's/^.*measurement : //p' log0)
 catRssi=$(sed -n -e 's/^.*samples : //p' log0)

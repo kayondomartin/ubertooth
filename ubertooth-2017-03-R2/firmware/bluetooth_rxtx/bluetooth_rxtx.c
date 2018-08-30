@@ -1735,7 +1735,7 @@ void bt_le_sync_rssi(u8 active_mode)
 	dio_ssp_start();
 
 	cc2400_rx_sync(rbit(le.access_address));
-	
+
 	while (requested_mode == active_mode) {
 		if (requested_channel != 0) {
 			cc2400_strobe(SRFOFF);
@@ -1785,6 +1785,7 @@ void bt_le_sync_rssi(u8 active_mode)
 	
 	}
 cleanup:
+	free(rssi_buf);
 	ICER0 = ICER0_ICE_USB;
 	cc2400_idle();
 	dio_ssp_stop ();
@@ -1933,6 +1934,7 @@ void bt_le_sync(u8 active_mode)
 
 		//JWHUR if sync_flag receive
 		if (sync_flag == 1) {
+			free(packet);
 			requested_mode = MODE_BT_RSSI_LE;
 			bt_le_sync_rssi(MODE_BT_RSSI_LE);
 			goto cleanup;
