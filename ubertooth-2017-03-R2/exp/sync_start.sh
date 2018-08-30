@@ -5,7 +5,7 @@ u=$1
 
 ubertooth-btle -s ec:55:f9:12:7c:c9 -S -A 39 -U $u >& log$u
 sleep 0.1
-scp mwnl1@192.168.86.24:~/JWHUR/ubertooth/ubertooth-2017-03-R2/log1 ./
+scp mwnl1@192.168.2.201:~/JWHUR/ubertooth/ubertooth-2017-03-R2/log1 ./
 
 catTime=$(sed -n -e 's/^.*measurement : //p' log0)
 catRssi=$(sed -n -e 's/^.*samples : //p' log0)

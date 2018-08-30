@@ -336,6 +336,7 @@ int main(int argc, char *argv[])
 						clock_gettime(CLOCK_MONOTONIC, &tspec);
 						sync_start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
 						do_rssi = 1;
+						start = 0;
 					}
 				} else {
 					if (start == 0) {
@@ -379,10 +380,10 @@ int main(int argc, char *argv[])
 				}
 			}
 			usleep(500);
-			if (do_rssi == 1 && start != 0) {
+			if (start != 0) {
 				clock_gettime(CLOCK_MONOTONIC, &tspec);
 				uint64_t now = (tspec.tv_sec) * 1000 + (tspec.tv_nsec)/1000000;
-				if (now - start > 100)
+				if (do_rssi*(now - start) > 100 || now - start > 3000)
 					break;
 			}
 		}
