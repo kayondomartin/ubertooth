@@ -438,6 +438,7 @@ int cb_btle(ubertooth_t* ut, void* args)
 //JWHUR cb_btle_tracking
 void cb_btle_tracking(ubertooth_t* ut, void* args)
 {
+	FILE *output;
 	lell_packet* pkt;
 	btle_options* opts = (btle_options*) args;
 	int i, len;
@@ -459,14 +460,22 @@ void cb_btle_tracking(ubertooth_t* ut, void* args)
 	printf("\n\n");
 	fflush(stdout);
 	} else if (rx->pkt_type == RSSI_TRACK) {
+		// Make rssi.dat file
+		output = fopen("rssi.dat", "a");
+		if (output == NULL) {
+			printf("rssi.dat open failed\n");
+			return;
+		}
 		u32 rx_ts = rx->clk100ns;
 		if (rx_ts < prev_ts) rx_ts += 327600000;
 		printf("rssi samples : ");
 		for (i = 0; i < 50; i++)
 		{
-			rssi = (int8_t)rx->data[i];
-			printf("%d ", rssi-54);
+			rssi = (int8_t)(rx->data[i] - 54);
+			printf("%d ", rssi);
+			fprintf(output, "%d\n", rssi);
 		}
+		fclose(output);
 		printf("\n\n");
 		fflush(stdout);
 	}
@@ -475,16 +484,25 @@ void cb_btle_tracking(ubertooth_t* ut, void* args)
 //JWHUR cb_btle_time
 void cb_btle_time(ubertooth_t *ut, void *args)
 {
+	FILE *output;
 	int i;
 	u32 ts;
 	btle_options* opts = (btle_options*) args;
 	usb_pkt_rx usb = fifo_pop(ut->fifo);
 	usb_time_rx* rx = &usb;
 
+	output = fopen("time.dat", "a");
+	if (output == NULL) {
+		printf("time.dat open failed\n");
+		return;
+	}
+
 	for (i = 0; i < 16; i++) {
 		ts = rx->time[i];
 		printf("%ld ", (long)ts);
+		fprintf(output, "%ld\n", (long) ts);
 	}
+	fclose(output);
 	fflush(stdout);
 }	
 
@@ -492,16 +510,25 @@ void cb_btle_time(ubertooth_t *ut, void *args)
 //JWHUR cb_btle_time_last
 void cb_btle_time_last(ubertooth_t *ut, void *args)
 {
+	FILE *output;
 	int i;
 	u32 ts;
 	btle_options* opts = (btle_options*) args;
 	usb_pkt_rx usb = fifo_pop(ut->fifo);
 	usb_time_rx* rx = &usb;
 
+	output = fopen("time.dat", "a");
+	if (output == NULL) {
+		printf("time.dat open failed\n");
+		return;
+	}
+
 	for (i = 0; i < 2; i++) {
 		ts = rx->time[i];
 		printf("%ld ", (long)ts);
+		fprintf(output, "%ld\n", (long) ts);
 	}
+	fclose(output);
 	printf("\n\n");
 	fflush(stdout);
 }	

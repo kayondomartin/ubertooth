@@ -3,32 +3,14 @@ u=$1
 
 # ssh mwnl1@192.168.86.24 "cd ~/JWHUR/ubertooth/ubertooth-2017-03-R2/ && ./rx_start.sh 1" 
 
-ubertooth-btle -s ec:55:f9:12:7c:c9 -S -A 39 -U $u >& log$u
+ubertooth-btle -s ec:55:f9:12:7c:c9 -S -A 39 -U $u
 sleep 0.1
-scp mwnl1@192.168.86.24:~/JWHUR/ubertooth/ubertooth-2017-03-R2/log1 ./
 
-catTime=$(sed -n -e 's/^.*measurement : //p' log0)
-catRssi=$(sed -n -e 's/^.*samples : //p' log0)
+mv time.dat time0.dat
+mv rssi.dat rssi0.dat
 
-echo $catTime > time
-echo $catRssi > rssi
-tr -s ' ' '\n'< time > time0.dat
-tr -s ' ' '\n'< rssi > rssi0.dat
-
-rm time
-rm rssi
-
-catTime=$(sed -n -e 's/^.*measurement : //p' log1)
-catRssi=$(sed -n -e 's/^.*samples : //p' log1)
-
-echo $catTime > time
-echo $catRssi > rssi
-tr -s ' ' '\n'< time > time1.dat
-tr -s ' ' '\n'< rssi > rssi1.dat
-
-rm time
-rm rssi
-
+scp mwnl1@192.168.86.24:~/JWHUR/ubertooth/ubertooth-2017-03-R2/time.dat ./time1.dat
+scp mwnl1@192.168.86.24:~/JWHUR/ubertooth/ubertooth-2017-03-R2/rssi.dat ./rssi1.dat
 
 ./a.out
 paste time0.dat rssi0.dat > exp0.dat
