@@ -33,8 +33,6 @@ float kMeans_clustering(int *rssi, int *cls1, int *cls2, int lenData, float *mu)
 	else
 		mu[1] = mu[0] + 10;
 
-
-	printf("cost: %f\n", cost);
 	return cost;
 }
 

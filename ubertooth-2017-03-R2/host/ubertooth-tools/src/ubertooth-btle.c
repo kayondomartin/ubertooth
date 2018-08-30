@@ -331,11 +331,13 @@ int main(int argc, char *argv[])
 			if (r == sizeof(usb_pkt_rx)) {
 				fifo_push(ut->fifo, &rx);
 				if(!do_rssi) sync = cb_btle(ut, &cb_opts);
-				if(sync == 1 && do_rssi == 0) {
-					clock_gettime(CLOCK_MONOTONIC, &tspec);
-					sync_start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
-					do_rssi = 1;
-				} else if(do_rssi == 1) {
+				if(do_rssi == 0) {
+					if (sync == 1) {
+						clock_gettime(CLOCK_MONOTONIC, &tspec);
+						sync_start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
+						do_rssi = 1;
+					}
+				} else {
 					if (start == 0) {
 						clock_gettime(CLOCK_MONOTONIC, &tspec);
 						start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
