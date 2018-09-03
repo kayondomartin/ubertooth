@@ -27,11 +27,11 @@ float kMeans_clustering(int *rssi, int *cls1, int *cls2, int lenData, float *mu)
 	if (nCls1 != 0)
 		mu[0] = (float) sumCls1/nCls1;
 	else
-		mu[0] = mu[1] + 10;
+		mu[0] = mu[1] - 1;
 	if (nCls2 != 0)
 		mu[1] = (float) sumCls2/nCls2;
 	else
-		mu[1] = mu[0] + 10;
+		mu[1] = mu[0] + 1;
 
 	return cost;
 }
@@ -47,14 +47,18 @@ float kMeans(int *rssi, int lenData) {
 	mu = malloc(sizeof(float)*2);
 
 	//random initialization of mu
-	mu[0] = rand()%100 - 100;
-	mu[1] = rand()%100 - 100;
+	mu[0] = 0;
+	for (i=0; i<lenData; i++)
+		mu[0] += rssi[i];
+	mu[0] /= lenData;
+	mu[1] = mu[0] + 1;
 	//
 	
 	for(i=0; i<max_iter; i++) {
 		fcost = kMeans_clustering(rssi, cls1, cls2, lenData, mu);
 		cost = fcost;
 	}
+	printf("cost: %f\n", cost);
 	threshold = (mu[0] + mu[1])/2;
 	if (threshold > -80)
 		return threshold;
