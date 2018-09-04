@@ -5847,7 +5847,7 @@ void bt_le_sync_rssi(u8 active_mode)
 		while ((clkn & 0xffffff) < start_sync);
 	}
 
-	// rssi sampling for only 100 ms
+	// rssi sampling for only 127 ms
 	uint32_t now = (clkn & 0xffffff);
     5c84:	6823      	ldr	r3, [r4, #0]
 
@@ -5861,7 +5861,7 @@ void bt_le_sync_rssi(u8 active_mode)
 		while ((clkn & 0xffffff) < start_sync);
 	}
 
-	// rssi sampling for only 100 ms
+	// rssi sampling for only 127 ms
 	uint32_t now = (clkn & 0xffffff);
     5c88:	f023 4a7f 	bic.w	sl, r3, #4278190080	; 0xff000000
 	if (stop_at >= ((uint32_t)1<<28)) {
@@ -5913,10 +5913,10 @@ void bt_le_sync_rssi(u8 active_mode)
 		while ((clkn & 0xffffff) < start_sync);
 	}
 
-	// rssi sampling for only 100 ms
+	// rssi sampling for only 127 ms
 	uint32_t now = (clkn & 0xffffff);
-	uint32_t stop_at = now + 100 * 10000 / 3125; // millis -> clkn ticks
-    5cb6:	f50a 7aa0 	add.w	sl, sl, #320	; 0x140
+	uint32_t stop_at = now + 127 * 10000 / 3125; // millis -> clkn ticks
+    5cb6:	f50a 7acb 	add.w	sl, sl, #406	; 0x196
 	queue_init();
 	dio_ssp_init();
 	dma_init_le();
@@ -19727,9 +19727,9 @@ BOOL USBHandleStandardRequest(TSetupPacket	*pSetup, int *piLen, U8 **ppbData)
 00009f6b <compile_info>:
     9f6b:	72656275 746f6f74 30322068 302d3731     ubertooth 2017-0
     9f7b:	32522d33 776d2820 6d406c6e 2d6c6e77     3-R2 (mwnl@mwnl-
-    9f8b:	6f6e656c 20296f76 38313032 3830202e     lenovo) 2018. 08
-    9f9b:	3033202e eb28202e 2029a9aa 303a3631     . 30. (...) 16:0
-    9fab:	35303a36 54534b20 bcb24000                       6:05 KST.
+    9f8b:	6f6e656c 20296f76 38313032 3930202e     lenovo) 2018. 09
+    9f9b:	3430202e ed28202e 20299499 343a3431     . 04. (...) 14:4
+    9fab:	34303a30 54534b20 bcb24000                       0:04 KST.
 
 00009fb4 <whitening_word>:
     9fb4:	c3bcb240 5f4a371f 9a9cf685 44c5d6c1     @....7J_.......D

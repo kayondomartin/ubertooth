@@ -142,7 +142,7 @@ int makeBarcode(int *eTime, int nEdge, int *Barcode, char *oFile) {
 		printf("open failed\n");
 		return 0;
 	}
-	for (i=0; i<100; i++)
+	for (i=0; i<127; i++)
 		fprintf(output, "%d\n", Barcode[i]);
 
 	return 1;
@@ -205,8 +205,8 @@ int *procData(char *timeFile, char *rssiFile) {
 	float thr;
 	srand(time(NULL));
 
-	rTime = malloc(sizeof(int)*2000);
-	rssi = malloc(sizeof(int)*2000);
+	rTime = malloc(sizeof(int)*2540);
+	rssi = malloc(sizeof(int)*2540);
 	lenData = getData(timeFile, rssiFile, rTime, rssi);
 
 	thr = kMeans(rssi, lenData);
@@ -216,8 +216,8 @@ int *procData(char *timeFile, char *rssiFile) {
 	nEdge = edgeDetect(rTime, rssi, eTime, eRssi, lenData, thr,"edge.dat");
 
 	int *Barcode;
-	Barcode = malloc(sizeof(int)*100);
-	for(i=0; i<100; i++)
+	Barcode = malloc(sizeof(int)*127);
+	for(i=0; i<127; i++)
 		Barcode[i] = 0;
 	int r = makeBarcode(eTime, nEdge, Barcode, "Barcode.dat");
 	
