@@ -28,14 +28,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-/* To automatically kill this process after 100ms */
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <error.h>
-#include <signal.h>
-#include <syslog.h>
-#include <stdio.h>
-
 int convert_mac_address(char *s, uint8_t *o) {
 	int i;
 
@@ -123,7 +115,7 @@ static void usage(void)
 int main(int argc, char *argv[])
 {
 	/* To kill this process */
-	FILE *fp;
+	FILE *output;
 	char line[1035], pid_string[1035];
 	int pid = 0, i;
 	//////
@@ -322,6 +314,16 @@ int main(int argc, char *argv[])
 		int sync = 0; //JWHUR test for synchronization
 		struct timespec tspec;
 		uint64_t sync_start, start = 0;
+		output = fopen("rssi.dat", "w");
+		if (output == NULL) {
+			printf("rssi.dat open failed\n");
+		}
+		fclose(output);
+		output = fopen("time.dat", "w");
+		if (output == NULL) {
+			printf("time.dat open failed\n");
+		}
+
 		while (1) {
 			int r = cmd_poll(ut->devh, &rx);
 			if (r < 0) {
@@ -429,7 +431,7 @@ int main(int argc, char *argv[])
 		if (do_data_mode) {
 			for(i=6; i< (dlen + 6); i++) tot_data[i] = data[i-6];
 			cmd_btle_slave(ut->devh, tot_data, UBERTOOTH_BTLE_SLAVE, dlen+6);
-		} else if (do_sync_mode) {
+		} else if (do_sync_mode) {	
 			cmd_btle_slave(ut->devh, NULL, UBERTOOTH_BTLE_SYNC, 0);
 			struct timespec tspec;
 			clock_gettime(CLOCK_MONOTONIC, &tspec);
