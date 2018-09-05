@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdint.h>
 
-#include "bleTx.h"
+#include "bleControl.h"
 
 int syncStart(char *macAP) {
 	int status;
@@ -24,11 +24,11 @@ int syncStart(char *macAP) {
 }
 
 int dataTx(char *macAP, int *bch, int rLen, char *encPwd, int txDur) {
-	int status, i;
+	int status, i, pwdLen;
 	uint32_t parity = 0x00000000;
 	uint8_t errCap = 0x00, *parityByte;
 	int *eccInt;
-	char eccChar[10];
+	char eccChar[10], pwdChar[10];
 	char *pre_com, *mid1_com, *mid2_com, *post_com, eccHdr[50] = "", data[100] = "", command[300] = "", dur[12];
 
 	parityByte = (uint8_t *)&parity;
@@ -59,7 +59,25 @@ int dataTx(char *macAP, int *bch, int rLen, char *encPwd, int txDur) {
 	}
 	printf("\neccHdr: %s\n", eccHdr);	
 
-	strcat(data, eccHdr);
+	
+	/**********************
+	  BLE packet format for BLE IoT authentication association protocol
+
+	  BLE header - Eddystone header - Eddystone URL header - protocol preamble (aa) - ECC header - enc pwd preamble (cc) - enc. pwd
+	
+	 *********************/
+
+	strcat(data, eccHdr);	// Add ecc Header
+	strcat(data, "cc");		// Add preamble for encrypted password
+
+	pwdLen = strlen(encPwd);
+	for(i=0; i<pwdLen; i++) {
+		sprintf(pwdChar,"%02x", (uint8_t)encPwd[i]);
+		printf("%c, %s\n", encPwd[i], pwdChar);
+		strcat(data, pwdChar);
+	}
+	printf("encPwd: %s\n", encPwd);
+
 	pre_com = "ubertooth-btle -s ";
 	mid1_com = " -d ";
 	mid2_com = " -T ";
@@ -69,13 +87,13 @@ int dataTx(char *macAP, int *bch, int rLen, char *encPwd, int txDur) {
 	strcat(command, pre_com);
 	strcat(command, macAP);
 	strcat(command, mid1_com);
-	strcat(command, eccHdr);
+	strcat(command, data);
 	strcat(command, mid2_com);
 	strcat(command, dur);
 	strcat(command, post_com);
 
 	status = system(command);
-
+	free(eccInt);
 	return status;
 }
 

@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "bchEnc.h"
+#include "bchEcc.h"
 
 /*****
 nCor : correction capability
