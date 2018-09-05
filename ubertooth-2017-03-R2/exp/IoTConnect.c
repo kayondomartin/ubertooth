@@ -48,7 +48,7 @@ int main() {
 	clock_gettime(CLOCK_MONOTONIC, &tspec);
 	start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
 	now = start;
-	while(now - start < 3000) {
+//	while(now - start < 3000) {
 		status = syncStart(macAP);
 		if(status < 0)
 			return 0;
@@ -75,7 +75,7 @@ int main() {
 		now = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
 
 		sleep(1);
-	}
+//	}
 
 	return 0;
 }
