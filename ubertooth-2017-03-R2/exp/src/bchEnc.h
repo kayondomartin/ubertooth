@@ -3,4 +3,4 @@
 #include <stdlib.h>
 #include <time.h>
 
-int makeBCH(int *data, int *bch, int nCor);
+int makeBCH(int *data, int *bch);

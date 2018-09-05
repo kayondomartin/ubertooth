@@ -64,14 +64,21 @@ int convert_mac_address(char *s, uint8_t *o) {
 int convert_data(char *s, uint8_t *o) {
 	int i, slen;
 
-	printf("data: ");
 	slen = strlen(s);
-	for (i=0; i < slen; i++) {
-		uint8_t byte;
-		sscanf(&s[i], "%c", &byte);
-		o[i] = byte;
-		printf("%u ", o[i]);
+	if (slen % 2 == 1)
+		printf("Discard last word\n");
+	printf("data: ");
+	for (i=0; i < slen-1; i+=2) {
+		if (!isxdigit(s[i])) {
+			printf("Error: input data contains invalid character(s)\n");
+			return 0;
+		}
+		unsigned byte;
+		sscanf(&s[i], "%02x", &byte);
+		o[i/2] = byte;
+		printf("%02x ", o[i/2]);
 	}
+	
 	printf("\n");
 	return 1;
 }
@@ -106,7 +113,8 @@ static void usage(void)
 	printf("\t-d set ubertooth advertising data\n");
 	printf("\t-o center frequency offset tracking\n");
 	printf("\t-R RSSI tracking\n");
-	printf("\t-S Rssi sampling synchronization mode");
+	printf("\t-S Rssi sampling synchronization mode\n");
+	printf("\t-T BLE scanning duration\n");
 
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
 	printf("In get/set mode no capture occurs.\n");
@@ -126,6 +134,7 @@ int main(int argc, char *argv[])
 	int do_adv_index;
 	int do_slave_mode, do_data_mode, do_sync_mode;
 	// JWHUR set advertising data
+	int duration; // ms
 	uint8_t *data;
 	int dlen;
 	int do_target;
@@ -147,8 +156,9 @@ int main(int argc, char *argv[])
 	do_adv_index = 37;
 	do_slave_mode = do_target = do_data_mode = do_sync_mode = 0;
 	dlen = 0;
+	duration = 3000;
 
-	while ((opt=getopt(argc,argv,"a::r:hfoRpU:v::A:s:d:S:l:t:x:c:o:q:jJiI")) != EOF) {
+	while ((opt=getopt(argc,argv,"a::r:hfoRpU:v::A:s:d:S:T:l:t:x:c:o:q:jJiI")) != EOF) {
 		switch(opt) {
 		case 'a':
 			if (optarg == NULL) {
@@ -225,14 +235,19 @@ int main(int argc, char *argv[])
 			break;
 		//JWHUR set advertising data
 		case 'd':
-			do_data_mode = 1;
 			dlen = strlen(optarg);
 			data = (uint8_t*) malloc(sizeof(uint8_t) * dlen);
 			r = convert_data(optarg, data);
+			if (r == 0)
+				return;
+			do_data_mode = 1;
 			break;
 		//JWHUR rssi sampling synchronization mode
 		case 'S':
 			do_sync_mode = 1;
+			break;
+		case 'T':
+			duration = (int) atoi(optarg);
 			break;
 		case 't':
 			do_target = 1;
@@ -324,6 +339,9 @@ int main(int argc, char *argv[])
 			printf("time.dat open failed\n");
 		}
 
+		clock_gettime(CLOCK_MONOTONIC, &tspec);
+		start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
+
 		while (1) {
 			int r = cmd_poll(ut->devh, &rx);
 			if (r < 0) {
@@ -385,7 +403,7 @@ int main(int argc, char *argv[])
 			if (start != 0) {
 				clock_gettime(CLOCK_MONOTONIC, &tspec);
 				uint64_t now = (tspec.tv_sec) * 1000 + (tspec.tv_nsec)/1000000;
-				if (do_rssi*(now - start) > 127 || now - start > 3000)
+				if (do_rssi*(now - start) > 127 || now - start > duration)
 					break;
 			}
 		}
@@ -431,8 +449,11 @@ int main(int argc, char *argv[])
 		if (do_data_mode) {
 			for(i=6; i< (dlen + 6); i++) tot_data[i] = data[i-6];
 			cmd_btle_slave(ut->devh, tot_data, UBERTOOTH_BTLE_SLAVE, dlen+6);
+			usleep(duration * 1000);
+			ubertooth_stop(ut);
 		} else if (do_sync_mode) {	
-			cmd_btle_slave(ut->devh, NULL, UBERTOOTH_BTLE_SYNC, 0);
+			printf("\n%u:%u:%u:%u:%u:%u\n", mac_address[0], mac_address[1], mac_address[2], mac_address[3], mac_address[4], mac_address[5]);
+			cmd_btle_slave(ut->devh, mac_address, UBERTOOTH_BTLE_SYNC, 6);
 			struct timespec tspec;
 			clock_gettime(CLOCK_MONOTONIC, &tspec);
 			uint64_t sync_start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
@@ -491,7 +512,8 @@ int main(int argc, char *argv[])
 			ubertooth_stop(ut);
 			
 		} else 
-			cmd_btle_slave(ut->devh, tot_data, UBERTOOTH_BTLE_SLAVE, dlen+6); 
+			cmd_btle_slave(ut->devh, tot_data, UBERTOOTH_BTLE_SLAVE, dlen+6);
+		free(tot_data);
 	}
 
 	if (do_target) {

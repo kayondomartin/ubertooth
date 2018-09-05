@@ -21,15 +21,22 @@
 #include <math.h>
 #include <time.h>
 #include <string.h>
+#include <time.h>
+#include <stdint.h>
 
 #include "src/procData.h"
-#include "src/syncStart.h"
+#include "src/bleTx.h"
 #include "src/bchEnc.h"
 
 int main() {
-	int status, i, nCor;
+	int status, rLen, nCor, txDur, rxDur, i;
 	int *Barcode, *bch;
 	char *timeFile, *rssiFile, *macAP;
+
+	struct timespec tspec;
+	uint64_t start, now;
+
+	srand(time(NULL));
 
 	timeFile = "time.dat";
 	rssiFile = "rssi.dat";
@@ -38,7 +45,10 @@ int main() {
 	Barcode = malloc(sizeof(int)*127);
 	bch = malloc(sizeof(int)*127);
 	
-	while(1) {
+	clock_gettime(CLOCK_MONOTONIC, &tspec);
+	start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
+	now = start;
+	while(now - start < 3000) {
 		status = syncStart(macAP);
 		if(status < 0)
 			return 0;
@@ -50,11 +60,19 @@ int main() {
 		printf("\n");
 
 		nCor = 0;
-		status = makeBCH(Barcode, bch, nCor);
+		rLen = makeBCH(Barcode, bch);
 		printf("\nBCH encoded Barcode: ");
 		for(i=0; i<127; i++)
 			printf("%d ", bch[i]);
 		printf("\n");
+
+		txDur = 50 + (rand()%10 - 10);
+		rxDur = 100 - txDur;
+		status = dataTx(macAP, bch, rLen, "data", txDur);
+		status = startRx(rxDur);
+		
+		clock_gettime(CLOCK_MONOTONIC, &tspec);
+		now = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
 
 		sleep(1);
 	}

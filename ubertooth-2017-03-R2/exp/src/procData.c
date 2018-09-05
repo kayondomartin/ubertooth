@@ -60,6 +60,9 @@ float kMeans(int *rssi, int lenData) {
 		cost = fcost;
 	}
 	threshold = (mu[0] + mu[1])/2;
+
+	free(cls1); free(cls2); free(mu);
+
 	if (threshold > -80)
 		return threshold;
 	else 
@@ -220,6 +223,7 @@ int *procData(char *timeFile, char *rssiFile) {
 	for(i=0; i<127; i++)
 		Barcode[i] = 0;
 	int r = makeBarcode(eTime, nEdge, Barcode, "Barcode.dat");
-	
+
+	free(rTime); free(rssi); free(eRssi); free(eTime);
 	return Barcode;
 }

@@ -685,6 +685,8 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 
 	//JWHUR for rssi sampling synchronization
 	case UBERTOOTH_BTLE_SYNC:
+		slave_mac_address_data = (uint8_t*) malloc(sizeof(uint8_t)*6);
+		memcpy(slave_mac_address_data, data, 6);
 		requested_mode = MODE_BT_SYNC_LE;
 		do_hop = 0;
 		hop_mode = HOP_BTLE;
@@ -2724,7 +2726,15 @@ void bt_slave_le() {
 		ISER0 = ISER0_ISE_DMA;
 		msleep(10);
 	}
+	free(slave_mac_address_data);	
 	free(adv_ind);
+	for(i=0; i<num_adv_ind; i++)
+		free(adv_ind[i]);
+	ICER0 = ICER0_ICE_USB;
+	cc2400_idle();
+	dio_ssp_stop ();
+	cs_trigger_disable();
+
 }
 
 void bt_sync_le() {
@@ -2747,8 +2757,12 @@ void bt_sync_le() {
 	// Nexsus 5 smartphone can not receive BLE packet which has length over 31 bytes (adv payload 11 + 1 (preamble))
 	adv_ind_len = 24; 
 	adv_ind = (u8*) malloc(sizeof(u8)*24);
+
 	for (i=0; i<24; i++)
 		adv_ind[i] = adv_sync[i];
+	for (i=0; i<6; i++) 
+		adv_ind[i+2] = slave_mac_address_data[5-i];
+
 	calc_crc = btle_calc_crc(le.crc_init_reversed, adv_ind, adv_ind_len);
 	adv_ind_len = (int) adv_ind_len;
 	adv_ind[adv_ind_len+0] = (calc_crc >> 0) & 0xff;
@@ -2768,9 +2782,10 @@ void bt_sync_le() {
 	ISER0 = ISER0_ISE_DMA;
 
 	free(adv_ind);
+	free(slave_mac_address_data);
 	requested_mode = MODE_BT_RSSI_LE;
 	bt_tracking_le(MODE_BT_RSSI_LE);
-		
+	
 	ICER0 = ICER0_ICE_USB;
 	cc2400_idle();
 	dio_ssp_stop ();
