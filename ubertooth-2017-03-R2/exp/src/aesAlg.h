@@ -6,3 +6,4 @@
 
 
 int aesEncrypt(int *bch, char *data, char *encData);
+int aesDecrypt(int *bch, char *encData, char *data);

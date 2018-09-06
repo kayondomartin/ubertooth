@@ -10,3 +10,4 @@ int edgeDetect(int *time, int *rssi, int *eTime, int *eRssi, int lenData, float 
 int makeBarcode(int *eTime, int nEdge, int *Barcode, char *oFile);
 int getData(char *tFile, char*rFile, int *time, int *rssi);
 int *procData(char *timeFile, char *rssiFile);
+int getAPInfo(char *APMAC, char *APSSID, char *APPWD);

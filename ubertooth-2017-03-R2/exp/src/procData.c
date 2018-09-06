@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include <time.h>
 #include "procData.h"
@@ -227,3 +228,40 @@ int *procData(char *timeFile, char *rssiFile) {
 	free(rTime); free(rssi); free(eRssi); free(eTime);
 	return Barcode;
 }
+
+int getAPInfo(char *APMAC, char *APSSID, char *APPWD) {
+	char line[10]="";
+	FILE *apSSID = popen("nm-tool | grep '*' > ap; conAP=$(sed -n '2p' < ap); APtemp=$(echo $conAP | awk '{print $1}'); APSSID=${APtemp#'*'}; APSSID=${APSSID%':'}; echo $APSSID; rm ap", "r");
+	if(apSSID != NULL) {
+		while(fgets(line, sizeof(10), apSSID) != NULL)
+			strcat(APSSID, line);
+		printf("AP ssid: %s", APSSID);
+	}
+
+	char ap[100]= "";
+	int i, len;
+	len = strlen(APSSID);
+	for(i=0; i<len-1; i++)
+		ap[i] = APSSID[i];
+
+	char command[500] = "PWDtemp=$(sudo cat /etc/NetworkManager/system-connections/";
+	strcat(command, ap);
+	strcat(command, " | grep psk=); pwd=${PWDtemp#'psk='}; echo $pwd");
+	FILE *apPWD = popen(command, "r");
+	if(apPWD != NULL) {
+		while(fgets(line, sizeof(10), apPWD) != NULL)
+			strcat(APPWD, line);
+		printf("AP password: %s", APPWD);
+	}
+
+	char command1[500] = "MACtemp=$(sudo cat /etc/NetworkManager/system-connections/";
+	strcat(command1, ap);
+	strcat(command1, " | grep mac-address=); MAC=${MACtemp#'mac-address='}; echo $MAC");
+	FILE *apMAC = popen(command1, "r");
+	if(apMAC != NULL) {
+		while(fgets(line, sizeof(10), apMAC) != NULL)
+			strcat(APMAC, line);
+		printf("AP mac address: %s", APMAC);
+	}
+}
+

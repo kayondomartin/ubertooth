@@ -35,8 +35,9 @@
 int main() {
 	int status, rLen, nCor, txDur, rxDur, i;
 	int *Barcode, *bch;
-	char *timeFile, *rssiFile, *macAP, *pwd;
+	char *timeFile, *rssiFile;
 	char encPwd[FREAD_COUNT + BLOCK_SIZE], decPwd[FREAD_COUNT + BLOCK_SIZE]; 
+	char APSSID[100] = "", APPWD[100] = "", APMAC[17]="", macAP[17]="";
 
 	struct timespec tspec;
 	uint64_t start, now;
@@ -45,47 +46,46 @@ int main() {
 
 	timeFile = "time.dat";
 	rssiFile = "rssi.dat";
-	macAP = "ec:55:f9:12:7c:c9";
-	pwd = "jwhur";
 
 	Barcode = malloc(sizeof(int)*127);
 	bch = malloc(sizeof(int)*127);
-	
+
+	status = getAPInfo(APMAC, APSSID, APPWD);
+
+	for(i=0; i<17; i++)
+		macAP[i] = APMAC[i];
+
 	clock_gettime(CLOCK_MONOTONIC, &tspec);
 	start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
 	now = start;
-//	while(now - start < 3000) {
+	while(now - start < 3000) {
 		status = syncStart(macAP);
 		if(status < 0)
 			return 0;
 		
 		Barcode = procData(timeFile, rssiFile);
-		printf("\nBarcode: ");
+		printf("\nBarcode : ");
 		for(i=0; i<127; i++)
 			printf("%d ", Barcode[i]);
 		printf("\n");
 
 		nCor = 0;
 		rLen = makeBCH(Barcode, bch);
-		printf("\nBCH encoded Barcode: ");
+		printf("\nBCH enc.: ");
 		for(i=0; i<127; i++)
 			printf("%d ", bch[i]);
 		printf("\n");
 
-		status = aesEncrypt(bch, pwd, encPwd);
-		printf("%s\n", encPwd);
+		status = aesEncrypt(bch, APPWD, encPwd);
 		txDur = 50 + (rand()%10 - 10);
 		rxDur = 100 - txDur;
 		status = dataTx(macAP, bch, rLen, encPwd, txDur);
 		status = startRx(rxDur);
 
-		status = aesDecrypt(bch, encPwd, decPwd); 
-		
 		clock_gettime(CLOCK_MONOTONIC, &tspec);
 		now = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
 
-//		sleep(1);
-//	}
+	}
 
 	return 0;
 }

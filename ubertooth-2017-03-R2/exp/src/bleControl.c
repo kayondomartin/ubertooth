@@ -41,10 +41,8 @@ int dataTx(char *macAP, int *bch, int rLen, char *encPwd, int txDur) {
 		errCap = 0x04;
 
 	eccInt = (int*)malloc(sizeof(int)*rLen);
-	printf("rLen: %d\neccInt: ", rLen);
 	for(i=0; i<rLen; i++) {
 		eccInt[i] = bch[127 - rLen + i];
-		printf("%d", eccInt[i]);
 	}
 	for(i=0; i<rLen; i++) {
 		parity <<= 1;
@@ -57,7 +55,6 @@ int dataTx(char *macAP, int *bch, int rLen, char *encPwd, int txDur) {
 		sprintf(eccChar, "%02x", parityByte[4-i]);
 		strcat(eccHdr, eccChar);
 	}
-	printf("\neccHdr: %s\n", eccHdr);	
 
 	
 	/**********************
@@ -73,7 +70,6 @@ int dataTx(char *macAP, int *bch, int rLen, char *encPwd, int txDur) {
 	pwdLen = strlen(encPwd);
 	for(i=0; i<pwdLen; i++) {
 		sprintf(pwdChar,"%02x", (uint8_t)encPwd[i]);
-		printf("%c, %s\n", encPwd[i], pwdChar);
 		strcat(data, pwdChar);
 	}
 	printf("encPwd: %s\n", encPwd);
