@@ -3,6 +3,8 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <stdint.h>
+
 #include "procData.h"
 
 #define FLT_MAX 3.402823466e+38F
@@ -263,5 +265,60 @@ int getAPInfo(char *APMAC, char *APSSID, char *APPWD) {
 			strcat(APMAC, line);
 		printf("AP mac address: %s", APMAC);
 	}
+	pclose(apSSID); pclose(apPWD); pclose(apMAC);
 }
+
+
+int getBCHdata(char *APMAC, uint8_t *data) {
+	FILE *dataFile;
+	int status, len, i;
+	char dd[300] = "", line[10], command[200] = "cat log | grep '", blePrefix[120] = "Data:  ", bleMac[100];
+	uint8_t APMAC2Byte[6];
+
+	if(strlen(APMAC) != 6*2+5) {
+		printf("Error: MAC address is wrong length\n");
+		return 0;
+	}
+
+	for (i = 0; i < 6*3; i += 3) {
+		if (!isxdigit(APMAC[i]) ||
+			!isxdigit(APMAC[i+1])) {
+			printf("Error: MAC address contains invalid character(s)\n");
+			return 0;
+		}
+		if (i < 5*3 && APMAC[i+2] != ':') {
+			printf("Error: MAC address contains invalid character(s)\n");
+			return 0;
+		}
+	}
+
+	// sanity: checked; convert
+	for (i = 0; i < 6; ++i) {
+		unsigned byte;
+		sscanf(&APMAC[i*3], "%02x",&byte);
+		APMAC2Byte[i] = byte;
+	}
+
+	sprintf(bleMac, "%02x %02x %02x %02x %02x %02x", APMAC2Byte[5], APMAC2Byte[4], APMAC2Byte[3], APMAC2Byte[2], APMAC2Byte[1], APMAC2Byte[0]);
+	printf("bleMac: %s\n", bleMac);
+
+	strcat(blePrefix, bleMac);
+	strcat(command, blePrefix);
+	strcat(command, "'");
+	dataFile = popen(command, "r");
+	if(dataFile != NULL) {
+		while(fgets(line, sizeof(10), dataFile) != NULL)
+			strcat(dd, line);
+		printf("%s", dd);
+	}
+	len = strlen(dd);
+	for(i=0; i<len-62; i+=3) {
+		unsigned byte;
+		sscanf(&dd[62 + i], "%02x", &byte);
+		data[i/3] = (uint8_t)byte; 
+	}
+	return 1;
+}
+
+
 

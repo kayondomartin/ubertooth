@@ -122,10 +122,6 @@ static void usage(void)
 
 int main(int argc, char *argv[])
 {
-	/* To kill this process */
-	FILE *output;
-	char line[1035], pid_string[1035];
-	int pid = 0, i;
 	//////
 	int opt;
 	int do_follow, do_promisc, do_cfo, do_rssi;
@@ -329,15 +325,6 @@ int main(int argc, char *argv[])
 		int sync = 0; //JWHUR test for synchronization
 		struct timespec tspec;
 		uint64_t sync_start, start = 0;
-		output = fopen("rssi.dat", "w");
-		if (output == NULL) {
-			printf("rssi.dat open failed\n");
-		}
-		fclose(output);
-		output = fopen("time.dat", "w");
-		if (output == NULL) {
-			printf("time.dat open failed\n");
-		}
 
 		clock_gettime(CLOCK_MONOTONIC, &tspec);
 		start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;

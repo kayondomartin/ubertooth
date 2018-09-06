@@ -50,10 +50,10 @@ int main() {
 	Barcode = malloc(sizeof(int)*127);
 	bch = malloc(sizeof(int)*127);
 
-	status = getAPInfo(APMAC, APSSID, APPWD);
+	status = getAPInfo(macAP, APSSID, APPWD);
 
 	for(i=0; i<17; i++)
-		macAP[i] = APMAC[i];
+		APMAC[i] = macAP[i];
 
 	clock_gettime(CLOCK_MONOTONIC, &tspec);
 	start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
@@ -79,7 +79,7 @@ int main() {
 		status = aesEncrypt(bch, APPWD, encPwd);
 		txDur = 50 + (rand()%10 - 10);
 		rxDur = 100 - txDur;
-		status = dataTx(macAP, bch, rLen, encPwd, txDur);
+		status = dataTx(APMAC, bch, rLen, encPwd, txDur);
 		status = startRx(rxDur);
 
 		clock_gettime(CLOCK_MONOTONIC, &tspec);

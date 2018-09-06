@@ -423,8 +423,11 @@ int cb_btle(ubertooth_t* ut, void* args)
 
 	//JWHUR test synchronization protocol
 	//When receive 'SYNC', stop ble scanning
-	if (rx->data[23] == 0xff && rx->data[24] == 0x53 && rx->data[25] == 0x59 && rx->data[26] == 0x4e && rx->data[27] == 0x43) 
+	if (rx->data[23] == 0xff && rx->data[24] == 0x53 && rx->data[25] == 0x59 && rx->data[26] == 0x4e && rx->data[27] == 0x43) {
 		sync = 1;
+		printf("SYNC received, AP Mac address: %02x:%02x:%02x:%02x:%02x:%02x\n", rx->data[11], rx->data[10], rx->data[9], rx->data[8], rx->data[7], rx->data[6]);
+	}
+
 
 	lell_print(pkt);
 	printf("\n");

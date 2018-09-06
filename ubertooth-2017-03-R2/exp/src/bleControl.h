@@ -5,4 +5,4 @@
 int syncStart(char *macAP);
 int dataTx(char *macAP, int *bch, int rLen, char *encPwd, int txDur);
 int startRx(int rxDur);
-
+int syncReceived(char *macAP);
