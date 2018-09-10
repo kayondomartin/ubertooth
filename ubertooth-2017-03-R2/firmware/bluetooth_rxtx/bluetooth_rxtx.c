@@ -2730,11 +2730,6 @@ void bt_slave_le() {
 	free(adv_ind);
 	for(i=0; i<num_adv_ind; i++)
 		free(adv_ind[i]);
-	ICER0 = ICER0_ICE_USB;
-	cc2400_idle();
-	dio_ssp_stop ();
-	cs_trigger_disable();
-
 }
 
 void bt_sync_le() {

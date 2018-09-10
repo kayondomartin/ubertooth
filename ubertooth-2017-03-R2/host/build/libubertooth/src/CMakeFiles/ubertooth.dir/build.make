@@ -141,12 +141,84 @@ libubertooth/src/CMakeFiles/ubertooth.dir/ubertooth_fifo.c.o.provides: libuberto
 
 libubertooth/src/CMakeFiles/ubertooth.dir/ubertooth_fifo.c.o.provides.build: libubertooth/src/CMakeFiles/ubertooth.dir/ubertooth_fifo.c.o
 
+libubertooth/src/CMakeFiles/ubertooth.dir/procData.c.o: libubertooth/src/CMakeFiles/ubertooth.dir/flags.make
+libubertooth/src/CMakeFiles/ubertooth.dir/procData.c.o: ../libubertooth/src/procData.c
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/CMakeFiles $(CMAKE_PROGRESS_5)
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building C object libubertooth/src/CMakeFiles/ubertooth.dir/procData.c.o"
+	cd /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/libubertooth/src && /usr/bin/cc  $(C_DEFINES) $(C_FLAGS) -o CMakeFiles/ubertooth.dir/procData.c.o   -c /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/procData.c
+
+libubertooth/src/CMakeFiles/ubertooth.dir/procData.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/ubertooth.dir/procData.c.i"
+	cd /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/libubertooth/src && /usr/bin/cc  $(C_DEFINES) $(C_FLAGS) -E /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/procData.c > CMakeFiles/ubertooth.dir/procData.c.i
+
+libubertooth/src/CMakeFiles/ubertooth.dir/procData.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/ubertooth.dir/procData.c.s"
+	cd /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/libubertooth/src && /usr/bin/cc  $(C_DEFINES) $(C_FLAGS) -S /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/procData.c -o CMakeFiles/ubertooth.dir/procData.c.s
+
+libubertooth/src/CMakeFiles/ubertooth.dir/procData.c.o.requires:
+.PHONY : libubertooth/src/CMakeFiles/ubertooth.dir/procData.c.o.requires
+
+libubertooth/src/CMakeFiles/ubertooth.dir/procData.c.o.provides: libubertooth/src/CMakeFiles/ubertooth.dir/procData.c.o.requires
+	$(MAKE) -f libubertooth/src/CMakeFiles/ubertooth.dir/build.make libubertooth/src/CMakeFiles/ubertooth.dir/procData.c.o.provides.build
+.PHONY : libubertooth/src/CMakeFiles/ubertooth.dir/procData.c.o.provides
+
+libubertooth/src/CMakeFiles/ubertooth.dir/procData.c.o.provides.build: libubertooth/src/CMakeFiles/ubertooth.dir/procData.c.o
+
+libubertooth/src/CMakeFiles/ubertooth.dir/bchEcc.c.o: libubertooth/src/CMakeFiles/ubertooth.dir/flags.make
+libubertooth/src/CMakeFiles/ubertooth.dir/bchEcc.c.o: ../libubertooth/src/bchEcc.c
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/CMakeFiles $(CMAKE_PROGRESS_6)
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building C object libubertooth/src/CMakeFiles/ubertooth.dir/bchEcc.c.o"
+	cd /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/libubertooth/src && /usr/bin/cc  $(C_DEFINES) $(C_FLAGS) -o CMakeFiles/ubertooth.dir/bchEcc.c.o   -c /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/bchEcc.c
+
+libubertooth/src/CMakeFiles/ubertooth.dir/bchEcc.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/ubertooth.dir/bchEcc.c.i"
+	cd /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/libubertooth/src && /usr/bin/cc  $(C_DEFINES) $(C_FLAGS) -E /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/bchEcc.c > CMakeFiles/ubertooth.dir/bchEcc.c.i
+
+libubertooth/src/CMakeFiles/ubertooth.dir/bchEcc.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/ubertooth.dir/bchEcc.c.s"
+	cd /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/libubertooth/src && /usr/bin/cc  $(C_DEFINES) $(C_FLAGS) -S /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/bchEcc.c -o CMakeFiles/ubertooth.dir/bchEcc.c.s
+
+libubertooth/src/CMakeFiles/ubertooth.dir/bchEcc.c.o.requires:
+.PHONY : libubertooth/src/CMakeFiles/ubertooth.dir/bchEcc.c.o.requires
+
+libubertooth/src/CMakeFiles/ubertooth.dir/bchEcc.c.o.provides: libubertooth/src/CMakeFiles/ubertooth.dir/bchEcc.c.o.requires
+	$(MAKE) -f libubertooth/src/CMakeFiles/ubertooth.dir/build.make libubertooth/src/CMakeFiles/ubertooth.dir/bchEcc.c.o.provides.build
+.PHONY : libubertooth/src/CMakeFiles/ubertooth.dir/bchEcc.c.o.provides
+
+libubertooth/src/CMakeFiles/ubertooth.dir/bchEcc.c.o.provides.build: libubertooth/src/CMakeFiles/ubertooth.dir/bchEcc.c.o
+
+libubertooth/src/CMakeFiles/ubertooth.dir/aesAlg.c.o: libubertooth/src/CMakeFiles/ubertooth.dir/flags.make
+libubertooth/src/CMakeFiles/ubertooth.dir/aesAlg.c.o: ../libubertooth/src/aesAlg.c
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/CMakeFiles $(CMAKE_PROGRESS_7)
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building C object libubertooth/src/CMakeFiles/ubertooth.dir/aesAlg.c.o"
+	cd /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/libubertooth/src && /usr/bin/cc  $(C_DEFINES) $(C_FLAGS) -o CMakeFiles/ubertooth.dir/aesAlg.c.o   -c /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/aesAlg.c
+
+libubertooth/src/CMakeFiles/ubertooth.dir/aesAlg.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/ubertooth.dir/aesAlg.c.i"
+	cd /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/libubertooth/src && /usr/bin/cc  $(C_DEFINES) $(C_FLAGS) -E /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/aesAlg.c > CMakeFiles/ubertooth.dir/aesAlg.c.i
+
+libubertooth/src/CMakeFiles/ubertooth.dir/aesAlg.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/ubertooth.dir/aesAlg.c.s"
+	cd /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/libubertooth/src && /usr/bin/cc  $(C_DEFINES) $(C_FLAGS) -S /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/aesAlg.c -o CMakeFiles/ubertooth.dir/aesAlg.c.s
+
+libubertooth/src/CMakeFiles/ubertooth.dir/aesAlg.c.o.requires:
+.PHONY : libubertooth/src/CMakeFiles/ubertooth.dir/aesAlg.c.o.requires
+
+libubertooth/src/CMakeFiles/ubertooth.dir/aesAlg.c.o.provides: libubertooth/src/CMakeFiles/ubertooth.dir/aesAlg.c.o.requires
+	$(MAKE) -f libubertooth/src/CMakeFiles/ubertooth.dir/build.make libubertooth/src/CMakeFiles/ubertooth.dir/aesAlg.c.o.provides.build
+.PHONY : libubertooth/src/CMakeFiles/ubertooth.dir/aesAlg.c.o.provides
+
+libubertooth/src/CMakeFiles/ubertooth.dir/aesAlg.c.o.provides.build: libubertooth/src/CMakeFiles/ubertooth.dir/aesAlg.c.o
+
 # Object files for target ubertooth
 ubertooth_OBJECTS = \
 "CMakeFiles/ubertooth.dir/ubertooth.c.o" \
 "CMakeFiles/ubertooth.dir/ubertooth_callback.c.o" \
 "CMakeFiles/ubertooth.dir/ubertooth_control.c.o" \
-"CMakeFiles/ubertooth.dir/ubertooth_fifo.c.o"
+"CMakeFiles/ubertooth.dir/ubertooth_fifo.c.o" \
+"CMakeFiles/ubertooth.dir/procData.c.o" \
+"CMakeFiles/ubertooth.dir/bchEcc.c.o" \
+"CMakeFiles/ubertooth.dir/aesAlg.c.o"
 
 # External object files for target ubertooth
 ubertooth_EXTERNAL_OBJECTS =
@@ -155,6 +227,9 @@ libubertooth/src/libubertooth.so.1.0: libubertooth/src/CMakeFiles/ubertooth.dir/
 libubertooth/src/libubertooth.so.1.0: libubertooth/src/CMakeFiles/ubertooth.dir/ubertooth_callback.c.o
 libubertooth/src/libubertooth.so.1.0: libubertooth/src/CMakeFiles/ubertooth.dir/ubertooth_control.c.o
 libubertooth/src/libubertooth.so.1.0: libubertooth/src/CMakeFiles/ubertooth.dir/ubertooth_fifo.c.o
+libubertooth/src/libubertooth.so.1.0: libubertooth/src/CMakeFiles/ubertooth.dir/procData.c.o
+libubertooth/src/libubertooth.so.1.0: libubertooth/src/CMakeFiles/ubertooth.dir/bchEcc.c.o
+libubertooth/src/libubertooth.so.1.0: libubertooth/src/CMakeFiles/ubertooth.dir/aesAlg.c.o
 libubertooth/src/libubertooth.so.1.0: libubertooth/src/CMakeFiles/ubertooth.dir/build.make
 libubertooth/src/libubertooth.so.1.0: /usr/lib/x86_64-linux-gnu/libusb-1.0.so
 libubertooth/src/libubertooth.so.1.0: /usr/local/lib/libbtbb.so
@@ -175,6 +250,9 @@ libubertooth/src/CMakeFiles/ubertooth.dir/requires: libubertooth/src/CMakeFiles/
 libubertooth/src/CMakeFiles/ubertooth.dir/requires: libubertooth/src/CMakeFiles/ubertooth.dir/ubertooth_callback.c.o.requires
 libubertooth/src/CMakeFiles/ubertooth.dir/requires: libubertooth/src/CMakeFiles/ubertooth.dir/ubertooth_control.c.o.requires
 libubertooth/src/CMakeFiles/ubertooth.dir/requires: libubertooth/src/CMakeFiles/ubertooth.dir/ubertooth_fifo.c.o.requires
+libubertooth/src/CMakeFiles/ubertooth.dir/requires: libubertooth/src/CMakeFiles/ubertooth.dir/procData.c.o.requires
+libubertooth/src/CMakeFiles/ubertooth.dir/requires: libubertooth/src/CMakeFiles/ubertooth.dir/bchEcc.c.o.requires
+libubertooth/src/CMakeFiles/ubertooth.dir/requires: libubertooth/src/CMakeFiles/ubertooth.dir/aesAlg.c.o.requires
 .PHONY : libubertooth/src/CMakeFiles/ubertooth.dir/requires
 
 libubertooth/src/CMakeFiles/ubertooth.dir/clean:

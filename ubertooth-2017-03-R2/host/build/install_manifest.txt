@@ -6,6 +6,9 @@
 /usr/local/include/ubertooth_control.h
 /usr/local/include/ubertooth_fifo.h
 /usr/local/include/ubertooth_interface.h
+/usr/local/include/procData.h
+/usr/local/include/bchEcc.h
+/usr/local/include/aesAlg.h
 /usr/local/bin/ubertooth-rx
 /usr/local/bin/ubertooth-tx
 /usr/local/bin/ubertooth-dump

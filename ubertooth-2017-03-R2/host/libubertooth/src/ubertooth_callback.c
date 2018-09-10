@@ -438,12 +438,38 @@ int cb_btle(ubertooth_t* ut, void* args)
 	return sync;
 }
 
+int find_OK(ubertooth_t* ut)
+{
+	int ok = 0;
+	int i;
+	usb_pkt_rx usb = fifo_pop(ut->fifo);
+	usb_pkt_rx* rx = &usb;
+	// u32 access_address = 0; // Build warning
+
+	int len = (rx->data[5] & 0x3f) + 6 + 3;
+	if (len > 50) len = 50;
+
+//	for (i = 4; i < len; ++i)
+//		printf("%02x ", rx->data[i]);
+//	printf("\n");
+
+	//JWHUR test synchronization protocol
+	//When receive 'OK', stop ble scanning
+	//Possibly OK must be encoded using shared key
+	if (rx->data[23] == 0xff && rx->data[24] == 0x4f && rx->data[25] == 0x4b) {
+		ok = 1;
+		printf("OK received, Associated IoT Mac address: %02x:%02x:%02x:%02x:%02x:%02x\n", rx->data[11], rx->data[10], rx->data[9], rx->data[8], rx->data[7], rx->data[6]);
+	}
+
+	fflush(stdout);
+	return ok;
+}
+
+
 //JWHUR cb_btle_tracking
 void cb_btle_tracking(ubertooth_t* ut, void* args)
 {
 	FILE *output;
-	lell_packet* pkt;
-	btle_options* opts = (btle_options*) args;
 	int i, len;
 	usb_pkt_rx usb = fifo_pop(ut->fifo);
 	usb_pkt_rx* rx = &usb;
@@ -481,6 +507,28 @@ void cb_btle_tracking(ubertooth_t* ut, void* args)
 		fclose(output);
 		printf("\n\n");
 		fflush(stdout);
+	}
+}
+
+void rssi_sampling(ubertooth_t *ut, int *rssi, int offset) {
+	int max = 2540; // 127 ms samples = 127 * 20 = 2540
+	int i, len;
+	usb_pkt_rx usb = fifo_pop(ut->fifo);
+	usb_pkt_rx *rx = &usb;
+
+	static u32 prev_ts = 0;
+	int8_t rssiSample;
+
+	if (rx->pkt_type == RSSI_TRACK) {
+		for (i=offset; i<offset+DMA_SIZE; i++) {
+			rssiSample = (int8_t)(rx->data[i-offset] - 54);
+			if (i < max)
+				rssi[i] = (int)rssiSample;
+		}
+		fflush(stdout);
+	} else {
+		printf("USB packet type Error\n");
+		return;
 	}
 }
 
@@ -535,6 +583,32 @@ void cb_btle_time_last(ubertooth_t *ut, void *args)
 	printf("\n\n");
 	fflush(stdout);
 }	
+
+void time_sampling(ubertooth_t *ut, int *time, int offset) {
+	int i;
+	u32 ts;
+	usb_pkt_rx usb = fifo_pop(ut->fifo);
+	usb_time_rx *rx = &usb;
+
+	for (i=offset; i<offset+16; i++) {
+		ts = rx->time[i-offset];
+		time[i] = (int) ts;
+	}
+	fflush(stdout);
+}
+
+void time_sampling_last(ubertooth_t *ut, int *time, int offset) {
+	int i;
+	u32 ts;
+	usb_pkt_rx usb = fifo_pop(ut->fifo);
+	usb_time_rx *rx = &usb;
+
+	for (i=offset; i<offset+2; i++) {
+		ts = rx->time[i-offset];
+		time[i] = (int) ts;
+	}
+	fflush(stdout);
+}
 
 /*
  * Sniff E-GO packets

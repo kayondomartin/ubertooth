@@ -27,17 +27,24 @@ set(c_sources ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth.c
               ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth_callback.c
               ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth_control.c
               ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth_fifo.c
+              ${CMAKE_CURRENT_SOURCE_DIR}/procData.c
+              ${CMAKE_CURRENT_SOURCE_DIR}/bchEcc.c
+              ${CMAKE_CURRENT_SOURCE_DIR}/aesAlg.c
 			  CACHE INTERNAL "List of C sources")
 set(c_headers ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth.h
               ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth_callback.h
               ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth_control.h
               ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth_fifo.h
 			  ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth_interface.h
+              ${CMAKE_CURRENT_SOURCE_DIR}/procData.h
+              ${CMAKE_CURRENT_SOURCE_DIR}/bchEcc.h
+              ${CMAKE_CURRENT_SOURCE_DIR}/aesAlg.h
 			  CACHE INTERNAL "List of C headers")
 
 # Include and link to libbtbb and libusb-1.0
 find_package(BTBB REQUIRED)
 find_package(USB1 REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 include_directories(${LIBUSB_INCLUDE_DIR} ${LIBBTBB_INCLUDE_DIR})
 LIST(APPEND LIBUBERTOOTH_LIBS ${LIBUSB_LIBRARIES} ${LIBBTBB_LIBRARIES})
@@ -47,6 +54,7 @@ if( ${BUILD_SHARED_LIB} )
 	message(STATUS "Building shared library")
 	add_library(ubertooth SHARED ${c_sources})
 	target_link_libraries(ubertooth ${LIBUBERTOOTH_LIBS})
+	target_link_libraries(ubertooth crypto)
 	set_target_properties(ubertooth PROPERTIES VERSION ${MAJOR_VERSION}.${MINOR_VERSION} SOVERSION 1)
 	set_target_properties(ubertooth PROPERTIES CLEAN_DIRECT_OUTPUT 1)
 	install(TARGETS ubertooth
