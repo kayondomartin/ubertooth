@@ -291,6 +291,102 @@ int scanOK(int rxDur, ubertooth_t *ut, int ubertooth_device) {
 	return ok;
 }
 
+int listenSync(uint8_t *APMAC, int do_adv_index, ubertooth_t *ut, int ubertooth_device, int *time, int *rssi) {
+	int status, sync = 0, rssiSampling = 0;
+	int ofsRssi = 0, ofsTime = 0, dataLen;
+	usb_pkt_rx rx;
+	u16 channel = 2402;
+
+	status = cmd_set_jam_mode(ut->devh, JAM_NONE);	
+	cmd_set_modulation(ut->devh, MOD_BT_LOW_ENERGY);
+	if (do_adv_index == 37)
+		channel = 2402;
+	else if (do_adv_index == 38)
+		channel = 2426;
+	else
+		channel = 2480;
+	cmd_set_channel(ut->devh, channel);
+	cmd_btle_sniffing(ut->devh, 2);
+
+	struct timespec tspec;
+	uint64_t sync_start, start = 0, now = 0;
+
+	clock_gettime(CLOCK_MONOTONIC, &tspec);
+	start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
+	now = start;
+
+	while (1) {
+		int r = cmd_poll(ut->devh, &rx);
+		if (r < 0) {
+			printf("USB Error\n");
+			break;
+		}
+		if (r == sizeof(usb_pkt_rx)) {
+			fifo_push(ut->fifo, &rx);
+			if (!rssiSampling) sync = find_SYNC(ut, APMAC);
+			if (!rssiSampling) {
+				if (sync == 1) {
+					clock_gettime(CLOCK_MONOTONIC, &tspec);
+					sync_start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
+					start = 0;
+					rssiSampling = 1;
+				}
+			} else {
+				if (start == 0) {
+					clock_gettime(CLOCK_MONOTONIC, &tspec);
+					start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
+				}
+				rssi_sampling(ut, rssi, ofsRssi);
+				ofsRssi += 50;
+				int time_count = 4;
+				while (--time_count) {
+					int m = cmd_poll(ut->devh, &rx);
+					if (m < 0) {
+						printf("USB Error\n");
+						break;
+					}
+					if (m == sizeof(usb_time_rx)) {
+						fifo_push(ut->fifo, &rx);
+						time_sampling(ut, time, ofsTime);
+						ofsTime += 16;
+					}
+				}
+				int m = cmd_poll(ut->devh, &rx);
+				if (m < 0) {
+					printf("USB Error\n");
+					break;
+				}
+				if (m == sizeof(usb_time_rx)) {
+					fifo_push(ut->fifo, &rx);
+					time_sampling_last(ut, time, ofsTime);
+					ofsTime += 2;
+				}
+			}
+		}
+		usleep(500);
+		if (start != 0) {	
+			clock_gettime(CLOCK_MONOTONIC, &tspec);
+			now = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
+			if (rssiSampling * (now - start) > 127 || now - start > 3000)
+				break;
+		}					
+	}
+	dataLen = ofsRssi;
+	ubertooth_stop(ut);
+
+	free(ut);
+	ut = ubertooth_init();
+	status = ubertooth_connect(ut, ubertooth_device);
+	if (status < 0)
+		return 1;
+	status = ubertooth_check_api(ut);
+	if (status < 0)
+		return 1;
+	register_cleanup_handler(ut, 1);
+
+	return dataLen;
+}
+
 static void usage(void)
 {
 	printf("ubertooth-btle - passive Bluetooth Low Energy monitoring\n");
@@ -736,7 +832,7 @@ int main(int argc, char *argv[])
 	if (do_host) {
 		int status, rLen, nCor, txDur, rxDur, i, lenData;
 		int *Barcode, *bch;
-		char encPwd[FREAD_COUNT + BLOCK_SIZE], decPwd[FREAD_COUNT + BLOCK_SIZE];
+		char encPwd[FREAD_COUNT + BLOCK_SIZE];
 		char APSSID[100] = "", APPWD[100] = "", APMAC[17] = "";
 		struct timespec tspec;
 		uint64_t start, now;
@@ -780,6 +876,30 @@ int main(int argc, char *argv[])
 			now = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
 
 		}
+	}
+
+	if (do_guest) {
+		int status, i, lenData, txDur;
+		int time[2540] = {0, }, rssi[2540] = {0, };
+		int *Barcode, *bch;
+		uint8_t APMAC[6] = {0, };
+
+		Barcode = (int*) malloc(sizeof(int)*127);
+		bch = (int*) malloc(sizeof(int)*127);
+		lenData = listenSync(APMAC, do_adv_index, ut, ubertooth_device, time, rssi);
+		printf("AP MAC address: ");
+		for(i=0; i<6; i++)
+			printf("%02x", APMAC[i]);
+		
+		Barcode = procData(time, rssi, lenData);
+		
+		printf("\nBarcode: ");
+		for(i=0; i<127; i++)
+			printf("%d ", Barcode[i]);
+		printf("\n");
+
+
+
 	}
 
 	if (!(do_follow || do_promisc || do_get_aa || do_set_aa ||

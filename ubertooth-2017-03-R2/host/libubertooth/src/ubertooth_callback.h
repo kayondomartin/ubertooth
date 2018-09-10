@@ -31,6 +31,7 @@ void cb_afh_monitor(ubertooth_t* ut, void* args);
 void cb_afh_r(ubertooth_t* ut, void* args);
 int cb_btle(ubertooth_t* ut, void* args);
 int find_OK(ubertooth_t* ut);
+int find_SYNC(ubertooth_t* ut, uint8_t* APMAC);
 void cb_btle_tracking(ubertooth_t* ut, void* args);
 void rssi_sampling(ubertooth_t *ut, int *rssi, int offset);
 void time_sampling(ubertooth_t *ut, int *time, int offset);

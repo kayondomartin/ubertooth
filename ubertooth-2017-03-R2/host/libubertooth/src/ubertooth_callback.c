@@ -437,6 +437,30 @@ int cb_btle(ubertooth_t* ut, void* args)
 	fflush(stdout);
 	return sync;
 }
+int find_SYNC(ubertooth_t* ut, uint8_t *APMAC)
+{
+	int sync = 0;
+	int i;
+	
+	usb_pkt_rx usb = fifo_pop(ut->fifo);
+	usb_pkt_rx* rx = &usb;
+	// u32 access_address = 0; // Build warning
+
+	int len = (rx->data[5] & 0x3f) + 6 + 3;
+	if (len > 50) len = 50;
+
+	//JWHUR test synchronization protocol
+	//When receive 'OK', stop ble scanning
+	//Possibly OK must be encoded using shared key
+	if (rx->data[23] == 0xff && rx->data[24] == 0x53 && rx->data[25] == 0x59 && rx->data[26] == 0x4e && rx->data[27] == 0x43) {
+		sync = 1;
+		for (i=0; i<6; i++)
+			APMAC[i] = rx->data[11-i];
+	}
+
+	fflush(stdout);
+	return sync;
+}
 
 int find_OK(ubertooth_t* ut)
 {
