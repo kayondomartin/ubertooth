@@ -1,825 +1,170 @@
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=4.027 ms rssi=-61
-40 25 cc 18 5f a4 34 fb 02 01 06 03 03 9a fe 17 16 9a fe 00 99 9f c4 22 b5 ba 3b c3 c2 c2 6a 2e 53 87 46 27 94 64 40 20 95 10 
-Advertising / AA 8e89bed6 (valid)/ 37 bytes
-    Channel Index: 37
-    Type:  ADV_IND
-    AdvA:  fb:34:a4:5f:18:cc (random)
-    AdvData: 02 01 06 03 03 9a fe 17 16 9a fe 00 99 9f c4 22 b5 ba 3b c3 c2 c2 6a 2e 53 87 46 27 94 64 40
-        Type 01 (Flags)
-           00000110
-               LE General Discoverable Mode
-               BR/EDR Not Supported
-
-        Type 03 (16-bit Service UUIDs) 
-           fe9a
-        Type 16 (Service Data)
-           UUID: fe9a, Additional: 00 99 9f c4 22 b5 ba 3b c3 c2 c2 6a 2e 53 87 46 27 94 64 40
-
-    Data:  cc 18 5f a4 34 fb 02 01 06 03 03 9a fe 17 16 9a fe 00 99 9f c4 22 b5 ba 3b c3 c2 c2 6a 2e 53 87 46 27 94 64 40
-    CRC:   20 95 10
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=17.026 ms rssi=-60
-40 14 07 47 a9 fb 6f 5c 02 01 1a 0a ff 4c 00 10 05 03 10 7a 70 b5 9d c2 bb 
-Advertising / AA 8e89bed6 (valid)/ 20 bytes
-    Channel Index: 37
-    Type:  ADV_IND
-    AdvA:  5c:6f:fb:a9:47:07 (random)
-    AdvData: 02 01 1a 0a ff 4c 00 10 05 03 10 7a 70 b5
-        Type 01 (Flags)
-           00011010
-               LE General Discoverable Mode
-               Simultaneous LE and BR/EDR to Same Device Capable (Controller)
-               Simultaneous LE and BR/EDR to Same Device Capable (Host)
-
-        Type ff (Manufacturer Specific Data)
-           Company: Apple, Inc.
-           Data: 10 05 03 10 7a 70 b5
-
-    Data:  07 47 a9 fb 6f 5c 02 01 1a 0a ff 4c 00 10 05 03 10 7a 70 b5
-    CRC:   9d c2 bb
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=12.633 ms rssi=-47
-42 25 52 93 b3 a2 21 c3 02 01 04 03 03 aa fe 17 16 aa fe 00 e5 06 66 8d ef cd 5d 71 9e 6e a9 24 f6 a1 00 3d 03 00 00 fa b7 c9 
-Advertising / AA 8e89bed6 (valid)/ 37 bytes
-    Channel Index: 37
-    Type:  ADV_NONCONN_IND
-    AdvA:  c3:21:a2:b3:93:52 (random)
-    AdvData: 02 01 04 03 03 aa fe 17 16 aa fe 00 e5 06 66 8d ef cd 5d 71 9e 6e a9 24 f6 a1 00 3d 03 00 00
-        Type 01 (Flags)
-           00000100
-               BR/EDR Not Supported
-
-        Type 03 (16-bit Service UUIDs) 
-           feaa
-        Type 16 (Service Data)
-           UUID: feaa, Additional: 00 e5 06 66 8d ef cd 5d 71 9e 6e a9 24 f6 a1 00 3d 03 00 00
-
-    Data:  52 93 b3 a2 21 c3 02 01 04 03 03 aa fe 17 16 aa fe 00 e5 06 66 8d ef cd 5d 71 9e 6e a9 24 f6 a1 00 3d 03 00 00
-    CRC:   fa b7 c9
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=17.099 ms rssi=-35
-42 24 4d 9c d9 1d fd dd 02 01 06 1a ff 4c 00 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d bc bb dd 17 b8 8c 7f 96 
-Advertising / AA 8e89bed6 (valid)/ 36 bytes
-    Channel Index: 37
-    Type:  ADV_NONCONN_IND
-    AdvA:  dd:fd:1d:d9:9c:4d (random)
-    AdvData: 02 01 06 1a ff 4c 00 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d bc bb dd 17 b8
-        Type 01 (Flags)
-           00000110
-               LE General Discoverable Mode
-               BR/EDR Not Supported
-
-        Type ff (Manufacturer Specific Data)
-           Company: Apple, Inc.
-           Data: 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d bc bb dd 17 b8
-
-    Data:  4d 9c d9 1d fd dd 02 01 06 1a ff 4c 00 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d bc bb dd 17 b8
-    CRC:   8c 7f 96
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=19.608 ms rssi=-56
-42 25 bc e7 34 4e 6c 3e 1e ff 06 00 01 09 20 02 84 3f 00 ed 35 ac 1c a3 ae b4 44 02 55 2e 95 d8 44 97 72 ea 84 e3 3c 95 16 3c 
-Advertising / AA 8e89bed6 (valid)/ 37 bytes
-    Channel Index: 37
-    Type:  ADV_NONCONN_IND
-    AdvA:  3e:6c:4e:34:e7:bc (random)
-    AdvData: 1e ff 06 00 01 09 20 02 84 3f 00 ed 35 ac 1c a3 ae b4 44 02 55 2e 95 d8 44 97 72 ea 84 e3 3c
-        Type ff (Manufacturer Specific Data)
-           Company: Microsoft
-           Data: 01 09 20 02 84 3f 00 ed 35 ac 1c a3 ae b4 44 02 55 2e 95 d8 44 97 72 ea 84 e3 3c
-
-    Data:  bc e7 34 4e 6c 3e 1e ff 06 00 01 09 20 02 84 3f 00 ed 35 ac 1c a3 ae b4 44 02 55 2e 95 d8 44 97 72 ea 84 e3 3c
-    CRC:   95 16 3c
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=35.441 ms rssi=-50
-42 25 1a 98 f6 ef a3 33 1e ff 06 00 01 09 20 02 fc 98 56 1a 18 36 b7 94 51 17 3b 80 0b 14 da c7 58 7b 94 34 bb 3b 79 cd 28 65 
-Advertising / AA 8e89bed6 (valid)/ 37 bytes
-    Channel Index: 37
-    Type:  ADV_NONCONN_IND
-    AdvA:  33:a3:ef:f6:98:1a (random)
-    AdvData: 1e ff 06 00 01 09 20 02 fc 98 56 1a 18 36 b7 94 51 17 3b 80 0b 14 da c7 58 7b 94 34 bb 3b 79
-        Type ff (Manufacturer Specific Data)
-           Company: Microsoft
-           Data: 01 09 20 02 fc 98 56 1a 18 36 b7 94 51 17 3b 80 0b 14 da c7 58 7b 94 34 bb 3b 79
-
-    Data:  1a 98 f6 ef a3 33 1e ff 06 00 01 09 20 02 fc 98 56 1a 18 36 b7 94 51 17 3b 80 0b 14 da c7 58 7b 94 34 bb 3b 79
-    CRC:   cd 28 65
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=42.800 ms rssi=-47
-42 25 52 93 b3 a2 21 c3 02 01 04 03 03 aa fe 17 16 aa fe 00 e5 06 66 8d ef cd 5d 71 9e 6e a9 24 f6 a1 00 3d 03 00 00 fa b7 c9 
-Advertising / AA 8e89bed6 (valid)/ 37 bytes
-    Channel Index: 37
-    Type:  ADV_NONCONN_IND
-    AdvA:  c3:21:a2:b3:93:52 (random)
-    AdvData: 02 01 04 03 03 aa fe 17 16 aa fe 00 e5 06 66 8d ef cd 5d 71 9e 6e a9 24 f6 a1 00 3d 03 00 00
-        Type 01 (Flags)
-           00000100
-               BR/EDR Not Supported
-
-        Type 03 (16-bit Service UUIDs) 
-           feaa
-        Type 16 (Service Data)
-           UUID: feaa, Additional: 00 e5 06 66 8d ef cd 5d 71 9e 6e a9 24 f6 a1 00 3d 03 00 00
-
-    Data:  52 93 b3 a2 21 c3 02 01 04 03 03 aa fe 17 16 aa fe 00 e5 06 66 8d ef cd 5d 71 9e 6e a9 24 f6 a1 00 3d 03 00 00
-    CRC:   fa b7 c9
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=10.843 ms rssi=-52
-42 24 ce 1a 61 a6 36 fd 02 01 06 1a ff 4c 00 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d 0a 97 1a 70 b8 a3 aa de 
-Advertising / AA 8e89bed6 (valid)/ 36 bytes
-    Channel Index: 37
-    Type:  ADV_NONCONN_IND
-    AdvA:  fd:36:a6:61:1a:ce (random)
-    AdvData: 02 01 06 1a ff 4c 00 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d 0a 97 1a 70 b8
-        Type 01 (Flags)
-           00000110
-               LE General Discoverable Mode
-               BR/EDR Not Supported
-
-        Type ff (Manufacturer Specific Data)
-           Company: Apple, Inc.
-           Data: 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d 0a 97 1a 70 b8
-
-    Data:  ce 1a 61 a6 36 fd 02 01 06 1a ff 4c 00 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d 0a 97 1a 70 b8
-    CRC:   a3 aa de
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=12.166 ms rssi=-56
-42 25 bc e7 34 4e 6c 3e 1e ff 06 00 01 09 20 02 84 3f 00 ed 35 ac 1c a3 ae b4 44 02 55 2e 95 d8 44 97 72 ea 84 e3 3c 95 16 3c 
-Advertising / AA 8e89bed6 (valid)/ 37 bytes
-    Channel Index: 37
-    Type:  ADV_NONCONN_IND
-    AdvA:  3e:6c:4e:34:e7:bc (random)
-    AdvData: 1e ff 06 00 01 09 20 02 84 3f 00 ed 35 ac 1c a3 ae b4 44 02 55 2e 95 d8 44 97 72 ea 84 e3 3c
-        Type ff (Manufacturer Specific Data)
-           Company: Microsoft
-           Data: 01 09 20 02 84 3f 00 ed 35 ac 1c a3 ae b4 44 02 55 2e 95 d8 44 97 72 ea 84 e3 3c
-
-    Data:  bc e7 34 4e 6c 3e 1e ff 06 00 01 09 20 02 84 3f 00 ed 35 ac 1c a3 ae b4 44 02 55 2e 95 d8 44 97 72 ea 84 e3 3c
-    CRC:   95 16 3c
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=0.575 ms rssi=-52
-42 24 c7 df 1d c4 50 f0 02 01 04 03 03 aa fe 16 16 aa fe 10 e1 03 74 77 69 74 74 65 72 00 65 73 74 69 6d 6f 74 65 cc 7c c3 
-Advertising / AA 8e89bed6 (valid)/ 36 bytes
-    Channel Index: 37
-    Type:  ADV_NONCONN_IND
-    AdvA:  f0:50:c4:1d:df:c7 (random)
-    AdvData: 02 01 04 03 03 aa fe 16 16 aa fe 10 e1 03 74 77 69 74 74 65 72 00 65 73 74 69 6d 6f 74 65
-        Type 01 (Flags)
-           00000100
-               BR/EDR Not Supported
-
-        Type 03 (16-bit Service UUIDs) 
-           feaa
-        Type 16 (Service Data)
-           UUID: feaa, Additional: 10 e1 03 74 77 69 74 74 65 72 00 65 73 74 69 6d 6f 74 65
-
-    Data:  c7 df 1d c4 50 f0 02 01 04 03 03 aa fe 16 16 aa fe 10 e1 03 74 77 69 74 74 65 72 00 65 73 74 69 6d 6f 74 65
-    CRC:   cc 7c c3
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=16.712 ms rssi=-61
-40 14 91 9b fb c7 4d 49 02 01 1a 0a ff 4c 00 10 05 0a 10 41 a5 14 b5 ba ff 
-Advertising / AA 8e89bed6 (valid)/ 20 bytes
-    Channel Index: 37
-    Type:  ADV_IND
-    AdvA:  49:4d:c7:fb:9b:91 (random)
-    AdvData: 02 01 1a 0a ff 4c 00 10 05 0a 10 41 a5 14
-        Type 01 (Flags)
-           00011010
-               LE General Discoverable Mode
-               Simultaneous LE and BR/EDR to Same Device Capable (Controller)
-               Simultaneous LE and BR/EDR to Same Device Capable (Host)
-
-        Type ff (Manufacturer Specific Data)
-           Company: Apple, Inc.
-           Data: 10 05 0a 10 41 a5 14
-
-    Data:  91 9b fb c7 4d 49 02 01 1a 0a ff 4c 00 10 05 0a 10 41 a5 14
-    CRC:   b5 ba ff
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=10.661 ms rssi=-47
-42 24 51 2a 70 88 c8 f5 02 01 06 1a ff 4c 00 02 15 bc fe 85 cb 06 66 8d ef cd 5d 71 9e 6e a9 24 f6 a1 00 3d 05 bc 68 17 92 
-Advertising / AA 8e89bed6 (valid)/ 36 bytes
-    Channel Index: 37
-    Type:  ADV_NONCONN_IND
-    AdvA:  f5:c8:88:70:2a:51 (random)
-    AdvData: 02 01 06 1a ff 4c 00 02 15 bc fe 85 cb 06 66 8d ef cd 5d 71 9e 6e a9 24 f6 a1 00 3d 05 bc
-        Type 01 (Flags)
-           00000110
-               LE General Discoverable Mode
-               BR/EDR Not Supported
-
-        Type ff (Manufacturer Specific Data)
-           Company: Apple, Inc.
-           Data: 02 15 bc fe 85 cb 06 66 8d ef cd 5d 71 9e 6e a9 24 f6 a1 00 3d 05 bc
-
-    Data:  51 2a 70 88 c8 f5 02 01 06 1a ff 4c 00 02 15 bc fe 85 cb 06 66 8d ef cd 5d 71 9e 6e a9 24 f6 a1 00 3d 05 bc
-    CRC:   68 17 92
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=2.753 ms rssi=-58
-40 14 07 47 a9 fb 6f 5c 02 01 1a 0a ff 4c 00 10 05 03 10 7a 70 b5 9d c2 bb 
-Advertising / AA 8e89bed6 (valid)/ 20 bytes
-    Channel Index: 37
-    Type:  ADV_IND
-    AdvA:  5c:6f:fb:a9:47:07 (random)
-    AdvData: 02 01 1a 0a ff 4c 00 10 05 03 10 7a 70 b5
-        Type 01 (Flags)
-           00011010
-               LE General Discoverable Mode
-               Simultaneous LE and BR/EDR to Same Device Capable (Controller)
-               Simultaneous LE and BR/EDR to Same Device Capable (Host)
-
-        Type ff (Manufacturer Specific Data)
-           Company: Apple, Inc.
-           Data: 10 05 03 10 7a 70 b5
-
-    Data:  07 47 a9 fb 6f 5c 02 01 1a 0a ff 4c 00 10 05 03 10 7a 70 b5
-    CRC:   9d c2 bb
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=6.009 ms rssi=-50
-42 25 1a 98 f6 ef a3 33 1e ff 06 00 01 09 20 02 fc 98 56 1a 18 36 b7 94 51 17 3b 80 0b 14 da c7 58 7b 94 34 bb 3b 79 cd 28 65 
-Advertising / AA 8e89bed6 (valid)/ 37 bytes
-    Channel Index: 37
-    Type:  ADV_NONCONN_IND
-    AdvA:  33:a3:ef:f6:98:1a (random)
-    AdvData: 1e ff 06 00 01 09 20 02 fc 98 56 1a 18 36 b7 94 51 17 3b 80 0b 14 da c7 58 7b 94 34 bb 3b 79
-        Type ff (Manufacturer Specific Data)
-           Company: Microsoft
-           Data: 01 09 20 02 fc 98 56 1a 18 36 b7 94 51 17 3b 80 0b 14 da c7 58 7b 94 34 bb 3b 79
-
-    Data:  1a 98 f6 ef a3 33 1e ff 06 00 01 09 20 02 fc 98 56 1a 18 36 b7 94 51 17 3b 80 0b 14 da c7 58 7b 94 34 bb 3b 79
-    CRC:   cd 28 65
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=4.780 ms rssi=-16
-40 14 24 61 5e b9 77 4b 02 01 1a 0a ff 4c 00 10 05 01 18 6c 29 c9 73 09 c5 
-Advertising / AA 8e89bed6 (valid)/ 20 bytes
-    Channel Index: 37
-    Type:  ADV_IND
-    AdvA:  4b:77:b9:5e:61:24 (random)
-    AdvData: 02 01 1a 0a ff 4c 00 10 05 01 18 6c 29 c9
-        Type 01 (Flags)
-           00011010
-               LE General Discoverable Mode
-               Simultaneous LE and BR/EDR to Same Device Capable (Controller)
-               Simultaneous LE and BR/EDR to Same Device Capable (Host)
-
-        Type ff (Manufacturer Specific Data)
-           Company: Apple, Inc.
-           Data: 10 05 01 18 6c 29 c9
-
-    Data:  24 61 5e b9 77 4b 02 01 1a 0a ff 4c 00 10 05 01 18 6c 29 c9
-    CRC:   73 09 c5
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=14.516 ms rssi=-63
-40 25 37 8b f0 8a 2b f9 02 01 06 03 03 9a fe 17 16 9a fe 00 c5 7c 42 ff 76 a2 ae 8a 11 32 01 38 45 af 98 21 94 64 40 7d e4 e8 
-Advertising / AA 8e89bed6 (valid)/ 37 bytes
-    Channel Index: 37
-    Type:  ADV_IND
-    AdvA:  f9:2b:8a:f0:8b:37 (random)
-    AdvData: 02 01 06 03 03 9a fe 17 16 9a fe 00 c5 7c 42 ff 76 a2 ae 8a 11 32 01 38 45 af 98 21 94 64 40
-        Type 01 (Flags)
-           00000110
-               LE General Discoverable Mode
-               BR/EDR Not Supported
-
-        Type 03 (16-bit Service UUIDs) 
-           fe9a
-        Type 16 (Service Data)
-           UUID: fe9a, Additional: 00 c5 7c 42 ff 76 a2 ae 8a 11 32 01 38 45 af 98 21 94 64 40
-
-    Data:  37 8b f0 8a 2b f9 02 01 06 03 03 9a fe 17 16 9a fe 00 c5 7c 42 ff 76 a2 ae 8a 11 32 01 38 45 af 98 21 94 64 40
-    CRC:   7d e4 e8
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=25.664 ms rssi=-55
-42 24 39 8d f2 8c 2d fb 02 01 06 1a ff 4c 00 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d 4a c3 45 41 b8 76 18 80 
-Advertising / AA 8e89bed6 (valid)/ 36 bytes
-    Channel Index: 37
-    Type:  ADV_NONCONN_IND
-    AdvA:  fb:2d:8c:f2:8d:39 (random)
-    AdvData: 02 01 06 1a ff 4c 00 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d 4a c3 45 41 b8
-        Type 01 (Flags)
-           00000110
-               LE General Discoverable Mode
-               BR/EDR Not Supported
-
-        Type ff (Manufacturer Specific Data)
-           Company: Apple, Inc.
-           Data: 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d 4a c3 45 41 b8
-
-    Data:  39 8d f2 8c 2d fb 02 01 06 1a ff 4c 00 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d 4a c3 45 41 b8
-    CRC:   76 18 80
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=4.013 ms rssi=-44
-42 25 52 93 b3 a2 21 c3 02 01 04 03 03 aa fe 17 16 aa fe 00 e5 06 66 8d ef cd 5d 71 9e 6e a9 24 f6 a1 00 3d 03 00 00 fa b7 c9 
-Advertising / AA 8e89bed6 (valid)/ 37 bytes
-    Channel Index: 37
-    Type:  ADV_NONCONN_IND
-    AdvA:  c3:21:a2:b3:93:52 (random)
-    AdvData: 02 01 04 03 03 aa fe 17 16 aa fe 00 e5 06 66 8d ef cd 5d 71 9e 6e a9 24 f6 a1 00 3d 03 00 00
-        Type 01 (Flags)
-           00000100
-               BR/EDR Not Supported
-
-        Type 03 (16-bit Service UUIDs) 
-           feaa
-        Type 16 (Service Data)
-           UUID: feaa, Additional: 00 e5 06 66 8d ef cd 5d 71 9e 6e a9 24 f6 a1 00 3d 03 00 00
-
-    Data:  52 93 b3 a2 21 c3 02 01 04 03 03 aa fe 17 16 aa fe 00 e5 06 66 8d ef cd 5d 71 9e 6e a9 24 f6 a1 00 3d 03 00 00
-    CRC:   fa b7 c9
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=14.413 ms rssi=-35
-42 24 4d 9c d9 1d fd dd 02 01 06 1a ff 4c 00 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d bc bb dd 17 b8 8c 7f 96 
-Advertising / AA 8e89bed6 (valid)/ 36 bytes
-    Channel Index: 37
-    Type:  ADV_NONCONN_IND
-    AdvA:  dd:fd:1d:d9:9c:4d (random)
-    AdvData: 02 01 06 1a ff 4c 00 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d bc bb dd 17 b8
-        Type 01 (Flags)
-           00000110
-               LE General Discoverable Mode
-               BR/EDR Not Supported
-
-        Type ff (Manufacturer Specific Data)
-           Company: Apple, Inc.
-           Data: 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d bc bb dd 17 b8
-
-    Data:  4d 9c d9 1d fd dd 02 01 06 1a ff 4c 00 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d bc bb dd 17 b8
-    CRC:   8c 7f 96
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=2.402 ms rssi=-56
-42 25 bc e7 34 4e 6c 3e 1e ff 06 00 01 09 20 02 84 3f 00 ed 35 ac 1c a3 ae b4 44 02 55 2e 95 d8 44 97 72 ea 84 e3 3c 95 16 3c 
-Advertising / AA 8e89bed6 (valid)/ 37 bytes
-    Channel Index: 37
-    Type:  ADV_NONCONN_IND
-    AdvA:  3e:6c:4e:34:e7:bc (random)
-    AdvData: 1e ff 06 00 01 09 20 02 84 3f 00 ed 35 ac 1c a3 ae b4 44 02 55 2e 95 d8 44 97 72 ea 84 e3 3c
-        Type ff (Manufacturer Specific Data)
-           Company: Microsoft
-           Data: 01 09 20 02 84 3f 00 ed 35 ac 1c a3 ae b4 44 02 55 2e 95 d8 44 97 72 ea 84 e3 3c
-
-    Data:  bc e7 34 4e 6c 3e 1e ff 06 00 01 09 20 02 84 3f 00 ed 35 ac 1c a3 ae b4 44 02 55 2e 95 d8 44 97 72 ea 84 e3 3c
-    CRC:   95 16 3c
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=43.607 ms rssi=-50
-42 25 1a 98 f6 ef a3 33 1e ff 06 00 01 09 20 02 fc 98 56 1a 18 36 b7 94 51 17 3b 80 0b 14 da c7 58 7b 94 34 bb 3b 79 cd 28 65 
-Advertising / AA 8e89bed6 (valid)/ 37 bytes
-    Channel Index: 37
-    Type:  ADV_NONCONN_IND
-    AdvA:  33:a3:ef:f6:98:1a (random)
-    AdvData: 1e ff 06 00 01 09 20 02 fc 98 56 1a 18 36 b7 94 51 17 3b 80 0b 14 da c7 58 7b 94 34 bb 3b 79
-        Type ff (Manufacturer Specific Data)
-           Company: Microsoft
-           Data: 01 09 20 02 fc 98 56 1a 18 36 b7 94 51 17 3b 80 0b 14 da c7 58 7b 94 34 bb 3b 79
-
-    Data:  1a 98 f6 ef a3 33 1e ff 06 00 01 09 20 02 fc 98 56 1a 18 36 b7 94 51 17 3b 80 0b 14 da c7 58 7b 94 34 bb 3b 79
-    CRC:   cd 28 65
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=44.364 ms rssi=-47
-42 25 52 93 b3 a2 21 c3 02 01 04 03 03 aa fe 17 16 aa fe 00 e5 06 66 8d ef cd 5d 71 9e 6e a9 24 f6 a1 00 3d 03 00 00 fa b7 c9 
-Advertising / AA 8e89bed6 (valid)/ 37 bytes
-    Channel Index: 37
-    Type:  ADV_NONCONN_IND
-    AdvA:  c3:21:a2:b3:93:52 (random)
-    AdvData: 02 01 04 03 03 aa fe 17 16 aa fe 00 e5 06 66 8d ef cd 5d 71 9e 6e a9 24 f6 a1 00 3d 03 00 00
-        Type 01 (Flags)
-           00000100
-               BR/EDR Not Supported
-
-        Type 03 (16-bit Service UUIDs) 
-           feaa
-        Type 16 (Service Data)
-           UUID: feaa, Additional: 00 e5 06 66 8d ef cd 5d 71 9e 6e a9 24 f6 a1 00 3d 03 00 00
-
-    Data:  52 93 b3 a2 21 c3 02 01 04 03 03 aa fe 17 16 aa fe 00 e5 06 66 8d ef cd 5d 71 9e 6e a9 24 f6 a1 00 3d 03 00 00
-    CRC:   fa b7 c9
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=11.851 ms rssi=-35
-42 24 4d 9c d9 1d fd dd 02 01 06 1a ff 4c 00 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d bc bb dd 17 b8 8c 7f 96 
-Advertising / AA 8e89bed6 (valid)/ 36 bytes
-    Channel Index: 37
-    Type:  ADV_NONCONN_IND
-    AdvA:  dd:fd:1d:d9:9c:4d (random)
-    AdvData: 02 01 06 1a ff 4c 00 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d bc bb dd 17 b8
-        Type 01 (Flags)
-           00000110
-               LE General Discoverable Mode
-               BR/EDR Not Supported
-
-        Type ff (Manufacturer Specific Data)
-           Company: Apple, Inc.
-           Data: 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d bc bb dd 17 b8
-
-    Data:  4d 9c d9 1d fd dd 02 01 06 1a ff 4c 00 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d bc bb dd 17 b8
-    CRC:   8c 7f 96
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=2.947 ms rssi=-62
-00 18 cf f1 a7 a1 41 2c 02 01 1a 03 03 be fe 0a ff 01 0a 41 00 39 f4 d0 6c 6d 73 73 30 
-Advertising / AA 8e89bed6 (valid)/ 24 bytes
-    Channel Index: 37
-    Type:  ADV_IND
-    AdvA:  2c:41:a1:a7:f1:cf (public)
-    AdvData: 02 01 1a 03 03 be fe 0a ff 01 0a 41 00 39 f4 d0 6c 6d
-        Type 01 (Flags)
-           00011010
-               LE General Discoverable Mode
-               Simultaneous LE and BR/EDR to Same Device Capable (Controller)
-               Simultaneous LE and BR/EDR to Same Device Capable (Host)
-
-        Type 03 (16-bit Service UUIDs) 
-           febe
-        Type ff (Manufacturer Specific Data)
-           Company: not assigned
-           Data: 41 00 39 f4 d0 6c 6d
-
-    Data:  cf f1 a7 a1 41 2c 02 01 1a 03 03 be fe 0a ff 01 0a 41 00 39 f4 d0 6c 6d
-    CRC:   73 73 30
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=3.482 ms rssi=-56
-42 25 bc e7 34 4e 6c 3e 1e ff 06 00 01 09 20 02 84 3f 00 ed 35 ac 1c a3 ae b4 44 02 55 2e 95 d8 44 97 72 ea 84 e3 3c 95 16 3c 
-Advertising / AA 8e89bed6 (valid)/ 37 bytes
-    Channel Index: 37
-    Type:  ADV_NONCONN_IND
-    AdvA:  3e:6c:4e:34:e7:bc (random)
-    AdvData: 1e ff 06 00 01 09 20 02 84 3f 00 ed 35 ac 1c a3 ae b4 44 02 55 2e 95 d8 44 97 72 ea 84 e3 3c
-        Type ff (Manufacturer Specific Data)
-           Company: Microsoft
-           Data: 01 09 20 02 84 3f 00 ed 35 ac 1c a3 ae b4 44 02 55 2e 95 d8 44 97 72 ea 84 e3 3c
-
-    Data:  bc e7 34 4e 6c 3e 1e ff 06 00 01 09 20 02 84 3f 00 ed 35 ac 1c a3 ae b4 44 02 55 2e 95 d8 44 97 72 ea 84 e3 3c
-    CRC:   95 16 3c
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=5.669 ms rssi=-57
-40 14 07 47 a9 fb 6f 5c 02 01 1a 0a ff 4c 00 10 05 03 10 7a 70 b5 9d c2 bb 
-Advertising / AA 8e89bed6 (valid)/ 20 bytes
-    Channel Index: 37
-    Type:  ADV_IND
-    AdvA:  5c:6f:fb:a9:47:07 (random)
-    AdvData: 02 01 1a 0a ff 4c 00 10 05 03 10 7a 70 b5
-        Type 01 (Flags)
-           00011010
-               LE General Discoverable Mode
-               Simultaneous LE and BR/EDR to Same Device Capable (Controller)
-               Simultaneous LE and BR/EDR to Same Device Capable (Host)
-
-        Type ff (Manufacturer Specific Data)
-           Company: Apple, Inc.
-           Data: 10 05 03 10 7a 70 b5
-
-    Data:  07 47 a9 fb 6f 5c 02 01 1a 0a ff 4c 00 10 05 03 10 7a 70 b5
-    CRC:   9d c2 bb
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=9.625 ms rssi=-52
-40 25 4f 28 6e 86 c6 f3 02 01 06 03 03 9a fe 17 16 9a fe 00 85 f0 df a1 00 66 7b c8 8e f0 e2 12 79 99 e6 37 94 64 40 b0 3d f6 
-Advertising / AA 8e89bed6 (valid)/ 37 bytes
-    Channel Index: 37
-    Type:  ADV_IND
-    AdvA:  f3:c6:86:6e:28:4f (random)
-    AdvData: 02 01 06 03 03 9a fe 17 16 9a fe 00 85 f0 df a1 00 66 7b c8 8e f0 e2 12 79 99 e6 37 94 64 40
-        Type 01 (Flags)
-           00000110
-               LE General Discoverable Mode
-               BR/EDR Not Supported
-
-        Type 03 (16-bit Service UUIDs) 
-           fe9a
-        Type 16 (Service Data)
-           UUID: fe9a, Additional: 00 85 f0 df a1 00 66 7b c8 8e f0 e2 12 79 99 e6 37 94 64 40
-
-    Data:  4f 28 6e 86 c6 f3 02 01 06 03 03 9a fe 17 16 9a fe 00 85 f0 df a1 00 66 7b c8 8e f0 e2 12 79 99 e6 37 94 64 40
-    CRC:   b0 3d f6
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=65.739 ms rssi=-61
-40 14 91 9b fb c7 4d 49 02 01 1a 0a ff 4c 00 10 05 0a 10 41 a5 14 b5 ba ff 
-Advertising / AA 8e89bed6 (valid)/ 20 bytes
-    Channel Index: 37
-    Type:  ADV_IND
-    AdvA:  49:4d:c7:fb:9b:91 (random)
-    AdvData: 02 01 1a 0a ff 4c 00 10 05 0a 10 41 a5 14
-        Type 01 (Flags)
-           00011010
-               LE General Discoverable Mode
-               Simultaneous LE and BR/EDR to Same Device Capable (Controller)
-               Simultaneous LE and BR/EDR to Same Device Capable (Host)
-
-        Type ff (Manufacturer Specific Data)
-           Company: Apple, Inc.
-           Data: 10 05 0a 10 41 a5 14
-
-    Data:  91 9b fb c7 4d 49 02 01 1a 0a ff 4c 00 10 05 0a 10 41 a5 14
-    CRC:   b5 ba ff
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=3.410 ms rssi=-52
-42 24 ce 1a 61 a6 36 fd 02 01 06 1a ff 4c 00 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d 0a 97 1a 70 b8 a3 aa de 
-Advertising / AA 8e89bed6 (valid)/ 36 bytes
-    Channel Index: 37
-    Type:  ADV_NONCONN_IND
-    AdvA:  fd:36:a6:61:1a:ce (random)
-    AdvData: 02 01 06 1a ff 4c 00 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d 0a 97 1a 70 b8
-        Type 01 (Flags)
-           00000110
-               LE General Discoverable Mode
-               BR/EDR Not Supported
-
-        Type ff (Manufacturer Specific Data)
-           Company: Apple, Inc.
-           Data: 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d 0a 97 1a 70 b8
-
-    Data:  ce 1a 61 a6 36 fd 02 01 06 1a ff 4c 00 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d 0a 97 1a 70 b8
-    CRC:   a3 aa de
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=7.649 ms rssi=-46
-42 25 52 93 b3 a2 21 c3 02 01 04 03 03 aa fe 17 16 aa fe 00 e5 06 66 8d ef cd 5d 71 9e 6e a9 24 f6 a1 00 3d 03 00 00 fa b7 c9 
-Advertising / AA 8e89bed6 (valid)/ 37 bytes
-    Channel Index: 37
-    Type:  ADV_NONCONN_IND
-    AdvA:  c3:21:a2:b3:93:52 (random)
-    AdvData: 02 01 04 03 03 aa fe 17 16 aa fe 00 e5 06 66 8d ef cd 5d 71 9e 6e a9 24 f6 a1 00 3d 03 00 00
-        Type 01 (Flags)
-           00000100
-               BR/EDR Not Supported
-
-        Type 03 (16-bit Service UUIDs) 
-           feaa
-        Type 16 (Service Data)
-           UUID: feaa, Additional: 00 e5 06 66 8d ef cd 5d 71 9e 6e a9 24 f6 a1 00 3d 03 00 00
-
-    Data:  52 93 b3 a2 21 c3 02 01 04 03 03 aa fe 17 16 aa fe 00 e5 06 66 8d ef cd 5d 71 9e 6e a9 24 f6 a1 00 3d 03 00 00
-    CRC:   fa b7 c9
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=8.717 ms rssi=-52
-42 24 c7 df 1d c4 50 f0 02 01 04 03 03 aa fe 16 16 aa fe 10 e1 03 74 77 69 74 74 65 72 00 65 73 74 69 6d 6f 74 65 cc 7c c3 
-Advertising / AA 8e89bed6 (valid)/ 36 bytes
-    Channel Index: 37
-    Type:  ADV_NONCONN_IND
-    AdvA:  f0:50:c4:1d:df:c7 (random)
-    AdvData: 02 01 04 03 03 aa fe 16 16 aa fe 10 e1 03 74 77 69 74 74 65 72 00 65 73 74 69 6d 6f 74 65
-        Type 01 (Flags)
-           00000100
-               BR/EDR Not Supported
-
-        Type 03 (16-bit Service UUIDs) 
-           feaa
-        Type 16 (Service Data)
-           UUID: feaa, Additional: 10 e1 03 74 77 69 74 74 65 72 00 65 73 74 69 6d 6f 74 65
-
-    Data:  c7 df 1d c4 50 f0 02 01 04 03 03 aa fe 16 16 aa fe 10 e1 03 74 77 69 74 74 65 72 00 65 73 74 69 6d 6f 74 65
-    CRC:   cc 7c c3
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=1.938 ms rssi=-16
-40 14 24 61 5e b9 77 4b 02 01 1a 0a ff 4c 00 10 05 01 18 6c 29 c9 73 09 c5 
-Advertising / AA 8e89bed6 (valid)/ 20 bytes
-    Channel Index: 37
-    Type:  ADV_IND
-    AdvA:  4b:77:b9:5e:61:24 (random)
-    AdvData: 02 01 1a 0a ff 4c 00 10 05 01 18 6c 29 c9
-        Type 01 (Flags)
-           00011010
-               LE General Discoverable Mode
-               Simultaneous LE and BR/EDR to Same Device Capable (Controller)
-               Simultaneous LE and BR/EDR to Same Device Capable (Host)
-
-        Type ff (Manufacturer Specific Data)
-           Company: Apple, Inc.
-           Data: 10 05 01 18 6c 29 c9
-
-    Data:  24 61 5e b9 77 4b 02 01 1a 0a ff 4c 00 10 05 01 18 6c 29 c9
-    CRC:   73 09 c5
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=3.027 ms rssi=-35
-42 24 4d 9c d9 1d fd dd 02 01 06 1a ff 4c 00 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d bc bb dd 17 b8 8c 7f 96 
-Advertising / AA 8e89bed6 (valid)/ 36 bytes
-    Channel Index: 37
-    Type:  ADV_NONCONN_IND
-    AdvA:  dd:fd:1d:d9:9c:4d (random)
-    AdvData: 02 01 06 1a ff 4c 00 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d bc bb dd 17 b8
-        Type 01 (Flags)
-           00000110
-               LE General Discoverable Mode
-               BR/EDR Not Supported
-
-        Type ff (Manufacturer Specific Data)
-           Company: Apple, Inc.
-           Data: 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d bc bb dd 17 b8
-
-    Data:  4d 9c d9 1d fd dd 02 01 06 1a ff 4c 00 02 15 b9 40 7f 30 f5 f8 46 6e af f9 25 55 6b 57 fe 6d bc bb dd 17 b8
-    CRC:   8c 7f 96
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=1.729 ms rssi=-56
-42 25 bc e7 34 4e 6c 3e 1e ff 06 00 01 09 20 02 84 3f 00 ed 35 ac 1c a3 ae b4 44 02 55 2e 95 d8 44 97 72 ea 84 e3 3c 95 16 3c 
-Advertising / AA 8e89bed6 (valid)/ 37 bytes
-    Channel Index: 37
-    Type:  ADV_NONCONN_IND
-    AdvA:  3e:6c:4e:34:e7:bc (random)
-    AdvData: 1e ff 06 00 01 09 20 02 84 3f 00 ed 35 ac 1c a3 ae b4 44 02 55 2e 95 d8 44 97 72 ea 84 e3 3c
-        Type ff (Manufacturer Specific Data)
-           Company: Microsoft
-           Data: 01 09 20 02 84 3f 00 ed 35 ac 1c a3 ae b4 44 02 55 2e 95 d8 44 97 72 ea 84 e3 3c
-
-    Data:  bc e7 34 4e 6c 3e 1e ff 06 00 01 09 20 02 84 3f 00 ed 35 ac 1c a3 ae b4 44 02 55 2e 95 d8 44 97 72 ea 84 e3 3c
-    CRC:   95 16 3c
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=34.734 ms rssi=-59
-00 18 c0 ce a7 a1 41 2c 02 01 1a 03 03 be fe 0a ff 01 0b 01 00 da ba 48 a7 e1 11 77 69 
-Advertising / AA 8e89bed6 (valid)/ 24 bytes
-    Channel Index: 37
-    Type:  ADV_IND
-    AdvA:  2c:41:a1:a7:ce:c0 (public)
-    AdvData: 02 01 1a 03 03 be fe 0a ff 01 0b 01 00 da ba 48 a7 e1
-        Type 01 (Flags)
-           00011010
-               LE General Discoverable Mode
-               Simultaneous LE and BR/EDR to Same Device Capable (Controller)
-               Simultaneous LE and BR/EDR to Same Device Capable (Host)
-
-        Type 03 (16-bit Service UUIDs) 
-           febe
-        Type ff (Manufacturer Specific Data)
-           Company: not assigned
-           Data: 01 00 da ba 48 a7 e1
-
-    Data:  c0 ce a7 a1 41 2c 02 01 1a 03 03 be fe 0a ff 01 0b 01 00 da ba 48 a7 e1
-    CRC:   11 77 69
-
-systime=1536236426 freq=2402 addr=8e89bed6 delta_t=12.287 ms rssi=-20
-42 16 ff ff ff ff ff ff 03 03 aa fe 0b 16 aa fe 10 00 02 ff 53 59 4e 43 89 04 c9 
-SYNC received, AP Mac address: ff:ff:ff:ff:ff:ff
-Advertising / AA 8e89bed6 (valid)/ 22 bytes
-    Channel Index: 37
-    Type:  ADV_NONCONN_IND
-    AdvA:  ff:ff:ff:ff:ff:ff (random)
-    AdvData: 03 03 aa fe 0b 16 aa fe 10 00 02 ff 53 59 4e 43
-        Type 03 (16-bit Service UUIDs) 
-           feaa
-        Type 16 (Service Data)
-           UUID: feaa, Additional: 10 00 02 ff 53 59 4e 43
-
-    Data:  ff ff ff ff ff ff 03 03 aa fe 0b 16 aa fe 10 00 02 ff 53 59 4e 43
-    CRC:   89 04 c9
-
-rssi samples : -88 -91 -90 -88 -90 -90 -87 -89 -85 -90 -91 -90 -90 -91 -89 -89 -90 -91 -87 -86 -89 -89 -90 -90 -87 -90 -89 -89 -90 -91 -88 -88 -91 -88 -91 -89 -90 -90 -89 -90 -89 -90 -89 -90 -89 -89 -90 -89 -89 -91 
-
-time measurement : 6349024 6349528 6350049 6350553 6351056 6351559 6352062 6352566 6353069 6353593 6354096 6354600 6355103 6356325 6356829 6357332 6357836 6358339 6358843 6359346 6359869 6360373 6360877 6361380 6361883 6362387 6363606 6364111 6364614 6365117 6365621 6366142 6366647 6367150 6367653 6368156 6368658 6369179 6369682 6370883 6371387 6371907 6372411 6372913 6373416 6373919 6374422 6374925 6375447 6375952 
-
-rssi samples : -91 -86 -89 -89 -88 -86 -88 -90 -84 -89 -90 -91 -90 -89 -90 -89 -90 -87 -90 -89 -90 -89 -89 -84 -88 -89 -89 -90 -90 -90 -90 -87 -87 -90 -89 -90 -91 -91 -88 -89 -91 -87 -89 -89 -89 -86 -70 -72 -70 -72 
-
-time measurement : 6376586 6377090 6377983 6378888 6379392 6379896 6380399 6381310 6382201 6382705 6383208 6384103 6385009 6385513 6386408 6387300 6387822 6388716 6389606 6390110 6390614 6391137 6391641 6392144 6392647 6393151 6393654 6394175 6394680 6395183 6395686 6396190 6397410 6397914 6398417 6398920 6399422 6399925 6400447 6400951 6401453 6401956 6402459 6402962 6404180 6404683 6405186 6405689 6406192 6406717 
-
-rssi samples : -70 -69 -70 -70 -70 -72 -70 -72 -70 -72 -65 -70 -68 -69 -70 -72 -71 -70 -72 -73 -70 -70 -69 -70 -89 -89 -59 -51 -51 -51 -51 -51 -91 -84 -90 -88 -91 -89 -90 -90 -89 -89 -89 -88 -89 -87 -87 -89 -89 -90 
-
-time measurement : 6407351 6407855 6408359 6408862 6409365 6409887 6410391 6411285 6412030 6412790 6413294 6414188 6414932 6415693 6416197 6416700 6417204 6418097 6419095 6419599 6420103 6420606 6421109 6422022 6423006 6423510 6424013 6424517 6425458 6426501 6427022 6427559 6428097 6428620 6429123 6429626 6430129 6430632 6431134 6431655 6432159 6432662 6433164 6433667 6434170 6435390 6435893 6436396 6436900 6437404 
-
-rssi samples : -90 -89 -88 -88 -89 -89 -90 -90 -90 -85 -90 -88 -85 -88 -90 -84 -90 -88 -89 -89 -91 -88 -90 -90 -90 -90 -90 -90 -89 -90 -90 -91 -90 -89 -90 -90 -90 -90 -90 -88 -90 -83 -90 -89 -88 -89 -91 -89 -90 -90 
-
-time measurement : 6438055 6438559 6439062 6439565 6440069 6440572 6441096 6441991 6442884 6443388 6444683 6445187 6445691 6446988 6447492 6447995 6448889 6449778 6450300 6451197 6452087 6452591 6453094 6453618 6454122 6454625 6455129 6455632 6456135 6456657 6457161 6457664 6458169 6458672 6459742 6460483 6460986 6461489 6461992 6462495 6463016 6463519 6464022 6464524 6465027 6465530 6466050 6466553 6467057 6468171 
-
-rssi samples : -91 -89 -90 -91 -87 -91 -87 -90 -89 -91 -90 -89 -90 -90 -88 -90 -88 -88 -91 -90 -89 -89 -91 -91 -90 -91 -89 -91 -88 -90 -88 -89 -89 -90 -89 -90 -87 -89 -90 -90 -91 -89 -90 -91 -84 -90 -89 -89 -90 -90 
-
-time measurement : 6468823 6469328 6469831 6470334 6470837 6471340 6471844 6472367 6472870 6473374 6473877 6474380 6474883 6475795 6476686 6477190 6477694 6478215 6479109 6479854 6480596 6481100 6481621 6482516 6483407 6483911 6484432 6485327 6486220 6486723 6487636 6488525 6489030 6489533 6490036 6490539 6491060 6491563 6492066 6492569 6493072 6493574 6494095 6494598 6495101 6496216 6496719 6497240 6497744 6498248 
-
-rssi samples : -89 -89 -89 -90 -89 -88 -91 -91 -88 -90 -87 -89 -88 -90 -91 -91 -87 -88 -91 -90 -88 -90 -88 -90 -90 -89 -89 -90 -90 -86 -90 -85 -89 -89 -90 -92 -89 -88 -90 -89 -90 -91 -90 -89 -91 -89 -89 -89 -88 -91 
-
-time measurement : 6498882 6499386 6499889 6500409 6500913 6501417 6501920 6502423 6503336 6504320 6504824 6505327 6505830 6506351 6507247 6508230 6508735 6509238 6509759 6510656 6511635 6512139 6512660 6513164 6513667 6514561 6515545 6516066 6516570 6517073 6517968 6518876 6519381 6519884 6520387 6520890 6521393 6521913 6522417 6522920 6523423 6523925 6524428 6524931 6526153 6526657 6527160 6527663 6528184 6528688 
-
-rssi samples : -88 -88 -90 -89 -91 -90 -88 -87 -90 -90 -88 -89 -89 -91 -89 -88 -87 -89 -88 -90 -90 -90 -90 -90 -90 -90 -90 -87 -89 -88 -90 -90 -89 -89 -89 -89 -90 -88 -89 -89 -90 -87 -90 -90 -86 -90 -89 -88 -90 -91 
-
-time measurement : 6529322 6529827 6530330 6530833 6531354 6531858 6532753 6533734 6534238 6534758 6535654 6536636 6537140 6537660 6538164 6538667 6539562 6540545 6541066 6541570 6542073 6542577 6543473 6544471 6544975 6545479 6545982 6546893 6547874 6548378 6548882 6549385 6549890 6550410 6550914 6551416 6551919 6552422 6552925 6553445 6553949 6554452 6554955 6555457 6556676 6557180 6557683 6558185 6558689 6559193 
-
-rssi samples : -90 -85 -90 -89 -88 -90 -90 -88 -90 -89 -89 -91 -88 -91 -89 -89 -90 -89 -89 -87 -88 -90 -89 -87 -89 -89 -90 -90 -89 -89 -90 -90 -88 -90 -90 -89 -88 -91 -90 -90 -90 -88 -90 -90 -89 -90 -90 -90 -88 -89 
-
-time measurement : 6559844 6560348 6560852 6561355 6561858 6562361 6563657 6564161 6564664 6565558 6566561 6567065 6567568 6568071 6568574 6569484 6570468 6570972 6571475 6571996 6573275 6573780 6574283 6575195 6576088 6576592 6577096 6577599 6578102 6578626 6579130 6579633 6580138 6580641 6581144 6581664 6582167 6583371 6583875 6584394 6584898 6585401 6585904 6586406 6586909 6587412 6587932 6588435 6588939 6589443 
-
-rssi samples : -89 -89 -91 -89 -90 -89 -89 -89 -90 -90 -88 -90 -86 -88 -89 -89 -90 -88 -92 -88 -89 -91 -91 -91 -88 -88 -91 -89 -89 -88 -90 -90 -86 -90 -89 -90 -90 -89 -88 -90 -90 -88 -90 -90 -90 -91 -88 -90 -89 -87 
-
-time measurement : 6590469 6591378 6591882 6592776 6593776 6594280 6595177 6595922 6596665 6597186 6598081 6599060 6599564 6600085 6600589 6601092 6601989 6602881 6603402 6603906 6604410 6604913 6605416 6605920 6606441 6606945 6607449 6607952 6608455 6608959 6609793 6610685 6611191 6611693 6612196 6612717 6613220 6613723 6614226 6614729 6615232 6615752 6616256 6616759 6617261 6618460 6618982 6619485 6619989 6620493 
-
-rssi samples : -90 -90 -89 -89 -89 -90 -90 -86 -90 -89 -89 -90 -89 -89 -88 -90 -89 -90 -89 -89 -89 -89 -90 -91 -88 -89 -90 -88 -89 -88 -90 -91 -90 -89 -89 -90 -91 -89 -90 -89 -88 -89 -90 -89 -90 -90 -87 -89 -90 -90 
-
-time measurement : 6621126 6621631 6622151 6622655 6623159 6623662 6624165 6624668 6625580 6626562 6627066 6627570 6628073 6628596 6629490 6629994 6630974 6631496 6632000 6632503 6633636 6634393 6634898 6635401 6635905 6636799 6637707 6638601 6639491 6639995 6640498 6641019 6641525 6642027 6642530 6643033 6643536 6644056 6644560 6645063 6645566 6646068 6647286 6647789 6648292 6648795 6649298 6649800 6650322 6650827 
-
-rssi samples : -88 -76 -51 -51 -51 -51 -51 -51 -90 -37 -37 -102 -90 -90 -51 -89 -89 -89 -89 -89 -91 -90 -91 -90 -89 -90 -87 -80 -89 -88 -90 -89 -90 -87 -90 -89 -89 -90 -88 -87 -90 -88 -89 -89 -90 -88 -89 -90 -90 -91 
-
-time measurement : 6651460 6651965 6652468 6652971 6653492 6654777 6655281 6655784 6656695 6657584 6658088 6658981 6659889 6660392 6661287 6662177 6662700 6663595 6664486 6664990 6665493 6666014 6666518 6667022 6667525 6668029 6668532 6669052 6669557 6670060 6670563 6671067 6672287 6672791 6673294 6673796 6674299 6674802 6675322 6675826 6676329 6676831 6677334 6677837 6678357 6678861 6679919 6680663 6681167 6681688 
-
-rssi samples : -85 -89 -90 -87 -80 -84 -89 -89 -84 -90 -92 -91 -89 -83 -89 -90 -90 -87 -88 -88 -89 -89 -88 -90 -88 -90 -84 -90 -89 -90 -89 -90 -90 -90 -88 -91 -90 -90 -90 -91 -90 -90 -89 -87 -90 -88 -89 -90 -84 -89 
-
-time measurement : 6682323 6682827 6683330 6683833 6684337 6684860 6685364 6685867 6686370 6686873 6687377 6688287 6689269 6689773 6690276 6690797 6691302 6692197 6693176 6693680 6694204 6694708 6695212 6695715 6696609 6697611 6698115 6698619 6699122 6699625 6700537 6701427 6701932 6702435 6702938 6704321 6704825 6705327 6705830 6706350 6706854 6707356 6707859 6708362 6708865 6709368 6709889 6710393 6710896 6711400 
-
-rssi samples : -89 -89 -90 -89 -88 -89 -90 -91 -87 -88 -90 -91 -90 -90 -89 -90 -83 -87 -90 -90 -90 -90 -90 -89 -88 -89 -89 -87 -90 -90 -90 -89 -89 -90 -88 -90 -90 -89 -90 -91 -89 -89 -90 -90 -88 -89 -88 -91 -89 -90 
-
-time measurement : 6712034 6712555 6713451 6714429 6714933 6715436 6715957 6716461 6716964 6717857 6718856 6719360 6719863 6720367 6721261 6722255 6722760 6723263 6723767 6724660 6725568 6726073 6726576 6727079 6727583 6728734 6729475 6729979 6730482 6730986 6731507 6732011 6732516 6733019 6733521 6734024 6734545 6735049 6735551 6736054 6736557 6737776 6738279 6738782 6739285 6739788 6740290 6740811 6741315 6741819 
-
-rssi samples : -89 -87 -91 -90 -89 -88 -89 -90 -86 -83 -88 -90 -89 -88 -91 -89 -88 -89 -90 -89 -89 -90 -86 -90 -89 -89 -91 -90 -85 -90 -89 -87 -90 -90 -91 -90 -91 -90 -88 -90 -83 -89 -90 -89 -89 -90 -90 -84 -89 -88 
-
-time measurement : 6742453 6742957 6743461 6743981 6744876 6745854 6746358 6746861 6747383 6747887 6748390 6749523 6750280 6750784 6751287 6751790 6752294 6752798 6753709 6754600 6755105 6755608 6756111 6757025 6758008 6758512 6759015 6759537 6760041 6760938 6761921 6762425 6762950 6763453 6763956 6764459 6764962 6765465 6765985 6766489 6766992 6767495 6767997 6768500 6769020 6769524 6770726 6771230 6771733 6772255 
-
-rssi samples : -87 -88 -89 -89 -89 -88 -90 -88 -89 -83 -90 -87 -88 -87 -88 -89 -89 -89 -85 -89 -91 -89 -90 -89 -87 -89 -90 -89 -89 -86 -89 -89 -90 -90 -90 -91 -90 -89 -89 -89 -90 -90 -89 -89 -89 -91 -88 -89 -90 -89 
-
-time measurement : 6772889 6773394 6773897 6774400 6774903 6775424 6775928 6776431 6776934 6777438 6778592 6779333 6779837 6780340 6780843 6781364 6782259 6783237 6783741 6784244 6784765 6785269 6786405 6787144 6787665 6788169 6788673 6789566 6790549 6791073 6791577 6792080 6792585 6793478 6794473 6794976 6795479 6795982 6796485 6797004 6797508 6798011 6798514 6799016 6799519 6800039 6800543 6801046 6801549 6802053 
-
-rssi samples : -91 -86 -91 -91 -90 -88 -89 -90 -90 -90 -90 -89 -90 -90 -90 -90 -90 -90 -90 -90 -89 -89 -89 -87 -87 -91 -91 -89 -89 -89 -84 -89 -89 -90 -91 -90 -88 -90 -89 -89 -87 -90 -88 -90 -90 -89 -90 -89 -89 -88 
-
-time measurement : 6803402 6803907 6804410 6804913 6805416 6805919 6806440 6806944 6807447 6807950 6808453 6808956 6809477 6809981 6810875 6811765 6812270 6812791 6813295 6813799 6814692 6815688 6816192 6816695 6817199 6818093 6819087 6819591 6820094 6820598 6821101 6822013 6822905 6823408 6823911 6824414 6824917 6825827 6826808 6827311 6827814 6828334 6828837 6829340 6829843 6830346 6830849 6831369 6831873 6832377 
-
-rssi samples : -88 -90 -89 -83 -90 -89 -90 -91 -89 -87 -90 -86 -89 -89 -90 -86 -90 -91 -91 -89 -91 -90 -89 -89 -90 -92 -90 -90 -89 -89 -89 -89 -89 -89 -88 -90 -90 -90 -91 -89 -85 -90 -88 -88 -89 -90 -89 -91 -89 -91 
-
-time measurement : 6833011 6833515 6834018 6834539 6835677 6836418 6836922 6837425 6838339 6839322 6839826 6840329 6840850 6841354 6842250 6843233 6843738 6844260 6844764 6845658 6846638 6847159 6847663 6848167 6848670 6849563 6850085 6850975 6851479 6851983 6852486 6852990 6853511 6854015 6854518 6855021 6855523 6856026 6856546 6857050 6857552 6858055 6859257 6859779 6860282 6860785 6861288 6861791 6862294 6862816 
-
-rssi samples : -90 -89 -89 -90 -89 -88 -90 -91 -91 -89 -90 -89 -44 -47 -47 -47 -47 -47 -92 -90 -88 -90 -91 -89 -88 -87 -90 -89 -88 -90 -89 -90 -88 -90 -88 -90 -90 -90 -90 -88 -91 -89 -89 -89 -83 -89 -84 -90 -90 -89 
-
-time measurement : 6863451 6863955 6864458 6864962 6865465 6865985 6866489 6867627 6868367 6868889 6869393 6869896 6870790 6871680 6872202 6872706 6873210 6873713 6874607 6875604 6876109 6876612 6877115 6877619 6878918 6879422 6879926 6880429 6880932 6881454 6882826 6883330 6883835 6884338 6884861 6885365 6885867 6886370 6886873 6887376 6887896 6888400 6888902 6889405 6889908 6890411 6891632 6892136 6892639 6893143 
-
-rssi samples : -90 -89 -88 -91 -90 -89 -90 -90 -90 -88 -88 -90 -90 -88 -90 -89 -90 -91 -91 -86 -90 -89 -90 -90 -90 -90 -91 -90 -88 -89 -89 -87 -87 -90 -90 -91 -89 -89 -90 -90 -87 -89 -89 -88 -88 -91 -91 -89 -90 -91 
-
-time measurement : 6893797 6894301 6894804 6895307 6895811 6896314 6896817 6897341 6898235 6899215 6899719 6900239 6900743 6901246 6902141 6903031 6903553 6904058 6904561 6905064 6905958 6906961 6907466 6907969 6908472 6909369 6910370 6910874 6911377 6911881 6912384 6913297 6914190 6914693 6915196 6915717 6916220 6916723 6917226 6917729 6918231 6918734 6919257 6919761 6920263 6921552 6922073 6922576 6923080 6923584 
-
-rssi samples : -90 -90 -90 -90 -90 -90 -91 -90 -90 -90 -89 -89 -89 -88 -90 -88 -90 -89 -91 -89 -89 -87 -87 -91 -87 -89 -92 -89 -88 -89 -90 -90 -89 -88 -90 -89 -90 -92 -91 -89 -89 -90 -86 -90 -88 -90 -89 -89 -89 -90 
-
-time measurement : 6924217 6924722 6925242 6925746 6926250 6926753 6927256 6927759 6928280 6928784 6929678 6930182 6931072 6931594 6932098 6932601 6933495 6934402 6934906 6935410 6935913 6936417 6937713 6938218 6938721 6939224 6939728 6940231 6941619 6942123 6942627 6943130 6943635 6944547 6945529 6946033 6946535 6947056 6947560 6948063 6948565 6949068 6949571 6950091 6950595 6951098 6951600 6952103 6952607 6953111 
-
-rssi samples : -89 -90 -90 -90 -89 -89 -92 -90 -89 -87 -89 -90 -90 -91 -91 -89 -91 -89 -90 -89 -90 -90 -85 -86 -90 -89 -87 -88 -88 -90 -90 -90 -90 -89 -90 -88 -85 -89 -88 -91 -91 -90 -88 -90 -91 -88 -83 -89 -90 -91 
-
-time measurement : 6954552 6955056 6955559 6956062 6956583 6957087 6957590 6958093 6958597 6959100 6959621 6960125 6960628 6961131 6962025 6963024 6963528 6964032 6964535 6965039 6965949 6966839 6967343 6967847 6968350 6968871 6969765 6970270 6971159 6971663 6972184 6973079 6974061 6974564 6975085 6975588 6976091 6976984 6977965 6978486 6978990 6979493 6979996 6980498 6981001 6981521 6982025 6982528 6983031 6983535 
-
-rssi samples : -90 -89 -88 -90 -90 -90 -89 -90 -88 -90 -90 -90 -90 -91 -90 -89 -86 -89 -90 -91 -90 -90 -89 -90 -87 -90 -85 -89 -90 -89 -87 -90 -91 -90 -90 -91 -88 -90 -90 -90 -90 -90 -90 -87 -90 -89 -89 -89 -92 -90 
-
-time measurement : 6984169 6984691 6985195 6985698 6986594 6987589 6988093 6988597 6989100 6989603 6990106 6991018 6991907 6992411 6992914 6993417 6993938 6995072 6995817 6996321 6996824 6997347 6998241 6999220 6999724 7000245 7000749 7001253 7002621 7003142 7003647 7004151 7004656 7005158 7005661 7006164 7006684 7007188 7007691 7008193 7008696 7009199 7009719 7010223 7011423 7011927 7012430 7012953 7013457 7013961 
-
-rssi samples : -89 -89 -89 -90 -90 -90 -89 -90 -64 -36 -36 -36 -36 -36 -66 -89 -89 -90 -88 -88 -90 -89 -89 -91 -86 -90 -90 -90 -89 -91 -89 -88 -91 -90 -89 -90 -90 -88 -90 -89 -89 -91 -90 -91 -91 -88 -84 -87 -91 -83 
-
-time measurement : 7014595 7015099 7015602 7016126 7016629 7017133 7018026 7018788 7019531 7020034 7020538 7021041 7021952 7022930 7023434 7023937 7024441 7024945 7025859 7026748 7027253 7027756 7028277 7028781 7029675 7030179 7031068 7031590 7032094 7032597 7033494 7034495 7035001 7035504 7036006 7036509 7037012 7037533 7038036 7038539 7039042 7039545 7040048 7040550 7041073 7041576 7042079 7043193 7043697 7044221 
-
-rssi samples : -89 -89 -90 -89 -88 -90 -89 -89 -90 -90 -89 -92 -90 -89 -90 -88 -90 -90 -90 -90 -90 -90 -89 -90 -89 -90 -90 -88 -91 -89 -84 -89 -89 -86 -82 -90 -90 -90 -89 -88 -90 -87 -89 -89 -92 -89 -89 -91 -90 -91 
-
-time measurement : 7044856 7045360 7045863 7046366 7046870 7047391 7047894 7048397 7048901 7049404 7049907 7050428 7051708 7052212 7052716 7053236 7053741 7054634 7055617 7056121 7056642 7057146 7058043 7059023 7059544 7060049 7060552 7061055 7061950 7062947 7063451 7063955 7064459 7064962 7066114 7066856 7067360 7067863 7068365 7068886 7069389 7069892 7070395 7070898 7071400 7071921 7072425 7072927 7073431 7073935 
-
-rssi samples : -90 -90 -90 -90 -89 -89 -89 -88 -85 -88 -88 -89 -88 -91 -90 -90 -89 -89 -89 -90 -90 -88 -90 -87 -90 -89 -91 -89 -88 -90 -90 -90 -89 -90 -89 -90 -91 -89 -87 -90 -88 -55 -56 -56 -56 -56 -56 -86 -89 -90 
-
-time measurement : 7074961 7075962 7076466 7076969 7077863 7078771 7079275 7079778 7080672 7081585 7082481 7083371 7083875 7084395 7084899 7085792 7086776 7087280 7087802 7088306 7088809 7089313 7089816 7090319 7090840 7091344 7091848 7092351 7092854 7093358 7093879 7094383 7095590 7096093 7096596 7097116 7097620 7098123 7098626 7099128 7099631 7100151 7100655 7101158 7101661 7102163 7102666 7103883 7104388 7104892 
-
-rssi samples : -90 -89 -90 -90 -91 -90 -89 -89 -90 -91 -91 -87 -90 -87 -90 -89 -89 -90 -86 -90 -90 -90 -89 -90 -91 -90 -90 -88 -90 -90 -88 -90 -89 -88 -90 -90 -90 -88 -87 -89 -89 -90 -91 -82 -87 -89 -89 -90 -88 -89 
-
-time measurement : 7105525 7106030 7106551 7107055 7107558 7108061 7108564 7109068 7109588 7110484 7111228 7111968 7112472 7112995 7113499 7114392 7115372 7115893 7116397 7116901 7117404 7118298 7119204 7119708 7120211 7120715 7121850 7122610 7123115 7123618 7124514 7125511 7126016 7126519 7127022 7127525 7128028 7128548 7129052 7129555 7130058 7130560 7131063 7131583 7132087 7132590 7133093 7134294 7134815 7135320 
-
-rssi samples : -89 -90 -90 -84 -82 -88 -84 -88 -83 -87 -89 -90 -90 -87 -90 -90 -89 -87 -88 -89 -89 -89 -89 -90 -91 -89 -91 -90 -89 -90 -90 -85 -90 -93 -90 -84 -90 -89 -88 -88 -90 -89 -89 -91 -89 -89 -87 -90 -89 -91 
-
-time measurement : 7135954 7136458 7136962 7137465 7137988 7138491 7138995 7139498 7140001 7141155 7141895 7142399 7142902 7143405 7143926 7145062 7145805 7146309 7146813 7147336 7148230 7149214 7149718 7150239 7150743 7151247 7152528 7153032 7153945 7154836 7155340 7155843 7156366 7156870 7157372 7157875 7158378 7158881 7159401 7159905 7160408 7160911 7161413 7162634 7163137 7163640 7164143 7164646 7165149 7165671 
-
-rssi samples : -88 -89 -90 -88 -89 -90 -90 -92 -89 -87 -89 -90 -90 -89 -84 -88 -87 -90 -90 -88 -88 -89 -89 -88 -87 -90 -89 -89 -89 -89 -90 -91 -87 -90 -89 -90 -88 -90 -88 -84 -88 -89 -86 -89 -86 -90 -91 -89 -90 -89 
-
-time measurement : 7166306 7166810 7167313 7167816 7168320 7168840 7169735 7170239 7171217 7171721 7172242 7173138 7174117 7174621 7175142 7175646 7176150 7177046 7178029 7178551 7179055 7179558 7180062 7180959 7181964 7182469 7182972 7183475 7184370 7185367 7185872 7186375 7186880 7187383 7187904 7188407 7188910 7189413 7189916 7190419 7190939 7191442 7191945 7192448 7192951 7194167 7194671 7195174 7195677 7196181 
-
-rssi samples : -90 -90 -90 -90 -90 -89 -86 -87 -87 -90 -90 -86 -85 -88 -88 -86 -86 -91 -89 -84 -91 -89 -90 -86 -90 -89 -89 -89 -90 -88 -90 -91 -89 -89 -88 -91 -91 -89 -89 -91 -90 -90 -90 -87 -91 -90 -87 -90 -83 -91 
-
-time measurement : 7196815 7197340 7197843 7198347 7198850 7199353 7199856 7201154 7201658 7202161 7203055 7204056 7204560 7205063 7205567 7206070 7206981 7207961 7208465 7208968 7209490 7209994 7210889 7211868 7212372 7212893 7213788 7214678 7215182 7215703 7216207 7216710 7217215 7217718 7218221 7218724 7219246 7219749 7220252 7220755 7221257 7222475 7222979 7223481 7223984 7224487 7224990 7225512 7226016 7226520 
-
-rssi samples : -90 -90 -92 -87 -89 -89 -90 -89 -89 -89 -89 -90 -90 -88 -91 -87 -89 -89 -90 -90 -92 -89 -88 -92 -88 -88 -90 -89 -89 -90 -89 -90 -91 -88 -90 -90 -89 -90 -90 -91 -88 -90 -90 -90 -90 -90 -91 -91 -88 -83 
-
-time measurement : 7227154 7227658 7228179 7228683 7229816 7230558 7231062 7231583 7232087 7232590 7233962 7234483 7234987 7235491 7235994 7236887 7237887 7238391 7238894 7239398 7239901 7240813 7241796 7242301 7242804 7243307 7243828 7244966 7245710 7246214 7246717 7247238 7247743 7248246 7248749 7249252 7249754 7250275 7250778 7251281 7251784 7252287 7252789 7254006 7254510 7255013 7255515 7256018 7256540 7257044 
-
-rssi samples : -91 -90 -90 -91 -90 -89 -89 -88 -90 -90 -91 -83 -87 -91 -90 -84 -89 -89 -88 -91 -90 -89 -90 -90 -89 -87 -91 -90 -90 -83 -90 -87 -82 -90 -89 -88 -92 -90 -89 -90 -89 -90 -89 -90 -89 -88 -89 -90 -88 -89 
-
-time measurement : 7257678 7258183 7258686 7259189 7259710 7260606 7261586 7262090 7262611 7263115 7263618 7264513 7265493 7266014 7266518 7267021 7267525 7268823 7269327 7269830 7270726 7271616 7272528 7273418 7273922 7274425 7274929 7275452 7275956 7276459 7276963 7277466 7277971 7278491 7278995 7279497 7280000 7281200 7281724 7282227 7282730 7283232 7283735 7284238 7284758 7285261 7285764 7286267 7286770 7287274 
-
-rssi samples : -89 -89 -88 -90 -90 -89 -87 -88 -89 -91 -93 -90 -91 -89 -89 -91 -89 -90 -90 -90 -90 -91 -90 -90 -91 -91 -89 -84 -89 -90 -90 -91 -91 -91 -91 -90 -89 -90 -90 -88 -89 -89 -87 -91 -91 -89 -90 -91 -89 -88 
-
-time measurement : 7288624 7289129 7289632 7290135 7290656 7291160 7291664 7292167 7292670 7293173 7293676 7294200 7294704 7295842 7296583 7297105 7297610 7298113 7298616 7299511 7300033 7300923 7301427 7301931 7302434 7303346 7304329 7304833 7305337 7305840 7306361 7307495 7308239 7308743 7309245 7309766 7310661 7311644 7312147 7312667 7313171 7313674 7314176 7314679 7315182 7315702 7316206 7316709 7317212 7317716 
-
-rssi samples : -91 -90 -87 -87 -88 -85 -86 -87 -90 -90 -90 -91 -89 -91 -90 -89 -88 -91 -89 -90 -88 -91 -89 -91 -90 -89 -90 -91 -90 -90 -90 -91 -92 -89 -89 -89 -89 -90 -90 -83 -89 -89 -91 -91 -88 -89 -90 -90 -87 -87 
-
-time measurement : 7318350 7318872 7319376 7319879 7321158 7321662 7322183 7323077 7323967 7324471 7325381 7326360 7326864 7327367 7327871 7328391 7329286 7330269 7330773 7331295 7331799 7332694 7333583 7334087 7334609 7335113 7335616 7336120 7336623 7337126 7337648 7338152 7338657 7339159 7339662 7340165 7341382 7341885 7342388 7342891 7343393 7343914 7344417 7344920 7345423 7345926 7346428 7346949 7348062 7348567 
-
-rssi samples : -90 -88 -88 -91 -90 -90 -90 -89 -91 -91 -89 -89 -90 -90 -88 -90 -90 -90 -90 -88 -60 -61 -61 -60 -88 -89 -86 -90 -85 -90 -89 -89 -90 -87 -87 -90 -91 -84 -85 -91 -88 -87 -89 -89 -88 -89 -91 -89 -88 -88 
-
-time measurement : 7349201 7349705 7350226 7350730 7351233 7351736 7352240 7352743 7353263 7353767 7354271 7354774 7355912 7356672 7357176 7358070 7358962 7359484 7360379 7361124 7361865 7362369 7362890 7363394 7364288 7365033 7365792 7366296 7366800 7367303 7368583 7369104 7369610 7370113 7370615 7371118 7371621 7372141 7372645 7373148 7373650 7374153 7374656 7375176 7376465 7376969 7377472 7377974 7378496 7379001 
-
-rssi samples : -90 -90 -89 -89 -89 -90 -89 -84 -88 -90 -91 -89 -90 -90 -90 -91 -89 -88 -90 -90 -90 -89 -89 -88 -89 -89 -89 -88 -88 -89 -89 -91 -90 -89 -89 -87 -83 -89 -83 -88 -88 -90 -88 -89 -89 -87 -91 -88 -88 -87 
-
-time measurement : 7379634 7380139 7380642 7381145 7381666 7382170 7383066 7383957 7384478 7385373 7386262 7386766 7387678 7388567 7389071 7389574 7390470 7391377 7391881 7392775 7393669 7394190 7394694 7395197 7395701 7396204 7396707 7397228 7397732 7398235 7398739 7399242 7399747 7400878 7401381 7401884 7402387 7402890 7403410 7403913 7404416 7404919 7405422 7405925 7406445 7406948 7408147 7408651 7409154 7409676 
-
-rssi samples : -89 -89 -89 -88 -88 -90 -87 -88 -92 -89 -90 -90 -91 -90 -91 -90 -90 -90 -90 -89 -89 -91 -90 -89 -90 -90 -89 -87 -88 -72 -69 -71 -72 -70 -69 -71 -69 -69 -69 -70 -69 -70 -70 -72 -72 -72 -69 -70 -68 -72 
-
-time measurement : 7410310 7410815 7411318 7411821 7412324 7412845 7413349 7413852 7414355 7415249 7416011 7416754 7417258 7417761 7418264 7418784 7420159 7420663 7421166 7421670 7422191 7423085 7423975 7424871 7425778 7426282 7426785 7427920 7428677 7429181 7429685 7430188 7430693 7431196 7431719 7432222 7432725 7433228 7433731 7434233 7434754 7435257 7436461 7436964 7437467 7437990 7438493 7438996 7439499 7440003 
-
-rssi samples : -70 -70 -70 -70 -69 -70 -67 -68 -70 -69 -88 -87 -87 -91 -89 -90 -89 -89 -89 -88 -89 -90 -90 -86 -90 -89 -90 -88 -91 -84 -90 -90 -87 -89 -90 -89 -90 -89 -90 -84 -88 -90 -90 -90 -89 -90 -89 -90 -90 -85 
-
-time measurement : 7440658 7441163 7441666 7442169 7442672 7443176 7443679 7444593 7445574 7446078 7446581 7447102 7447606 7448740 7449483 7449986 7450509 7451013 7451907 7452797 7453318 7453822 7454326 7454829 7455723 7456629 7457133 7457636 7458140 7458643 7459553 7460057 7460949 7461452 7461955 7462458 7462982 7463485 7463988 7464491 7464994 7465496 7466016 7466520 7467023 7467525 7468028 7468531 7469845 7470349 
-
-rssi samples : -89 -90 -90 -90 -91 -80 -79 -79 -82 -79 -79 -79 -89 -90 -87 -90 -91 -90 -88 -87 -88 -87 -89 -88 -89 -89 -89 -90 -90 -88 -89 -90 -90 -90 -79 -81 -87 -79 -81 -81 -90 -90 -90 -89 -89 -88 -89 -91 -90 -90 
-
-time measurement : 7470983 7471488 7472008 7472512 7473015 7473519 7474022 7474525 7475046 7475550 7476053 7476556 7477060 7478213 7478955 7479459 7479963 7480467 7481379 7482274 7482778 7483281 7483785 7484288 7485199 7486088 7486593 7487096 7487617 7488899 7489403 7489907 7490412 7490932 7491827 7492571 7493312 7493833 7494336 7494839 7495342 7495845 7496348 7496850 7497373 7497877 7498379 7498882 7499386 7499890 
-
-rssi samples : -88 -89 -89 -83 -90 -91 -89 -89 -54 -51 -51 -51 -51 -51 -51 -89 -91 -84 -91 -88 -90 -88 -89 -89 -91 -90 -90 -89 -89 -89 -88 -86 -56 -56 -56 -56 -56 -90 -84 -90 -89 -90 -90 -92 -90 -92 -92 -90 -90 -88 
-
-time measurement : 7500541 7501045 7501939 7502683 7503443 7503947 7504450 7504953 7505456 7506367 7507256 7507760 7508263 7508766 7509270 7509791 7511071 7511575 7512079 7512599 7513494 7514473 7514978 7515481 7516002 7516506 7517010 7518148 7518905 7519409 7519913 7520416 7520921 7521424 7521944 7522448 7522951 7523453 7523956 7524459 7524962 7525485 7526688 7527192 7527695 7528215 7528718 7529221 7529725 7530229 
-
-rssi samples : -89 -89 -87 -87 -90 -91 -90 -89 -90 -90 -89 -91 -89 -90 -89 -90 -89 -91 -89 -89 -89 -89 -89 -89 -90 -89 -91 -88 -91 -89 -91 -90 -87 -88 -89 -89 -90 -90 -88 -90 -89 -90 -90 -89 -85 -91 -90 -90 -88 -89 
-
-time measurement : 7530862 7531384 7531888 7532391 7532895 7533398 7533901 7535052 7535793 7536297 7536800 7537303 7537824 7539196 7539700 7540203 7540724 7541228 7542124 7543106 7543610 7544131 7544635 7545138 7546271 7547029 7547533 7548036 7548540 7549435 7549939 7550851 7551357 7551860 7552363 7552865 7553386 7553889 7554392 7554895 7555398 7555900 7556421 7556924 7557427 7557930 7559134 7559655 7560159 7560663 
-
-rssi samples : -91 -87 -88 -89 -91 -86 -87 -90 -88 -89 -90 -90 -90 -90 -91 -90 -91 -90 -90 -81 -84 -89 -90 -90 -90 -89 -89 -83 -20 -16 -17 -16 -16 -91 -90 -89 -89 -90 -89 -88 -87 -89 -89 -88 -90 -88 -91 -89 -89 -90 
-
-time measurement : 7561297 7561802 7562305 7562825 7563329 7563833 7564336 7564839 7565342 7565863 7566758 7567741 7568245 7568748 7569270 7569773 7570277 7571172 7572079 7572583 7573086 7573590 7574484 7575482 7575987 7576490 7576993 7577497 7578796 7579300 7579803 7580307 7580812 7581332 7582703 7583207 7583710 7584212 7584733 7585236 7585739 7586242 7586745 7587247 7587768 7588271 7588774 7589277 7589780 7590284 
-
-rssi samples : -90 -92 -90 -90 -87 -91 -87 -83 -89 -89 -89 -89 -89 -89 -90 -90 -90 -90 -90 -88 -91 -91 -90 -87 -89 -90 -90 -89 -91 -90 -91 -90 -90 -88 -90 -88 -89 -89 -91 -91 -89 -90 -87 -89 -91 -89 -87 -90 -88 -87 
-
-time measurement : 7590936 7592073 7592818 7593322 7593843 7594981 7595724 7596228 7596731 7597251 7598149 7599039 7599543 7600063 7600567 7601070 7601968 7602950 7603472 7603976 7604479 7604983 7605876 7606875 7607379 7607882 7608386 7608889 7609410 7609914 7610417 7610921 7611426 7611928 7612431 7612955 7613458 7613961 7614463 7615769 7616273 7616775 7617278 7617781 7618284 7618804 7619308 7619811 7620314 7620818 
+
+236:85:249:124:201:255
+rssi samples : -90 -89 -89 -91 -89 -89 -88 -85 -87 -87 -90 -88 -88 -89 -86 -88 -87 -89 -89 -88 -84 -89 -87 -87 -88 -89 -90 -89 -86 -90 -87 -84 -90 -89 -89 -89 -90 -84 -89 -90 -90 -85 -90 -90 -83 -89 -89 -85 -89 -87 
+
+time measurement : 1005367 1005873 1006396 1006902 1007407 1007913 1008419 1009638 1010144 1010650 1011155 1011661 1012166 1012690 1013195 1013701 1014207 1014713 1015219 1015742 1016248 1017363 1017869 1018375 1018898 1019404 1019909 1020415 1020921 1021427 1021950 1022456 1022963 1023784 1024675 1025198 1025703 1026208 1026714 1027219 1027724 1028247 1028752 1029257 1029762 1030267 1030773 1031993 1032499 1033005 
+
+rssi samples : -90 -89 -89 -90 -88 -89 -89 -88 -86 -87 -87 -89 -87 -89 -89 -86 -82 -81 -89 -90 -89 -89 -87 -87 -88 -86 -90 -89 -89 -89 -89 -90 -87 -87 -71 -89 -88 -90 -88 -83 -82 -89 -90 -90 -90 -89 -88 -90 -88 -88 
+
+time measurement : 1033642 1034148 1034671 1035177 1035682 1036188 1036693 1037199 1037722 1038228 1039124 1040104 1040609 1041135 1041641 1042147 1042653 1043159 1044071 1045049 1045554 1046060 1046566 1047089 1047595 1048491 1049476 1049981 1050508 1051014 1051911 1052801 1053326 1053832 1054337 1054842 1055737 1056734 1057239 1057744 1058249 1058755 1059260 1059783 1060288 1060793 1061299 1061804 1062310 1062833 
+
+rssi samples : -89 -89 -89 -84 -89 -83 -86 -87 -85 -90 -90 -88 -84 -90 -85 -86 -82 -89 -35 -35 -35 -35 -89 -90 -89 -89 -87 -87 -86 -88 -89 -89 -85 -87 -89 -89 -89 -89 -83 -90 -88 -89 -90 -84 -89 -86 -90 -87 -89 -88 
+
+time measurement : 1063470 1063976 1064872 1065868 1066374 1066880 1067775 1068774 1069279 1069785 1070290 1070796 1072094 1072599 1073105 1073610 1074117 1074623 1075919 1076424 1076930 1077436 1077942 1078465 1079745 1080251 1080757 1081280 1081786 1082292 1082797 1083303 1083810 1084316 1084842 1085347 1085852 1086357 1086863 1087368 1088588 1089093 1089599 1090104 1090609 1091134 1091640 1092145 1092651 1093157 
+
+rssi samples : -89 -89 -40 -27 -27 -27 -27 -70 -85 -89 -83 -87 -89 -89 -83 -88 -86 -89 -85 -90 -87 -89 -86 -89 -91 -88 -87 -89 -88 -90 -89 -90 -90 -84 -90 -89 -87 -89 -89 -90 -86 -85 -89 -90 -89 -87 -88 -89 -90 -87 
+
+time measurement : 1093812 1094318 1095215 1096121 1096643 1097601 1098538 1099062 1100214 1100720 1101464 1101970 1102475 1103385 1104275 1104781 1105287 1106182 1107090 1107596 1108102 1108607 1109113 1109636 1110142 1110648 1111154 1111659 1112165 1112689 1113195 1114399 1114906 1115411 1115934 1116439 1116945 1117450 1117955 1118460 1118983 1119488 1119993 1120499 1121611 1122135 1122640 1123145 1123651 1124157 
+
+rssi samples : -87 -89 -90 -88 -88 -86 -90 -87 -85 -89 -88 -90 -89 -80 -89 -86 -90 -89 -89 -89 -90 -90 -89 -89 -90 -89 -88 -86 -89 -90 -89 -89 -87 -86 -89 -88 -90 -90 -89 -90 -90 -87 -90 -90 -90 -86 -87 -87 -88 -90 
+
+time measurement : 1124794 1125317 1125823 1126328 1126834 1127339 1127845 1128758 1129648 1130154 1130660 1131573 1132467 1133361 1134252 1134775 1135281 1136177 1137070 1137594 1138490 1139379 1139885 1140391 1140915 1141420 1141926 1142432 1142938 1143444 1143967 1144473 1144980 1145485 1145990 1147209 1147714 1148219 1148725 1149230 1149735 1150258 1150763 1151269 1151774 1152279 1152784 1154004 1154510 1155016 
+
+rssi samples : -90 -84 -85 -90 -90 -89 -87 -91 -90 -92 -90 -90 -88 -86 -82 -86 -86 -87 -88 -90 -87 -89 -89 -84 -81 -90 -85 -89 -90 -90 -90 -89 -90 -90 -88 -91 -90 -89 -88 -89 -87 -83 -83 -89 -88 -86 -89 -90 -87 -90 
+
+time measurement : 1155653 1156159 1156682 1157188 1157694 1158199 1158705 1159210 1159734 1160240 1160745 1162030 1162553 1163059 1164339 1164845 1165351 1166647 1167153 1167659 1168554 1169460 1169965 1170471 1171369 1172276 1172782 1173287 1173793 1174299 1174805 1175328 1175835 1176340 1176845 1177350 1177856 1178378 1179579 1180084 1180589 1181094 1181617 1182122 1182627 1183133 1183638 1184143 1184667 1185173 
+
+rssi samples : -89 -88 -87 -86 -86 -89 -85 -87 -90 -89 -90 -88 -90 -90 -87 -89 -86 -87 -85 -89 -89 -90 -87 -85 -87 -90 -89 -87 -89 -84 -85 -84 -89 -85 -87 -89 -88 -86 -85 -89 -91 -90 -89 -89 -87 -90 -91 -88 -88 -90 
+
+time measurement : 1186202 1187092 1187615 1188510 1189401 1189907 1190412 1191325 1192215 1192720 1194015 1194520 1195026 1195921 1196810 1197337 1197843 1198349 1198855 1199360 1199866 1200390 1200896 1201401 1201907 1202413 1202919 1203442 1204646 1205151 1205657 1206163 1206688 1207193 1207698 1208204 1208709 1209214 1209737 1210242 1210747 1211867 1212372 1212895 1213401 1213906 1214411 1214916 1215422 1215945 
+
+rssi samples : -88 -86 -88 -89 -84 -89 -88 -85 -89 -88 -87 -89 -89 -89 -89 -90 -88 -90 -89 -89 -88 -84 -87 -85 -88 -90 -87 -88 -87 -90 -90 -87 -90 -90 -90 -89 -87 -87 -91 -89 -87 -85 -90 -88 -88 -90 -88 -88 -89 -81 
+
+time measurement : 1216582 1217088 1217594 1218099 1219396 1219902 1220408 1221304 1222210 1222715 1223610 1224501 1225024 1225919 1226810 1227316 1227822 1228733 1229627 1230132 1230638 1231144 1231667 1232173 1232679 1233185 1233690 1234196 1234719 1235225 1235731 1236937 1237444 1237971 1238476 1238981 1239486 1239992 1240497 1241019 1241524 1242029 1242535 1243040 1244173 1244678 1245183 1245688 1246194 1246700 
+
+rssi samples : -90 -89 -89 -90 -89 -88 -86 -85 -87 -88 -87 -83 -89 -88 -89 -88 -88 -88 -84 -84 -86 -52 -52 -52 -52 -52 -76 -84 -90 -90 -82 -88 -89 -86 -90 -88 -91 -89 -89 -88 -90 -88 -89 -85 -90 -90 -88 -91 -88 -83 
+
+time measurement : 1247355 1247861 1248367 1248872 1249378 1249883 1250407 1250912 1251808 1252790 1253313 1253819 1254324 1255608 1256113 1256636 1257917 1258423 1258929 1259839 1260584 1261325 1261831 1262337 1262860 1264232 1264738 1265244 1265767 1266273 1266779 1267284 1267792 1268297 1268820 1269325 1269830 1270335 1270841 1271346 1272566 1273071 1273576 1274081 1274586 1275109 1275614 1276119 1276625 1277132 
+
+rssi samples : -88 -85 -86 -82 -86 -89 -89 -84 -89 -87 -87 -89 -89 -89 -89 -89 -89 -86 -90 -84 -88 -89 -90 -89 -90 -89 -87 -88 -90 -91 -90 -86 -90 -89 -89 -89 -90 -87 -90 -89 -90 -88 -87 -90 -87 -27 -27 -27 -27 -27 
+
+time measurement : 1277768 1278292 1278797 1279303 1280198 1281184 1281711 1282217 1282723 1283228 1284123 1285119 1285624 1286130 1286636 1287141 1288057 1289041 1289547 1290053 1290559 1291086 1292369 1292875 1293380 1293903 1294409 1295305 1296286 1296792 1297315 1297820 1298328 1298833 1299338 1299843 1300366 1300871 1301376 1301882 1302387 1302892 1303415 1303920 1305122 1305627 1306132 1306655 1307161 1307667 
+
+rssi samples : -87 -88 -68 -68 -69 -69 -89 -90 -27 -34 -91 -89 -91 -90 -84 -88 -89 -90 -90 -88 -88 -89 -88 -88 -90 -89 -89 -90 -89 -81 -83 -90 -88 -87 -89 -89 -86 -89 -89 -90 -90 -88 -89 -91 -86 -90 -89 -90 -90 -89 
+
+time measurement : 1308304 1308810 1309316 1309843 1310348 1310854 1311359 1311865 1312777 1313523 1314266 1314772 1315278 1315801 1316695 1317675 1318182 1318688 1319215 1319721 1320226 1320732 1322033 1322539 1323045 1323941 1324922 1325447 1325953 1326459 1326964 1327859 1328857 1329362 1329867 1330373 1330878 1331400 1331906 1332411 1332916 1333421 1333926 1334449 1334954 1335459 1335965 1336470 1337689 1338195 
+
+rssi samples : -89 -86 -87 -85 -90 -89 -90 -87 -89 -89 -89 -84 -90 -88 -89 -88 -86 -89 -88 -89 -89 -88 -85 -89 -90 -90 -89 -87 -88 -86 -89 -84 -83 -88 -89 -89 -84 -89 -86 -90 -86 -89 -90 -90 -87 -88 -90 -89 -90 -82 
+
+time measurement : 1338832 1339338 1339844 1340349 1340872 1341378 1341883 1342389 1342894 1343400 1343923 1344429 1345326 1346306 1346811 1347338 1347845 1348351 1349246 1350243 1350749 1351255 1351760 1352657 1353651 1354157 1354663 1355169 1355675 1356585 1357564 1358070 1358577 1359082 1359605 1360500 1361005 1361984 1362489 1363014 1363519 1364024 1364530 1365035 1365540 1366063 1366568 1367073 1367579 1368086 
+
+rssi samples : -88 -90 -86 -85 -88 -88 -83 -89 -89 -87 -91 -86 -90 -90 -90 -90 -89 -90 -87 -84 -88 -89 -87 -87 -89 -89 -90 -89 -86 -89 -90 -88 -89 -89 -89 -90 -85 -90 -87 -87 -87 -90 -88 -89 -89 -90 -90 -90 -90 -87 
+
+time measurement : 1368722 1369640 1370385 1371126 1371631 1372155 1372660 1373166 1374062 1375059 1375564 1376070 1376576 1377081 1377976 1378975 1379481 1379987 1380493 1381405 1382151 1382894 1383400 1383906 1384429 1385324 1386303 1386809 1387315 1387838 1388344 1388850 1389357 1389862 1390367 1390890 1391395 1391900 1392405 1392911 1393416 1393939 1395142 1395648 1396153 1396658 1397181 1397686 1398192 1398698 
+
+rssi samples : -87 -89 -90 -89 -87 -87 -85 -89 -90 -88 -89 -86 -90 -88 -86 -90 -90 -89 -87 -89 -89 -82 -81 -84 -79 -82 -81 -83 -83 -82 -82 -85 -82 -80 -77 -81 -87 -82 -82 -84 -80 -81 -81 -81 -82 -84 -82 -79 -79 -81 
+
+time measurement : 1399335 1399841 1400365 1400870 1401376 1401881 1402778 1403539 1404283 1404789 1405294 1405800 1406710 1407690 1408195 1408701 1409207 1410119 1410625 1411131 1412114 1412637 1413143 1414039 1415021 1415526 1416049 1416555 1417061 1417956 1418954 1419460 1419967 1420472 1420978 1421483 1422005 1422511 1423016 1423521 1424026 1424531 1425054 1425560 1426065 1426570 1427776 1428298 1428804 1429310 
+
+rssi samples : -85 -86 -89 -90 -88 -89 -87 -91 -89 -90 -89 -87 -87 -89 -85 -89 -88 -89 -88 -85 -90 -87 -87 -85 -87 -88 -87 -88 -90 -89 -89 -89 -90 -90 -87 -89 -90 -87 -89 -90 -87 -88 -89 -89 -88 -87 -84 -90 -90 -88 
+
+time measurement : 1429947 1430453 1430958 1431482 1431987 1432493 1432998 1433504 1434010 1434533 1435429 1436319 1436825 1437330 1437853 1438359 1439638 1440144 1440667 1441173 1441679 1442575 1443465 1443988 1444884 1445776 1446282 1446787 1448082 1448588 1449094 1449600 1450124 1450630 1451135 1451640 1452145 1452650 1453173 1453678 1454184 1454689 1455804 1456327 1456832 1457337 1457842 1458348 1458853 1459360 
+
+rssi samples : -89 -88 -88 -89 -90 -89 -87 -89 -83 -89 -89 -90 -88 -88 -90 -89 -89 -90 -83 -90 -89 -86 -90 -90 -87 -89 -89 -88 -89 -90 -88 -87 -84 -89 -89 -90 -81 -88 -88 -90 -88 -89 -87 -88 -88 -89 -87 -89 -84 -87 
+
+time measurement : 1460017 1460523 1461029 1461534 1462040 1463337 1463843 1464348 1464854 1465359 1465882 1466779 1467759 1468265 1468788 1469293 1470189 1470695 1471586 1472110 1472616 1473122 1474017 1474763 1475524 1476030 1476536 1477041 1477937 1478937 1479443 1479949 1480456 1480961 1481484 1481990 1482495 1483000 1483505 1484010 1484533 1485038 1485543 1486049 1487251 1487774 1488279 1488784 1489290 1489796 
+
+rssi samples : -88 -88 -83 -86 -90 -88 -90 -89 -89 -88 -90 -89 -71 -69 -69 -71 -70 -86 -87 -88 -85 -85 -87 -86 -86 -90 -88 -90 -89 -89 -88 -91 -90 -89 -89 -90 -85 -89 -86 -89 -89 -88 -88 -86 -85 -82 -88 -88 -87 -90 
+
+time measurement : 1490433 1490956 1491462 1491967 1492473 1492978 1493893 1494875 1495380 1495886 1496391 1496914 1497809 1498555 1499299 1499805 1500329 1501226 1501971 1502715 1503239 1503745 1504251 1505146 1505893 1506654 1507160 1507665 1508171 1509066 1510062 1510568 1511075 1511580 1512085 1512608 1513114 1513619 1514124 1514629 1515134 1515657 1516162 1516667 1517173 1517678 1518898 1519403 1519909 1520415 
+
+rssi samples : -88 -89 -88 -87 -90 -86 -81 -89 -83 -83 -90 -90 -88 -90 -88 -89 -91 -89 -89 -87 -89 -88 -89 -90 -89 -89 -89 -90 -90 -90 -85 -90 -90 -88 -90 -90 -86 -89 -86 -86 -88 -87 -88 -90 -84 -82 -89 -90 -83 -89 
+
+time measurement : 1521052 1521558 1522081 1522587 1523093 1523598 1524104 1524609 1525133 1525638 1526535 1527280 1528025 1528548 1529053 1529559 1530065 1530571 1531484 1532377 1532883 1533778 1534775 1535281 1535787 1536292 1536798 1537710 1538689 1539195 1539701 1540207 1540731 1541628 1542611 1543117 1543622 1544144 1544649 1545154 1545660 1546165 1546670 1547193 1547698 1548203 1548708 1549213 1549719 1550243 
+
+rssi samples : -89 -86 -89 -90 -87 -89 -89 -90 -89 -88 -87 -89 -89 -77 -83 -79 -79 -79 -90 -84 -69 -68 -69 -89 -88 -89 -88 -82 -90 -89 -89 -90 -86 -89 -89 -91 -89 -88 -84 -90 -87 -87 -90 -86 -86 -83 -86 -89 -86 -86 
+
+time measurement : 1551272 1552162 1552668 1553191 1554474 1554979 1555485 1556398 1557382 1557888 1558394 1558899 1559422 1559927 1560826 1561572 1562317 1562840 1563735 1564714 1565220 1565743 1566249 1566755 1567261 1567766 1568272 1568795 1569301 1569807 1570313 1570819 1571326 1571831 1572358 1573649 1574154 1574659 1575183 1575688 1576193 1576698 1577203 1577709 1578231 1578736 1579242 1579747 1580253 1580759 
+
+rssi samples : -85 -88 -91 -88 -85 -90 -89 -90 -84 -80 -89 -88 -89 -88 -89 -85 -85 -85 -90 -90 -88 -87 -87 -84 -90 -90 -89 -87 -87 -91 -89 -91 -89 -89 -81 -89 -88 -90 -90 -84 -90 -87 -88 -88 -90 -88 -89 -91 -88 -89 
+
+time measurement : 1582108 1582614 1583119 1583625 1584130 1584653 1585159 1585665 1586170 1586676 1587181 1587705 1588211 1589106 1590086 1590591 1591119 1591624 1592130 1593272 1594031 1594537 1595043 1595549 1596445 1597205 1597949 1598455 1598960 1599466 1600377 1601362 1601869 1602374 1602880 1603403 1604542 1605283 1605788 1606310 1606816 1607321 1607826 1608331 1608836 1609342 1609868 1610373 1610879 1611385 
+
+rssi samples : -87 -90 -90 -83 -88 -90 -90 -89 -87 -90 -90 -84 -90 -89 -85 -88 -88 -90 -81 -86 -83 -81 -83 -89 -90 -85 -89 -88 -90 -89 -91 -89 -87 -89 -89 -88 -87 -90 -89 -89 -87 -89 -89 -85 -88 -91 -88 -90 -89 -88 
+
+time measurement : 1612022 1612545 1613443 1614423 1614929 1615434 1616346 1617324 1617829 1618335 1618858 1619364 1620259 1621240 1621745 1622268 1622775 1623280 1624416 1625174 1625680 1626186 1626692 1627197 1628348 1629091 1629597 1630103 1630609 1631114 1631638 1632143 1632651 1633156 1633661 1634166 1634689 1635194 1635699 1636204 1637408 1637930 1638436 1638941 1639446 1639951 1640456 1640979 1641485 1641991 
+
+rssi samples : -84 -89 -90 -89 -86 -88 -90 -89 -86 -83 -90 -88 -91 -88 -88 -91 -89 -90 -91 -87 -85 -89 -89 -81 -89 -90 -86 -89 -87 -89 -90 -88 -89 -88 -90 -89 -84 -89 -89 -88 -84 -88 -91 -89 -88 -91 -89 -87 -89 -89 
+
+time measurement : 1642628 1643134 1643640 1644162 1644668 1645563 1646544 1647067 1647573 1648078 1648974 1649954 1650481 1650987 1651493 1651998 1652896 1653891 1654397 1654903 1655408 1656322 1657303 1657809 1658315 1658821 1659326 1660243 1661226 1661731 1662237 1662760 1663268 1663773 1664278 1664783 1665288 1665811 1666316 1666821 1667327 1667832 1668337 1668860 1670062 1670567 1671072 1671577 1672100 1672607 
+
+rssi samples : -88 -90 -89 -84 -84 -87 -90 -89 -90 -90 -89 -87 -82 -89 -88 -89 -84 -88 -89 -89 -89 -87 -88 -88 -87 -89 -87 -88 -91 -89 -89 -86 -87 -85 -82 -87 -82 -87 -89 -91 -90 -89 -87 -89 -81 -90 -87 -85 -88 -89 
+
+time measurement : 1673243 1673749 1674255 1674761 1675284 1675790 1676930 1677673 1678196 1678702 1679207 1679713 1680608 1681114 1682022 1682528 1683424 1684315 1684843 1685348 1686633 1687139 1687662 1688942 1689448 1689953 1690459 1690982 1691488 1691994 1692499 1693005 1693512 1694035 1694541 1695046 1695551 1696753 1697276 1697781 1698286 1698791 1699296 1699802 1700325 1700830 1701335 1701840 1702346 1702852 
+
+rssi samples : -90 -87 -91 -84 -84 -90 -86 -89 -90 -90 -85 -75 -88 -92 -86 -88 -86 -89 -89 -89 -90 -87 -86 -90 -87 -88 -89 -88 -86 -89 -90 -83 -87 -89 -87 -89 -87 -90 -85 -87 -87 -88 -87 -89 -89 -89 -88 -91 -88 -89 
+
+time measurement : 1704291 1704797 1705303 1705808 1706331 1706837 1707343 1707848 1708354 1708859 1709365 1709889 1710394 1710900 1711796 1712791 1713298 1713804 1714309 1715206 1716201 1716707 1717213 1717719 1718225 1719525 1720030 1720536 1721042 1722199 1722942 1723448 1723955 1724461 1724966 1725881 1726859 1727364 1727869 1728392 1728897 1729402 1729907 1730412 1730918 1731440 1731945 1732451 1732956 1733463 
+
+rssi samples : -89 -88 -83 -90 -87 -87 -88 -89 -90 -89 -85 -89 -88 -88 -90 -89 -89 -88 -89 -84 -87 -88 -88 -82 -86 -85 -86 -83 -88 -89 -90 -89 -87 -90 -88 -87 -89 -89 -89 -87 -90 -89 -89 -88 -82 -89 -90 -89 -90 -89 
+
+time measurement : 1734100 1734623 1735520 1736502 1737008 1737531 1738037 1738542 1739048 1740183 1740706 1741451 1741956 1742462 1742967 1743473 1743996 1745279 1745785 1746291 1746797 1747322 1748218 1749195 1749701 1750224 1750730 1751236 1752131 1753109 1753635 1754141 1754648 1755154 1755659 1756164 1756687 1757192 1757697 1758202 1758707 1759213 1759735 1760241 1760746 1761950 1762455 1762982 1763487 1763994 
+
+rssi samples : -88 -89 -91 -90 -89 -88 -90 -89 -89 -87 -91 -89 -90 -90 -88 -89 -89 -89 -89 -89 -90 -91 -89 -90 -89 -86 -89 -89 -89 -90 -89 -90 -89 -82 -85 -87 -87 -89 -87 -90 -88 -84 -89 -89 -90 -87 -90 -88 -87 -89 
+
+time measurement : 1764631 1765137 1765659 1766165 1766670 1767176 1767682 1768187 1768693 1769609 1770355 1771097 1771602 1772125 1772630 1773136 1773642 1775026 1775532 1776038 1776543 1777049 1777555 1778466 1779356 1779862 1780368 1780874 1781397 1782678 1783184 1783690 1784197 1784720 1785225 1786507 1787013 1787535 1788040 1788546 1789051 1789556 1790061 1790566 1791094 1791599 1792104 1792609 1793115 1793621 
+
+rssi samples : -87 -87 -88 -84 -86 -89 -87 -87 -88 -89 -89 -89 -86 -86 -89 -90 -87 -89 -89 -88 -87 -64 -64 -64 -64 -64 -64 -64 -91 -89 -89 -87 -90 -90 -85 -90 -89 -86 -89 -86 -89 -89 -90 -83 -89 -81 -83 -89 -89 -89 
+
+time measurement : 1794276 1795415 1796156 1796662 1797185 1798319 1799064 1799570 1800093 1800598 1801494 1802474 1802980 1803504 1804009 1804515 1805411 1806406 1806912 1807418 1807924 1808429 1809583 1810323 1810829 1811335 1811840 1812346 1812869 1813375 1813881 1814387 1814894 1815399 1815922 1816428 1816933 1817438 1818640 1819163 1819668 1820173 1820678 1821184 1821689 1822212 1822717 1823222 1823728 1824234 
+
+rssi samples : -90 -89 -88 -82 -89 -87 -89 -86 -89 -87 -86 -88 -89 -87 -89 -86 -87 -88 -90 -87 -90 -90 -90 -90 -89 -88 -88 -87 -86 -89 -89 -90 -91 -88 -88 -90 -89 -88 -88 -89 -90 -90 -88 -87 -86 -82 -83 -83 -88 -87 
+
+time measurement : 1824871 1825394 1825900 1826796 1827779 1828302 1828808 1829313 1829819 1830714 1831622 1832127 1832633 1833139 1834034 1834938 1835445 1835951 1836456 1836962 1837875 1838860 1839365 1839871 1840377 1840901 1841797 1842775 1843281 1843804 1844310 1844816 1845323 1845828 1846333 1846838 1847365 1847870 1848375 1848881 1849386 1849891 1850414 1851617 1852122 1852627 1853149 1853655 1854160 1854667 
+
+rssi samples : -90 -90 -86 -85 -88 -90 -90 -82 -86 -89 -82 -89 -88 -88 -88 -89 -90 -90 -91 -89 -88 -90 -90 -88 -88 -89 -88 -89 -88 -86 -90 -87 -89 -89 -90 -86 -90 -90 -83 -89 -91 -42 -42 -42 -42 -42 -41 -41 -47 -79 
+
+time measurement : 1855304 1855810 1856333 1856839 1857344 1857850 1858356 1859252 1860249 1860755 1861261 1861766 1862272 1863427 1864168 1864673 1865180 1865703 1866599 1867488 1868384 1869291 1869797 1870302 1871199 1872106 1872611 1873117 1873623 1874129 1874635 1875158 1875665 1876170 1876675 1877180 1877686 1878208 1878713 1879917 1880422 1880927 1881450 1881955 1882460 1882966 1883471 1883976 1884499 1885006 
+
+rssi samples : -80 -79 -83 -83 -86 -89 -88 -84 -89 -91 -88 -89 -87 -88 -89 -89 -89 -90 -90 -90 -84 -89 -89 -87 -85 -90 -86 -89 -88 -87 -89 -88 -89 -87 -87 -86 -91 -91 -88 -90 -89 -89 -91 -90 -90 -88 -90 -89 -88 -83 
+
+time measurement : 1885643 1886539 1887285 1888042 1888547 1889053 1889559 1890454 1890977 1891957 1892463 1892968 1893474 1894623 1895368 1895873 1896380 1896903 1897799 1898689 1899195 1900109 1901095 1901600 1902106 1902612 1903118 1903642 1904147 1904653 1905159 1905665 1906172 1906696 1907201 1907706 1908211 1908717 1909933 1910438 1910943 1911448 1911953 1912459 1912986 1913491 1913996 1914501 1915007 1915514 
+
+rssi samples : -86 -88 -90 -88 -90 -88 -90 -90 -88 -89 -89 -89 -89 -89 -88 -87 -88 -87 -89 -88 -88 -90 -90 -89 -88 -89 -90 -84 -88 -90 -89 -89 -88 -90 -90 -89 -89 -89 -89 -90 -90 -88 -90 -90 -89 -87 -91 -89 -90 -91 
+
+time measurement : 1916168 1916674 1917571 1918551 1919074 1919579 1920085 1920590 1921487 1922483 1922988 1923494 1924000 1924505 1925658 1926398 1926904 1927410 1927916 1928828 1929573 1930313 1930819 1931342 1931848 1932744 1933725 1934230 1934754 1935259 1935765 1936271 1936778 1937283 1937806 1938312 1938817 1939322 1939827 1940332 1940855 1941360 1942654 1943159 1943665 1944187 1944693 1945198 1945704 1946210 
+
+rssi samples : -89 -87 -83 -89 -83 -89 -83 -89 -91 -90 -89 -88 -88 -86 -91 -88 -88 -89 -88 -88 -85 -88 -86 -89 -89 -89 -90 -90 -90 -90 -89 -88 -87 -90 -89 -83 -89 -90 -90 -90 -89 -88 -89 -85 -89 -89 -85 -88 -88 -89 
+
+time measurement : 1946847 1947374 1947880 1948385 1948891 1949397 1950307 1950813 1951705 1952211 1952716 1953239 1954135 1955023 1955528 1956034 1956558 1957064 1958200 1958940 1959463 1959969 1960475 1960981 1961877 1962785 1963291 1963797 1964692 1965582 1966108 1966614 1967121 1967627 1968132 1968637 1969160 1969665 1970170 1970676 1971181 1971686 1972209 1973324 1973830 1974335 1974840 1975363 1975869 1976375 
+
+rssi samples : -88 -91 -89 -89 -90 -90 -90 -87 -89 -82 -86 -90 -87 -82 -83 -87 -90 -90 -88 -88 -89 -84 -84 -85 -88 -88 -88 -89 -89 -87 -87 -84 -89 -89 -89 -90 -87 -91 -90 -89 -82 -86 -90 -81 -90 -86 -86 -91 -86 -87 
+
+time measurement : 1977012 1977518 1978024 1978547 1979053 1979558 1980692 1981456 1981962 1982468 1982973 1983869 1984773 1985279 1986175 1987069 1987594 1988489 1989383 1989889 1990395 1991309 1992200 1992706 1993212 1993718 1994245 1994750 1995256 1995762 1996268 1996774 1997298 1997803 1998308 1998813 2000033 2000538 2001043 2001548 2002054 2002559 2003064 2003591 2004096 2004601 2005107 2005612 2006118 2007251 
+
+rssi samples : -88 -84 -89 -87 -89 -88 -89 -88 -84 -90 -90 -91 -88 -89 -88 -87 -88 -89 -90 -88 -89 -90 -89 -87 -89 -90 -87 -88 -88 -88 -90 -89 -89 -89 -89 -89 -87 -89 -89 -79 -89 -86 -88 -82 -86 -89 -90 -89 -89 -88 
+
+time measurement : 2007888 2008394 2008899 2009422 2009928 2010434 2010939 2011445 2011950 2012456 2012983 2013879 2014625 2015369 2015892 2016397 2016904 2017409 2018549 2019304 2019810 2020315 2020821 2022118 2022624 2023519 2024408 2024914 2025437 2026716 2027222 2027728 2028252 2028757 2029263 2029768 2030273 2030778 2031301 2031806 2032311 2032817 2033322 2034629 2035135 2035640 2036145 2036650 2037156 2037680 
+
+rssi samples : -87 -87 -90 -89 -89 -88 -89 -88 -87 -84 -84 -87 -89 -90 -88 -89 -86 -89 -90 -91 -87 -88 -86 -89 -87 -88 -89 -89 -89 -84 -90 -83 -89 -89 -87 -89 -89 -88 -90 -87 -89 -90 -90 -88 -89 -89 -90 -90 -87 -90 
+
+time measurement : 2038317 2038823 2039329 2039834 2040340 2041254 2042234 2042740 2043245 2043768 2044274 2044780 2045919 2046662 2047185 2047691 2048197 2049093 2050091 2050597 2051103 2051608 2052114 2053271 2054011 2054517 2055022 2055528 2056440 2057424 2057930 2058435 2058943 2059465 2059970 2060476 2060981 2061486 2061991 2062496 2063019 2063524 2064029 2064535 2065040 2066260 2066765 2067270 2067776 2068282 
+
+rssi samples : -88 -87 -88 -88 -89 -90 -84 -90 -82 -87 -90 -86 -88 -91 -88 -88 -89 -88 -90 -87 -88 -89 -90 -89 -89 -87 -88 -86 -90 -83 -88 -90 -90 -90 -90 -86 -90 -90 -87 -89 -88 -88 -87 -86 -90 -89 -89 -90 -90 -87 
+
+time measurement : 2068936 2069442 2069948 2070453 2070959 2071465 2071988 2072493 2072999 2073895 2074875 2075398 2075904 2076409 2076915 2077810 2078717 2079222 2079728 2080234 2080740 2081892 2082632 2083138 2083644 2084149 2084673 2085809 2086549 2087054 2087578 2088083 2088981 2089961 2090467 2090989 2091494 2092000 2092505 2093010 2093515 2094038 2094543 2095049 2095554 2096059 2096564 2097087 2097593 2098796 
+
+rssi samples : -89 -89 -87 -89 -89 -87 -80 -90 -90 -92 -85 -89 -87 -89 -89 -90 -89 -90 -88 -87 -89 -89 -90 -89 -89 -91 -89 -87 -89 -89 -90 -90 -89 -88 -88 -87 -90 -87 -88 -91 -90 -83 -90 -90 -85 -88 -89 -90 -91 -88 
+
+time measurement : 2099433 2099939 2100465 2100971 2101477 2101982 2102488 2102993 2103517 2104022 2104528 2105034 2105539 2106045 2106956 2107851 2108357 2108863 2109774 2110519 2111261 2111767 2112273 2112795 2113930 2114671 2115177 2115700 2116841 2117581 2118087 2118593 2119117 2119623 2120516 2121022 2122018 2122524 2123029 2123534 2124039 2124544 2125067 2125572 2126077 2126583 2127088 2127593 2128099 2128626 
+
+rssi samples : -87 -87 -90 -86 -89 -89 -89 -90 -88 -89 -90 -87 -85 -91 -89 -87 -87 -91 -90 -89 -90 -88 -88 -87 -84 -88 -89 -89 -89 -91 -90 -89 -90 -90 -88 -90 -89 -89 -89 -89 -89 -85 -90 -88 -87 -89 -89 -87 -89 -89 
+
+time measurement : 2129263 2130402 2131144 2131668 2132173 2132679 2133185 2134080 2135072 2135577 2136083 2136588 2137094 2138388 2138893 2139399 2139905 2140411 2141326 2142216 2142721 2143616 2144611 2145117 2145623 2146129 2146635 2147158 2147664 2148169 2148675 2149181 2149688 2150211 2150716 2151222 2152514 2153019 2153541 2154047 2154552 2155057 2155562 2156067 2156590 2157095 2157600 2158106 2159413 2159920 
+
+rssi samples : -90 -89 -90 -89 -88 -87 -90 -83 -89 -85 -87 -89 -88 -89 -90 -89 -88 -87 -88 -89 -86 -88 -43 -44 -44 -92 -90 -89 -54 -55 -90 -83 -89 -46 -46 -46 -46 -87 -90 -90 -90 -90 -90 -89 -90 -84 -90 -89 -91 -89 
+
+time measurement : 2160557 2161063 2161568 2162074 2162597 2163102 2163608 2164114 2164619 2165125 2165648 2166544 2167526 2168031 2168537 2169060 2169566 2170461 2170967 2171965 2172471 2172977 2173483 2174617 2175376 2175882 2176387 2176893 2177788 2178784 2179290 2179795 2180303 2180808 2181719 2182612 2183118 2183623 2184128 2184651 2185156 2185661 2186166 2186671 2187177 2187699 2188205 2188710 2189216 2189722 
+
+rssi samples : -90 -90 -86 -88 -26 -27 -27 -27 -27 -89 -90 -91 -88 -86 -85 -89 -91 -90 -87 -87 -88 -89 -90 -87 -86 -90 -86 -87 -87 -90 -90 -88 -87 -89 -87 -90 -88 -86 -87 -89 -87 -89 -90 -90 -80 -89 -89 -86 -89 -88 
+
+time measurement : 2190359 2191272 2192163 2192669 2193174 2194472 2194978 2195483 2196379 2197381 2197886 2198392 2198897 2199403 2199909 2200823 2201570 2202313 2202819 2203731 2204712 2205218 2205723 2206229 2206756 2207262 2207767 2208273 2208779 2209285 2209808 2210313 2210821 2211326 2211831 2212336 2212859 2213973 2214479 2214984 2215489 2216012 2216517 2217022 2217527 2218032 2218538 2219061 2219566 2220073 
+
+rssi samples : -87 -87 -90 -87 -88 -89 -83 -88 -82 -89 -89 -86 -89 -89 -86 -89 -87 -83 -89 -88 -87 -89 -90 -89 -88 -88 -90 -84 -83 -89 -89 -89 -85 -89 -89 -89 -89 -89 -88 -90 -87 -90 -86 -86 -86 -89 -86 -88 -86 -90 
+
+time measurement : 2220710 2221606 2222600 2223106 2223612 2224117 2224623 2225534 2226512 2227018 2227523 2228029 2228942 2229920 2230425 2230931 2231455 2231961 2232857 2233752 2234257 2234780 2235286 2235792 2237072 2237595 2238101 2238607 2239113 2239618 2240124 2240647 2241155 2241660 2242165 2242670 2243175 2243681 2244207 2244713 2245218 2246508 2247031 2247536 2248041 2248546 2249051 2249557 2250080 2250587 
+
+rssi samples : -88 -88 -88 -88 -89 -89 -88 -87 -87 -90 -89 -86 -87 -88 -88 -78 -51 -51 -51 -51 -51 -81 -88 -90 -81 -89 -87 -87 -87 -89 -90 -88 -89 -89 -89 -90 -89 -90 -90 -88 -89 -89 -90 -83 -86 -90 -89 -87 -89 -88 
+
+time measurement : 2251223 2251729 2252235 2252741 2253264 2254162 2255142 2255647 2256153 2256676 2257182 2258461 2258967 2259490 2259996 2260502 2261398 2262375 2262898 2263404 2263910 2264416 2265312 2266307 2266812 2267318 2267824 2268330 2269715 2270221 2270727 2271232 2271740 2272263 2272768 2273273 2273778 2274283 2274789 2275311 2275817 2276322 2276827 2277332 2277837 2279064 2279569 2280074 2280580 2281086 
 

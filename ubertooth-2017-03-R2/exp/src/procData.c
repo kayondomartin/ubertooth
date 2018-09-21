@@ -105,8 +105,8 @@ float *maFilter(int *rssi, int lenData) {
 	return rssiMA;
 }
 
-int edgeDetect(int *time, int *rssi, int *eTime, int *eRssi, int lenData, float threshold, char *oFile) {
-	//Detect the peak of rssi samples
+int signalDetect(int *time, int *rssi, int *eTime, int *eRssi, int lenData, float threshold, char *oFile) {
+	//Detect the samples above the threshold value
 	int i, j = 0;
 	int nEdge = 0;
 	FILE *output;
@@ -219,7 +219,7 @@ int *procData(char *timeFile, char *rssiFile) {
 
 	int *eRssi = malloc(sizeof(int)*lenData);
 	int *eTime = malloc(sizeof(int)*lenData);
-	nEdge = edgeDetect(rTime, rssi, eTime, eRssi, lenData, thr,"edge.dat");
+	nEdge = signalDetect(rTime, rssi, eTime, eRssi, lenData, thr,"signal.dat");
 
 	int *Barcode;
 	Barcode = malloc(sizeof(int)*127);

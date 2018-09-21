@@ -58,17 +58,17 @@ int main() {
 	clock_gettime(CLOCK_MONOTONIC, &tspec);
 	start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
 	now = start;
-	while(now - start < 3000) {
-		status = syncStart(macAP);
-		if(status < 0)
+//	while(now - start < 3000) {
+//		status = syncStart(macAP);
+/*		if(status < 0)
 			return 0;
-		
+*/		
 		Barcode = procData(timeFile, rssiFile);
 		printf("\nBarcode : ");
 		for(i=0; i<127; i++)
 			printf("%d ", Barcode[i]);
 		printf("\n");
-
+/*
 		nCor = 0;
 		rLen = makeBCH(Barcode, bch);
 		printf("\nBCH enc.: ");
@@ -84,8 +84,8 @@ int main() {
 
 		clock_gettime(CLOCK_MONOTONIC, &tspec);
 		now = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
-
-	}
+*/
+//	}
 
 	return 0;
 }
