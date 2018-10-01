@@ -112,13 +112,15 @@ int signalDetect(int *time, int *rssi, int *eTime, int *eRssi, int lenData, floa
 	FILE *output;
 
 	for (i=1; i<lenData; i++) {
-		if (rssi[i] >= threshold) {
+//		if (rssi[i] >= threshold) {
+		if (rssi[i] >= -80) {
 			eRssi[nEdge] = rssi[i];
 			eTime[nEdge] = time[i];
 			nEdge++;
 		}
 	}
 
+/*
 	output = fopen(oFile, "w");
 	if (output == NULL) {
 		printf("open failed\n");
@@ -127,11 +129,11 @@ int signalDetect(int *time, int *rssi, int *eTime, int *eRssi, int lenData, floa
 	for(i=0; i<nEdge; i++)
 		fprintf(output, "%d %d\n", eTime[i], eRssi[i]);
 	fclose(output);
-
+*/
 	return nEdge;
 }
 
-int makeBarcode(int *eTime, int nEdge, int *Barcode, char *oFile) {
+int makeBarcode(int *eTime, int *eRssi, int nEdge, int *Barcode, char *oFile) {
 	FILE *output;
 	int i, j;
 	int index;
@@ -139,7 +141,16 @@ int makeBarcode(int *eTime, int nEdge, int *Barcode, char *oFile) {
 	for (i=0; i<nEdge; i++) {
 		if (eTime[i] < 1e6) {
 			index = eTime[i]/1e4;
-			Barcode[index] = 1;
+			if (eRssi[i] < -60 && eRssi[i] >= -80) {
+				Barcode[2*index] = 1;
+				Barcode[2*index + 1] = 0;
+			} else if (eRssi[i] < -40 && eRssi[i] >= -60) {
+				Barcode[2*index] = 1;
+				Barcode[2*index + 1] = 1;
+			} else {
+				Barcode[2*index] = 0;
+				Barcode[2*index + 1] = 1;
+			}
 		}
 	}
 
@@ -148,7 +159,7 @@ int makeBarcode(int *eTime, int nEdge, int *Barcode, char *oFile) {
 		printf("open failed\n");
 		return 0;
 	}
-	for (i=0; i<127; i++)
+	for (i=0; i<254; i++)
 		fprintf(output, "%d\n", Barcode[i]);
 
 	return 1;
@@ -222,10 +233,10 @@ int *procData(char *timeFile, char *rssiFile) {
 	nEdge = signalDetect(rTime, rssi, eTime, eRssi, lenData, thr,"signal.dat");
 
 	int *Barcode;
-	Barcode = malloc(sizeof(int)*127);
-	for(i=0; i<127; i++)
+	Barcode = malloc(sizeof(int)*254);
+	for(i=0; i<254; i++)
 		Barcode[i] = 0;
-	int r = makeBarcode(eTime, nEdge, Barcode, "Barcode.dat");
+	int r = makeBarcode(eTime, eRssi, nEdge, Barcode, "Barcode.dat");
 
 	free(rTime); free(rssi); free(eRssi); free(eTime);
 	return Barcode;

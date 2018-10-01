@@ -224,7 +224,7 @@ int *procData(int *rTime, int *rssi, int lenData) {
 	Barcode = malloc(sizeof(int)*127);
 	for(i=0; i<127; i++)
 		Barcode[i] = 0;
-	int r = makeBarcode(eTime, nEdge, Barcode, "Barcode.dat");
+	int r = makeBarcode(eTime, eRssi, nEdge, Barcode, "Barcode.dat");
 
 	free(eRssi); free(eTime);
 	return Barcode;
