@@ -108,16 +108,23 @@ float *maFilter(int *rssi, int lenData) {
 int signalDetect(int *time, int *rssi, int *eTime, int *eRssi, int lenData, float threshold, char *oFile) {
 	//Detect the samples above the threshold value
 	int i, j = 0;
-	int nEdge = 0;
+	int nEdge = 0, meanRssi = 0;
 	FILE *output;
 
-	for (i=1; i<lenData; i++) {
+	for (i=0; i<lenData; i++) {
 //		if (rssi[i] >= threshold) {
 		if (rssi[i] >= -80) {
 			eRssi[nEdge] = rssi[i];
 			eTime[nEdge] = time[i];
 			nEdge++;
 		}
+	}
+
+	for (i=0; i<nEdge; i++) 
+		meanRssi += eRssi[i];
+	if (nEdge != 0) {
+		meanRssi /= nEdge;
+		printf("meanRssi: %d\n", meanRssi);
 	}
 
 /*

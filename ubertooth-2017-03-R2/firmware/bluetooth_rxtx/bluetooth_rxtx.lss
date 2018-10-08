@@ -5943,6 +5943,8 @@ void bt_le_sync_rssi(u8 active_mode)
     5cce:	f002 fd79 	bl	87c4 <rbit>
     5cd2:	f7fe fbbd 	bl	4450 <cc2400_rx_sync>
 
+//	requested_channel = 1;
+//	channel = 2480;
 	while (requested_mode == active_mode) {
     5cd6:	e0ab      	b.n	5e30 <bt_le_sync_rssi+0x1d8>
 
@@ -5956,10 +5958,10 @@ void bt_le_sync_rssi(u8 active_mode)
     5cde:	429a      	cmp	r2, r3
     5ce0:	d3fa      	bcc.n	5cd8 <bt_le_sync_rssi+0x80>
     5ce2:	e7d9      	b.n	5c98 <bt_le_sync_rssi+0x40>
-	dio_ssp_start();
-
 	cc2400_rx_sync(rbit(le.access_address));
 
+//	requested_channel = 1;
+//	channel = 2480;
 	while (requested_mode == active_mode) {
 		if (requested_channel != 0) {
     5ce4:	4b63      	ldr	r3, [pc, #396]	; (5e74 <bt_le_sync_rssi+0x21c>)
@@ -6142,11 +6144,11 @@ void bt_le_sync_rssi(u8 active_mode)
     5e28:	f023 437f 	bic.w	r3, r3, #4278190080	; 0xff000000
     5e2c:	4553      	cmp	r3, sl
     5e2e:	d814      	bhi.n	5e5a <bt_le_sync_rssi+0x202>
-	dma_init_le();
-	dio_ssp_start();
 
 	cc2400_rx_sync(rbit(le.access_address));
 
+//	requested_channel = 1;
+//	channel = 2480;
 	while (requested_mode == active_mode) {
     5e30:	7cab      	ldrb	r3, [r5, #18]
     5e32:	42bb      	cmp	r3, r7
@@ -19791,9 +19793,9 @@ BOOL USBHandleStandardRequest(TSetupPacket	*pSetup, int *piLen, U8 **ppbData)
 00009fc3 <compile_info>:
     9fc3:	72656275 746f6f74 30322068 302d3731     ubertooth 2017-0
     9fd3:	32522d33 776d2820 6d406c6e 2d6c6e77     3-R2 (mwnl@mwnl-
-    9fe3:	6f6e656c 20296f76 38313032 3930202e     lenovo) 2018. 09
-    9ff3:	3031202e ec28202e 2029949b 353a3032     . 10. (...) 20:5
-    a003:	31353a30 54534b20 bcb24000                       0:51 KST.
+    9fe3:	6f6e656c 20296f76 38313032 3031202e     lenovo) 2018. 10
+    9ff3:	3830202e ec28202e 2029949b 313a3331     . 08. (...) 13:1
+    a003:	37333a37 54534b20 bcb24000                       7:37 KST.
 
 0000a00c <whitening_word>:
     a00c:	c3bcb240 5f4a371f 9a9cf685 44c5d6c1     @....7J_.......D

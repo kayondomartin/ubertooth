@@ -35,8 +35,14 @@ rm rssi
 
 ./procData.out
 paste time.dat rssi.dat > exp1.dat
- rm time.dat rssi.dat log1
+rm time.dat rssi.dat log1
 mv Barcode.dat Barcode1.dat
 
-#gnuplot -e "set multiplot layout 2,1; set xrange [0:1e+6]; set yrange [-100:-20]; set grid; plot 'exp0.dat' with lines linestyle 1, 'exp1.dat' with lines linestyle 3; set xrange [0:100]; set yrange [0:1]; plot 'Barcode0.dat' with impulses  lw 2, 'Barcode0.dat' with points pt 7 lc 1, 'Barcode1.dat' with impulses lw 2, 'Barcode1.dat' with points pt 7 lc 3; unset multiplot; pause -1"
-gnuplot -e "set multiplot layout 2,1; set xrange [0:1e+6]; set yrange [-100:-20]; set grid; plot 'exp0.dat' with lines linestyle 1; set xrange [0:200]; set yrange [0:1]; plot 'Barcode0.dat' with impulses  lw 2, 'Barcode0.dat' with points pt 7 lc 1; unset multiplot; pause -1"
+cmp -l Barcode0.dat Barcode1.dat > diff.dat
+
+printf "\nBit diff: "
+echo $(wc -l < diff.dat)
+rm diff.dat
+
+gnuplot -e "set multiplot layout 2,1; set xrange [0:1e+6]; set yrange [-100:-20]; set grid; plot 'exp0.dat' with lines linestyle 1, 'exp1.dat' with lines linestyle 3; set xrange [0:200]; set yrange [0:1]; plot 'Barcode0.dat' with impulses  lw 2, 'Barcode0.dat' with points pt 7 lc 1, 'Barcode1.dat' with impulses lw 2, 'Barcode1.dat' with points pt 7 lc 3; unset multiplot; pause -1"
+# gnuplot -e "set multiplot layout 2,1; set xrange [0:1e+6]; set yrange [-100:-20]; set grid; plot 'exp0.dat' with lines linestyle 1; set xrange [0:200]; set yrange [0:1]; plot 'Barcode0.dat' with impulses  lw 2, 'Barcode0.dat' with points pt 7 lc 1; unset multiplot; pause -1"
