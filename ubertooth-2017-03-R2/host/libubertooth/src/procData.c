@@ -131,7 +131,7 @@ int edgeDetect(int *time, int *rssi, int *eTime, int *eRssi, int lenData, float 
 	return nEdge;
 }
 
-int makeBarcode(int *eTime, int nEdge, int *Barcode, char *oFile) {
+int makeBarcode(int *eTime, int *eRssi, int nEdge, int *Barcode, char *oFile) {
 	FILE *output;
 	int i, j;
 	int index;

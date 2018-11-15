@@ -539,7 +539,7 @@ int main(int argc, char *argv[])
 			break;
 		//JWHUR set advertising data
 		case 'd':
-			dlen = strlen(optarg);
+			dlen = strlen(optarg)/2;
 			data = (uint8_t*) malloc(sizeof(uint8_t) * dlen);
 			r = convert_data(optarg, data);
 			if (r == 0)
@@ -638,6 +638,7 @@ int main(int argc, char *argv[])
 		}
 	
 		int sync = 0; //JWHUR test for synchronization
+		int tot_recv = 0; //JWHUR test for near field
 		struct timespec tspec;
 		uint64_t sync_start, start = 0;
 
@@ -653,6 +654,7 @@ int main(int argc, char *argv[])
 			if (r == sizeof(usb_pkt_rx)) {
 				fifo_push(ut->fifo, &rx);
 				if(!do_rssi) sync = cb_btle(ut, &cb_opts);
+				if (sync == 2) printf("tot recv: %d\n", tot_recv++);
 				if(do_rssi == 0) {
 					if (sync == 1) {
 						clock_gettime(CLOCK_MONOTONIC, &tspec);
@@ -751,8 +753,8 @@ int main(int argc, char *argv[])
 		if (do_data_mode) {
 			for(i=6; i< (dlen + 6); i++) tot_data[i] = data[i-6];
 			cmd_btle_slave(ut->devh, tot_data, UBERTOOTH_BTLE_SLAVE, dlen+6);
-			usleep(duration * 1000);
-			ubertooth_stop(ut);
+			usleep(5000000);
+//			ubertooth_stop(ut);
 		} else if (do_sync_mode) {	
 			printf("\n%u:%u:%u:%u:%u:%u\n", mac_address[0], mac_address[1], mac_address[2], mac_address[3], mac_address[4], mac_address[5]);
 			cmd_btle_slave(ut->devh, mac_address, UBERTOOTH_BTLE_SYNC, 6);

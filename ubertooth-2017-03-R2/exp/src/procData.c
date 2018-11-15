@@ -40,6 +40,59 @@ float kMeans_clustering(int *rssi, int *cls1, int *cls2, int lenData, float *mu)
 	return cost;
 }
 
+void quickSort(int *cls, int left, int right) {
+	int L = left, R = right;
+	int temp;
+	int pivot = cls[(left + right)/2];
+
+	while (L <= R) {
+		while (cls[L] < pivot) L++;
+		while (cls[R] > pivot) R--;
+
+		if (L <= R) {
+			if (L != R) {
+				temp = cls[L];
+				cls[L] = cls[R];
+				cls[R] = temp;
+			}
+			L++; R--;
+		}
+	}
+
+	if (left < R) quickSort(cls, left, R);
+	if (L < right) quickSort(cls, L, right);
+}
+
+int findMedian(int *rssi, int lenData, int thr) {
+	int i = 0, nCls = 0, j = 0;
+	int *cls;
+
+	for (i=0; i<lenData; i++) {
+		if (rssi[i] >= thr) nCls++;
+	}
+
+	cls = malloc(sizeof(int)*nCls);
+	for (i=0; i<lenData; i++) {
+		if (rssi[i] >= thr)	cls[j++] = rssi[i];
+	}
+
+	// quick sort
+	quickSort(cls, 0, nCls-1);
+	int index = nCls / 2;
+	int median = cls[index];
+
+	// print
+	printf("cls : ");
+	for(i=0; i<nCls; i++)
+		printf("%d ", cls[i]);
+	printf("\n");
+
+	return median;
+}
+
+
+	
+
 float kMeans(int *rssi, int lenData) {
 	int i, max_iter = 100, min_iter = 50;
 	int *cls1, *cls2;
@@ -108,23 +161,16 @@ float *maFilter(int *rssi, int lenData) {
 int signalDetect(int *time, int *rssi, int *eTime, int *eRssi, int lenData, float threshold, char *oFile) {
 	//Detect the samples above the threshold value
 	int i, j = 0;
-	int nEdge = 0, meanRssi = 0;
+	int nEdge = 0;
 	FILE *output;
 
 	for (i=0; i<lenData; i++) {
-//		if (rssi[i] >= threshold) {
-		if (rssi[i] >= -80) {
+		if (rssi[i] >= threshold) {
+//		if (rssi[i] >= -80) {
 			eRssi[nEdge] = rssi[i];
 			eTime[nEdge] = time[i];
 			nEdge++;
 		}
-	}
-
-	for (i=0; i<nEdge; i++) 
-		meanRssi += eRssi[i];
-	if (nEdge != 0) {
-		meanRssi /= nEdge;
-		printf("meanRssi: %d\n", meanRssi);
 	}
 
 /*
@@ -137,8 +183,47 @@ int signalDetect(int *time, int *rssi, int *eTime, int *eRssi, int lenData, floa
 		fprintf(output, "%d %d\n", eTime[i], eRssi[i]);
 	fclose(output);
 */
+
 	return nEdge;
 }
+
+int avgPower(int *eTime, int *eRssi, int nEdge, float *avgP, char *oFile) {
+	FILE *output;
+	int i, j;
+	int index, *nSamples;
+
+	nSamples = malloc(sizeof(int)*26);
+	for (i=0; i<26; i++) {
+		nSamples[i] = 0;
+		avgP[i] = 0;
+	}
+
+	for (i=0; i<nEdge; i++) {
+		if (eTime[i] <1270000) {
+			index = eTime[i]/5e4;
+			avgP[index] += pow(10, (float)(eRssi[i]/10));
+			nSamples[index] += 1;
+		}
+	}
+
+	for (i=0; i<26; i++) {
+		if (nSamples[i] != 0) avgP[i] = 10 * log10(avgP[i] / nSamples[i]);
+		else avgP[i] = -90;
+	}
+
+	free(nSamples);
+
+	output = fopen(oFile, "w");
+	if (output == NULL) {
+		printf("open failed\n");
+		return 0;
+	}
+
+	for (i=0; i<26; i++)
+		fprintf(output, "%f\n", avgP[i]);
+	return 1;
+}
+
 
 int makeBarcode(int *eTime, int *eRssi, int nEdge, int *Barcode, char *oFile) {
 	FILE *output;
@@ -146,18 +231,9 @@ int makeBarcode(int *eTime, int *eRssi, int nEdge, int *Barcode, char *oFile) {
 	int index;
 
 	for (i=0; i<nEdge; i++) {
-		if (eTime[i] < 1e6) {
+		if (eTime[i] < 1270000) {
 			index = eTime[i]/1e4;
-			if (eRssi[i] < -60 && eRssi[i] >= -80) {
-				Barcode[2*index] = 1;
-				Barcode[2*index + 1] = 0;
-			} else if (eRssi[i] < -40 && eRssi[i] >= -60) {
-				Barcode[2*index] = 1;
-				Barcode[2*index + 1] = 1;
-			} else {
-				Barcode[2*index] = 0;
-				Barcode[2*index + 1] = 1;
-			}
+			Barcode[index] = 1;
 		}
 	}
 
@@ -166,9 +242,9 @@ int makeBarcode(int *eTime, int *eRssi, int nEdge, int *Barcode, char *oFile) {
 		printf("open failed\n");
 		return 0;
 	}
-	for (i=0; i<254; i++)
-		fprintf(output, "%d\n", Barcode[i]);
 
+	for (i=0; i<127; i++)
+		fprintf(output, "%d\n", Barcode[i]);
 	return 1;
 }
 
@@ -234,16 +310,23 @@ int *procData(char *timeFile, char *rssiFile) {
 	lenData = getData(timeFile, rssiFile, rTime, rssi);
 
 	thr = kMeans(rssi, lenData);
+	// find median of samples that is over threshold derived from kmeans
+//	int median = findMedian(rssi, lenData, thr);
+//	printf("Median value is %d\n", median);
+	//
+
 
 	int *eRssi = malloc(sizeof(int)*lenData);
 	int *eTime = malloc(sizeof(int)*lenData);
 	nEdge = signalDetect(rTime, rssi, eTime, eRssi, lenData, thr,"signal.dat");
 
 	int *Barcode;
-	Barcode = malloc(sizeof(int)*254);
-	for(i=0; i<254; i++)
+	Barcode = malloc(sizeof(int)*127);
+	for(i=0; i<127; i++)
 		Barcode[i] = 0;
-	int r = makeBarcode(eTime, eRssi, nEdge, Barcode, "Barcode.dat");
+//	int r = makeBarcode(eTime, eRssi, nEdge, Barcode, "Barcode.dat");
+	float *avgP = malloc(sizeof(float)*26);
+	int r = avgPower(eTime, eRssi, nEdge, avgP, "Barcode.dat");
 
 	free(rTime); free(rssi); free(eRssi); free(eTime);
 	return Barcode;

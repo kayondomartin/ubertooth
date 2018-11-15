@@ -410,6 +410,10 @@ int cb_btle(ubertooth_t* ut, void* args)
 		rx_ts += 3276800000;
 	u32 ts_diff = rx_ts - prev_ts;
 	prev_ts = rx->clk100ns;
+	//JWHUR Near Field test
+	if (rx->data[6] == 0x30 && rx->data[7] == 0xff && rx->data[8] == 0xc9 && rx->data[9] == 0x7c && rx->data[10] == 0x55 && rx->data[11] == 0xec) {
+	sync = 2;
+
 	printf("systime=%u freq=%d addr=%08x delta_t=%.03f ms rssi=%d\n",
 	       systime, rx->channel + 2402, lell_get_access_address(pkt),
 	       ts_diff / 10000.0, rx->rssi_min - 54);
@@ -421,6 +425,7 @@ int cb_btle(ubertooth_t* ut, void* args)
 		printf("%02x ", rx->data[i]);
 	printf("\n");
 
+	}
 	//JWHUR test synchronization protocol
 	//When receive 'SYNC', stop ble scanning
 	if (rx->data[23] == 0xff && rx->data[24] == 0x53 && rx->data[25] == 0x59 && rx->data[26] == 0x4e && rx->data[27] == 0x43) {
@@ -429,8 +434,8 @@ int cb_btle(ubertooth_t* ut, void* args)
 	}
 
 
-	lell_print(pkt);
-	printf("\n");
+//	lell_print(pkt);
+//	printf("\n");
 
 	lell_packet_unref(pkt);
 

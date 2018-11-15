@@ -1738,8 +1738,8 @@ void bt_le_sync_rssi(u8 active_mode)
 
 	cc2400_rx_sync(rbit(le.access_address));
 
-//	requested_channel = 1;
-//	channel = 2480;
+	requested_channel = 1;
+	channel = 2470;
 	while (requested_mode == active_mode) {
 		if (requested_channel != 0) {
 			cc2400_strobe(SRFOFF);
@@ -1766,6 +1766,7 @@ void bt_le_sync_rssi(u8 active_mode)
 			if (31<i && i<48) time_buf3[i-32] = CLK100NS;
 			if (47<i) time_buf4[i-48] = CLK100NS;
 			rssi_buf[i] = (u8)(cc2400_get(RSSI) >> 8);
+			//rssi_buf[i] = (u8)(cc2400_get_rev(FREQEST));
 			volatile u32 j = 598; while (--j); // empty for loop ~= 70ns, 598 empty while loop ~= 41.8us, 240 loop ~= 16.8us
 		}
 
@@ -2666,19 +2667,20 @@ void bt_slave_le() {
 	// There's a probem, actual maximum length 34 bytes (adv payload 14 + 1 (preamble)) in ubertooth
 	// Nexsus 5 smartphone can not receive BLE packet which has length over 31 bytes (adv payload 11 + 1 (preamble))
 	fin_adv_len = (dlen-6) % 11;
-	if (dlen > 11 + 6) {
+	if (dlen >= 11 + 6) {
 		num_adv_ind = (dlen-6)/11 + 1;
 		fin_adv_len = (dlen-6) % 11;
 		if (fin_adv_len == 0) {
 			fin_adv_len = 11;
-			num_adv_ind = num_adv_ind - 1;}
+			num_adv_ind = num_adv_ind - 1;
+		}
 	}
 
 	adv_ind = (u8**) malloc(sizeof(u8*)*num_adv_ind);
 	for (i=0; i< num_adv_ind-1; i++) {
-		adv_ind[i] = (u8*) malloc(sizeof(u8)*31);
+		adv_ind[i] = (u8*) malloc(sizeof(u8)*34);
 	}
-	adv_ind[num_adv_ind-1] = (u8*) malloc(sizeof(u8)*(fin_adv_len + 1 + 3 + 4 + 4 + 6 + 2 + 3));
+	adv_ind[num_adv_ind-1] = (u8*) malloc(sizeof(u8)*(fin_adv_len + 1 + 3 + 4 + 4 + 3 + 6 + 2));
 
 	for (i=0; i< num_adv_ind; i++) {
 		for (j=0; j<20; j++) adv_ind[i][j] = adv_overhead[j];
@@ -2706,6 +2708,8 @@ void bt_slave_le() {
 
 	clkn_start();
 
+	// To track the number of sent packets
+	int nPackets = 0;
 	// spam advertising packets
 	while (requested_mode == MODE_BT_SLAVE_LE) {
 		if (requested_mode != mode) break;
@@ -2715,10 +2719,10 @@ void bt_slave_le() {
 			for(j=0; j<num_adv_ind; j++) {
 				if (j < num_adv_ind -1) {
 					adv_ind_len = (u8) (31 + 3);
-					le_transmit(0x8e89bed7, adv_ind_len, adv_ind[j], ch[i]);
+					le_transmit(0x8e89bed6, adv_ind_len, adv_ind[j], ch[i]);
 				} else {
 					adv_ind_len = (u8) (fin_adv_len + 20 + 3);
-					le_transmit(0x8e89bed7, adv_ind_len, adv_ind[j], ch[i]);
+					le_transmit(0x8e89bed6, adv_ind_len, adv_ind[j], ch[i]);
 				}
 				msleep(10);
 			}
@@ -2726,12 +2730,23 @@ void bt_slave_le() {
 		}
 		ISER0 = ISER0_ISE_USB;
 		ISER0 = ISER0_ISE_DMA;
+		nPackets++;
+		if (nPackets >= 100) {
+			break;
+		}
 		msleep(10);
 	}
 	free(slave_mac_address_data);	
 	free(adv_ind);
 	for(i=0; i<num_adv_ind; i++)
 		free(adv_ind[i]);
+	
+	//JWHUR test
+	ICER0 = ICER0_ICE_USB;
+	cc2400_idle();
+	dio_ssp_stop ();
+	cs_trigger_disable();
+
 }
 
 void bt_sync_le() {
@@ -2771,7 +2786,7 @@ void bt_sync_le() {
 	ICER0 = ICER0_ICE_USB;
 	ICER0 = ICER0_ICE_DMA;
 	adv_ind_len = (u8) (adv_ind_len + 3);
-	le_transmit(0x8e89bed7, adv_ind_len, adv_ind, ch[0]);
+	le_transmit(0x8e89bed6, adv_ind_len, adv_ind, ch[0]);
 	now_sync = (clkn & 0xffffff);
 	start_sync = now_sync + 100 * 10000 / 3125; // wait for 99.8 ms
 
