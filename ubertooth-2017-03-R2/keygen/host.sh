@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ubertooth-btle -s ec:55:f9:7c:c9:ff -S -U 0 >& log0
+#ubertooth-btle -s ec:55:f9:7c:c9:ff -S -U 0 >& log0
 #scp mwnl1@192.168.70.201:~/JWHUR/ubertooth/ubertooth-2017-03-R2/exp/log1 ./
 #scp mwnl1@192.168.86.24:~/JWHUR/ubertooth/ubertooth-2017-03-R2/exp/log1 ./
 
@@ -19,9 +19,7 @@ rm rssi
 ./procData.out
 paste time.dat rssi.dat > exp0.dat
 rm time.dat rssi.dat log0
-mv Barcode.dat Barcode0.dat
 mv signal.dat signal0.dat
-mv IndSignal.dat IndSignal0.dat
 
 catTime=$(sed -n -e 's/^.*measurement : //p' log1)
 echo $catTime > time
@@ -37,10 +35,8 @@ rm rssi
 
 ./procData.out
 paste time.dat rssi.dat > exp1.dat
-#rm time.dat rssi.dat
-mv Barcode.dat Barcode1.dat
+rm time.dat rssi.dat
 mv signal.dat signal1.dat
-mv IndSignal.dat IndSignal1.dat
 
 #cmp -l Barcode0.dat Barcode1.dat > diff.dat
 

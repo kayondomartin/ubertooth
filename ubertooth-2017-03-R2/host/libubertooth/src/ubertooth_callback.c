@@ -373,6 +373,8 @@ int cb_btle(ubertooth_t* ut, void* args)
 	lell_allocate_and_decode(rx->data, rx->channel + 2402, rx->clk100ns, &pkt);
 
 	/* do nothing further if filtered due to bad AA */
+	// JWHUR for nearfield test
+	 
 	if (opts &&
 	    (opts->allowed_access_address_errors <
 	     lell_get_access_address_offenses(pkt))) {
@@ -410,27 +412,29 @@ int cb_btle(ubertooth_t* ut, void* args)
 		rx_ts += 3276800000;
 	u32 ts_diff = rx_ts - prev_ts;
 	prev_ts = rx->clk100ns;
-	//JWHUR Near Field test
-	if (rx->data[6] == 0x30 && rx->data[7] == 0xff && rx->data[8] == 0xc9 && rx->data[9] == 0x7c && rx->data[10] == 0x55 && rx->data[11] == 0xec) {
-	sync = 2;
 
-	printf("systime=%u freq=%d addr=%08x delta_t=%.03f ms rssi=%d\n",
-	       systime, rx->channel + 2402, lell_get_access_address(pkt),
-	       ts_diff / 10000.0, rx->rssi_min - 54);
+//	printf("systime=%u freq=%d addr=%08x delta_t=%.03f ms rssi=%d\n",
+//	       systime, rx->channel + 2402, lell_get_access_address(pkt),
+//	       ts_diff / 10000.0, rx->rssi_min - 54);
 
 	int len = (rx->data[5] & 0x3f) + 6 + 3;
 	if (len > 50) len = 50;
 
-	for (i = 4; i < len; ++i)
-		printf("%02x ", rx->data[i]);
-	printf("\n");
+//	for (i = 4; i < len; ++i)
+//		printf("%02x ", rx->data[i]);
+//	printf("\n");
 
-	}
 	//JWHUR test synchronization protocol
 	//When receive 'SYNC', stop ble scanning
 	if (rx->data[23] == 0xff && rx->data[24] == 0x53 && rx->data[25] == 0x59 && rx->data[26] == 0x4e && rx->data[27] == 0x43) {
 		sync = 1;
 		printf("SYNC received, AP Mac address: %02x:%02x:%02x:%02x:%02x:%02x\n", rx->data[11], rx->data[10], rx->data[9], rx->data[8], rx->data[7], rx->data[6]);
+	}
+
+	//When receive 'SYNC', stop ble scanning
+	if (rx->data[11] == 0xec && rx->data[10] == 0x55 && rx->data[9] == 0xf9 && rx->data[8] == 0x7c && rx->data[7] == 0xc9) {
+		int nPackets = (rx->data[23] << 24) + (rx->data[24] << 16) + (rx->data[25] << 8) + rx->data[26]; 
+		printf("%d %d\n", nPackets, rx->rssi_min-54);
 	}
 
 

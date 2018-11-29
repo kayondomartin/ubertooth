@@ -1120,13 +1120,13 @@ void le_transmit(u32 aa, u8 len, u8 *data, u16 ch)
 
 	// whiten the data and copy it into the txbuf
 	int idx = whitening_index[btle_channel_index(jw_channel-2402)];
+	
 	for (i = 0; i < len; ++i) {
 		byte = data[i];
 		txbuf[i+4] = 0;
 		for (j = 0; j < 8; ++j) {
 			bit = (byte & 1) ^ whitening[idx];
 			idx = (idx + 1) % sizeof(whitening);
-			//bit = (byte & 1);
 			byte >>= 1;
 			txbuf[i+4] |= bit << (7 - j);
 		}
@@ -1715,7 +1715,7 @@ void bt_le_sync_rssi(u8 active_mode)
 
 	// rssi sampling for only 127 ms
 	uint32_t now = (clkn & 0xffffff);
-	uint32_t stop_at = now + 127 * 10000 / 3125; // millis -> clkn ticks
+	uint32_t stop_at = now + 60000 * 10000 / 3125; // millis -> clkn ticks
 	int overflow = 0;
 	// handle clkn overflow
 	if (stop_at >= ((uint32_t)1<<28)) {
@@ -1739,7 +1739,7 @@ void bt_le_sync_rssi(u8 active_mode)
 	cc2400_rx_sync(rbit(le.access_address));
 
 	requested_channel = 1;
-	channel = 2470;
+	channel = 2412;
 	while (requested_mode == active_mode) {
 		if (requested_channel != 0) {
 			cc2400_strobe(SRFOFF);
@@ -1767,7 +1767,7 @@ void bt_le_sync_rssi(u8 active_mode)
 			if (47<i) time_buf4[i-48] = CLK100NS;
 			rssi_buf[i] = (u8)(cc2400_get(RSSI) >> 8);
 			//rssi_buf[i] = (u8)(cc2400_get_rev(FREQEST));
-			volatile u32 j = 598; while (--j); // empty for loop ~= 70ns, 598 empty while loop ~= 41.8us, 240 loop ~= 16.8us
+			volatile u32 j = 12171; while (--j); // empty for loop ~= 70ns, 598 empty while loop ~= 41.8us, 14171 loop ~= 992us
 		}
 
 		RXLED_SET;
@@ -2699,42 +2699,59 @@ void bt_slave_le() {
 			adv_ind_len = (u8) (fin_adv_len + 20);
 		}
 
-		calc_crc = btle_calc_crc(le.crc_init_reversed, adv_ind[i], adv_ind_len);
-		adv_ind_len = (int) adv_ind_len;
-		adv_ind[i][adv_ind_len+0] = (calc_crc >> 0) & 0xff;
-		adv_ind[i][adv_ind_len+1] = (calc_crc >> 8) & 0xff;
-		adv_ind[i][adv_ind_len+2] = (calc_crc >> 16) & 0xff;
+//		calc_crc = btle_calc_crc(le.crc_init_reversed, adv_ind[i], adv_ind_len);
+//		adv_ind_len = (int) adv_ind_len;
+//		adv_ind[i][adv_ind_len+0] = (calc_crc >> 0) & 0xff;
+//		adv_ind[i][adv_ind_len+1] = (calc_crc >> 8) & 0xff;
+//		adv_ind[i][adv_ind_len+2] = (calc_crc >> 16) & 0xff;
 	}
 
 	clkn_start();
 
-	// To track the number of sent packets
-	int nPackets = 0;
+	// JWHUR BLE packet number
+	uint32_t nPackets = 0;
+
 	// spam advertising packets
 	while (requested_mode == MODE_BT_SLAVE_LE) {
 		if (requested_mode != mode) break;
 		ICER0 = ICER0_ICE_USB;
 		ICER0 = ICER0_ICE_DMA;
-		for(i=0; i<3; i++) {
+//		for(i=0; i<3; i++) {
+		for(i=0; i<1; i++) {
 			for(j=0; j<num_adv_ind; j++) {
+				adv_ind[j][19] = (u8) (nPackets >> 24 & 0xff);
+				adv_ind[j][20] = (u8) (nPackets >> 16 & 0xff);
+				adv_ind[j][21] = (u8) (nPackets >> 8 & 0xff);
+				adv_ind[j][22] = (u8) (nPackets & 0xff);
 				if (j < num_adv_ind -1) {
-					adv_ind_len = (u8) (31 + 3);
-					le_transmit(0x8e89bed6, adv_ind_len, adv_ind[j], ch[i]);
+//					adv_ind_len = (u8) (31 + 3);
+					adv_ind_len = (u8) 31;
+					calc_crc = btle_calc_crc(le.crc_init_reversed, adv_ind[j], adv_ind_len);
+					adv_ind[j][(int)adv_ind_len+0] = (calc_crc >> 0) & 0xff;
+					adv_ind[j][(int)adv_ind_len+1] = (calc_crc >> 8) & 0xff;
+					adv_ind[j][(int)adv_ind_len+2] = (calc_crc >> 16) & 0xff;
+//					le_transmit(0x8e89bed6, adv_ind_len, adv_ind[j], ch[i]);
+					le_transmit(0x8e89bed6, adv_ind_len + 3, adv_ind[j], ch[i]);
 				} else {
-					adv_ind_len = (u8) (fin_adv_len + 20 + 3);
-					le_transmit(0x8e89bed6, adv_ind_len, adv_ind[j], ch[i]);
+//					adv_ind_len = (u8) (fin_adv_len + 20 + 3);
+					adv_ind_len = (u8) (fin_adv_len + 20);
+					calc_crc = btle_calc_crc(le.crc_init_reversed, adv_ind[j], adv_ind_len);
+					adv_ind[j][(int)adv_ind_len+0] = (calc_crc >> 0) & 0xff;
+					adv_ind[j][(int)adv_ind_len+1] = (calc_crc >> 8) & 0xff;
+					adv_ind[j][(int)adv_ind_len+2] = (calc_crc >> 16) & 0xff;
+//					le_transmit(0x8e89bed6, adv_ind_len, adv_ind[j], ch[i]);
+					le_transmit(0x8e89bed6, adv_ind_len + 3, adv_ind[j], ch[i]);
 				}
 				msleep(10);
 			}
 			//msleep(5);
 		}
+		nPackets++;
+
 		ISER0 = ISER0_ISE_USB;
 		ISER0 = ISER0_ISE_DMA;
-		nPackets++;
-		if (nPackets >= 100) {
-			break;
-		}
-		msleep(10);
+//		msleep(10);
+
 	}
 	free(slave_mac_address_data);	
 	free(adv_ind);
