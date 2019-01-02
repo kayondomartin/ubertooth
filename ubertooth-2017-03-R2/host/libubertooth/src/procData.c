@@ -9,7 +9,7 @@
 
 #define FLT_MAX 3.402823466e+38F
 
-float kMeans_clustering(int *rssi, int *cls1, int *cls2, int lenData, float *mu) {
+float kMeans_clustering(int8_t *rssi, int *cls1, int *cls2, int lenData, float *mu) {
 	float threshold = 0, cost = 0;
 	int i, nCls1 = 0, nCls2 = 0, sumCls1 = 0, sumCls2 = 0;
 	threshold = (mu[0] + mu[1]) / 2;
@@ -40,7 +40,7 @@ float kMeans_clustering(int *rssi, int *cls1, int *cls2, int lenData, float *mu)
 	return cost;
 }
 
-float kMeans(int *rssi, int lenData) {
+float kMeans(int8_t *rssi, int lenData) {
 	int i, max_iter = 100, min_iter = 50;
 	int *cls1, *cls2;
 	float *mu;
@@ -72,25 +72,39 @@ float kMeans(int *rssi, int lenData) {
 		return -80;
 }
 
-float *maFilter(int *rssi, int lenData) {
+int8_t *maFilter(int *sTime, int8_t *sRssi, int nSignal) {
 	// Moving average filtering
 	FILE *output;
-	int i, j;
-	float binomialCoeff[7] = {0.0156, 0.0938, 0.2344, 0.3125, 0.2344, 0.0938, 0.0156};
-	int cLen = sizeof(binomialCoeff)/sizeof(float);
-	float *rssiMA = malloc(sizeof(float)*lenData);
+	int i, j, index;
+	int8_t *rssiMA = malloc(sizeof(int8_t)*1000);
+	float *Samples = malloc(sizeof(float)*1000);
+	float *nSample = malloc(sizeof(float)*1000);
 	
-	for(i=0; i<lenData; i++) {
-		rssiMA[i] = 0;
-		if (i >= cLen-1) {
-			for(j=0; j<cLen; j++)
-				rssiMA[i] = rssiMA[i] + (float)rssi[i-cLen+j] * binomialCoeff[j];
-		} else {
-			for(j=0; j<i+1; j++)
-				rssiMA[i] = rssiMA[i] + (float)rssi[j] * binomialCoeff[j];
+	memset(rssiMA, 0, sizeof(int8_t)*1000);
+	memset(Samples, 0, sizeof(float)*1000);
+	memset(nSample, 0, sizeof(float)*1000);
+
+	// Make a 10 ms  moving averaged samples of 3 seconds, which equals 300 bytes
+	for (i=0; i<nSignal; i++) {
+		if (sTime[i] < 10000e4) {
+			index = sTime[i] / 10e4;
+			Samples[index] += sRssi[i];
+			nSample[index]++;
 		}
 	}
-		
+
+	for (i=0; i<1000; i++) {
+		if (nSample[i] == 0) {
+			for (j=0; j<i; j++) {
+				if (nSample[j] != 0)
+					Samples[i] = Samples[j];
+			}
+		} else {
+			Samples[i] /= nSample[i];
+		}
+		rssiMA[i] = (int8_t) Samples[i];
+	}
+
 	// Save Moving averaged data to rssiMA.dat
 	output = fopen("rssiMA.dat", "w");
 	if (output == NULL)	{
@@ -98,24 +112,26 @@ float *maFilter(int *rssi, int lenData) {
 		return 0;
 	}
 
-	for(i=0; i<lenData; i++) {
-		fprintf(output, "%f\n", rssiMA[i]);
+	for(i=0; i<1000; i++) {
+		fprintf(output, "%d\n", rssiMA[i]);
 	}
 	fclose(output);	
+
+	free(nSample); free(Samples);
 	return rssiMA;
 }
 
-int edgeDetect(int *time, int *rssi, int *eTime, int *eRssi, int lenData, float threshold, char *oFile) {
+int signalDetect(int *time, int8_t *rssi, int *sTime, int8_t *sRssi, int lenData, float threshold, char *oFile) {
 	//Detect the peak of rssi samples
 	int i, j = 0;
-	int nEdge = 0;
+	int nSignal = 0;
 	FILE *output;
 
 	for (i=1; i<lenData; i++) {
 		if (rssi[i] >= threshold) {
-			eRssi[nEdge] = rssi[i];
-			eTime[nEdge] = time[i];
-			nEdge++;
+			sRssi[nSignal] = rssi[i];
+			sTime[nSignal] = time[i];
+			nSignal++;
 		}
 	}
 
@@ -124,11 +140,11 @@ int edgeDetect(int *time, int *rssi, int *eTime, int *eRssi, int lenData, float 
 		printf("open failed\n");
 		return 0;
 	}
-	for(i=0; i<nEdge; i++)
-		fprintf(output, "%d %d\n", eTime[i], eRssi[i]);
+	for(i=0; i<nSignal; i++)
+		fprintf(output, "%d %d\n", sTime[i], sRssi[i]);
 	fclose(output);
 
-	return nEdge;
+	return nSignal;
 }
 
 int makeBarcode(int *eTime, int *eRssi, int nEdge, int *Barcode, char *oFile) {
@@ -204,8 +220,8 @@ int getData(char *tFile, char*rFile, int *time, int *rssi) {
 	return lenData;
 }
 
-int *procData(int *rTime, int *rssi, int lenData) {
-	int nEdge, nDiff = 0, i;
+int8_t *procData(int *rTime, int8_t *rssi, int lenData) {
+	int nSignal, nDiff = 0, i;
 	float thr;
 	srand(time(NULL));
 
@@ -216,18 +232,21 @@ int *procData(int *rTime, int *rssi, int lenData) {
 
 	thr = kMeans(rssi, lenData);
 
-	int *eRssi = malloc(sizeof(int)*lenData);
-	int *eTime = malloc(sizeof(int)*lenData);
-	nEdge = edgeDetect(rTime, rssi, eTime, eRssi, lenData, thr,"edge.dat");
-
+	int8_t *sRssi = malloc(sizeof(int8_t)*lenData);
+	int *sTime = malloc(sizeof(int)*lenData);
+	nSignal = signalDetect(rTime, rssi, sTime, sRssi, lenData, thr,"signal.dat");
+/*
 	int *Barcode;
 	Barcode = malloc(sizeof(int)*127);
 	for(i=0; i<127; i++)
 		Barcode[i] = 0;
 	int r = makeBarcode(eTime, eRssi, nEdge, Barcode, "Barcode.dat");
+*/
+	int8_t *rssiMA = malloc(sizeof(int8_t) * 300);
+	rssiMA = maFilter(sTime, sRssi, nSignal);
 
-	free(eRssi); free(eTime);
-	return Barcode;
+	free(sRssi); free(sTime);
+	return rssiMA;
 }
 
 int getAPInfo(char *APMAC, char *APSSID, char *APPWD) {

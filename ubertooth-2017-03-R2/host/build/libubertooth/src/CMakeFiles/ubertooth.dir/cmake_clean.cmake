@@ -5,7 +5,7 @@ FILE(REMOVE_RECURSE
   "CMakeFiles/ubertooth.dir/ubertooth_fifo.c.o"
   "CMakeFiles/ubertooth.dir/procData.c.o"
   "CMakeFiles/ubertooth.dir/bchEcc.c.o"
-  "CMakeFiles/ubertooth.dir/aesAlg.c.o"
+  "CMakeFiles/ubertooth.dir/encAlg.c.o"
   "libubertooth.pdb"
   "libubertooth.so"
   "libubertooth.so.1.0"

@@ -153,30 +153,6 @@ ubertooth/fast:
 	cd /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build && $(MAKE) -f libubertooth/src/CMakeFiles/ubertooth.dir/build.make libubertooth/src/CMakeFiles/ubertooth.dir/build
 .PHONY : ubertooth/fast
 
-aesAlg.o: aesAlg.c.o
-.PHONY : aesAlg.o
-
-# target to build an object file
-aesAlg.c.o:
-	cd /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build && $(MAKE) -f libubertooth/src/CMakeFiles/ubertooth.dir/build.make libubertooth/src/CMakeFiles/ubertooth.dir/aesAlg.c.o
-.PHONY : aesAlg.c.o
-
-aesAlg.i: aesAlg.c.i
-.PHONY : aesAlg.i
-
-# target to preprocess a source file
-aesAlg.c.i:
-	cd /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build && $(MAKE) -f libubertooth/src/CMakeFiles/ubertooth.dir/build.make libubertooth/src/CMakeFiles/ubertooth.dir/aesAlg.c.i
-.PHONY : aesAlg.c.i
-
-aesAlg.s: aesAlg.c.s
-.PHONY : aesAlg.s
-
-# target to generate assembly for a file
-aesAlg.c.s:
-	cd /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build && $(MAKE) -f libubertooth/src/CMakeFiles/ubertooth.dir/build.make libubertooth/src/CMakeFiles/ubertooth.dir/aesAlg.c.s
-.PHONY : aesAlg.c.s
-
 bchEcc.o: bchEcc.c.o
 .PHONY : bchEcc.o
 
@@ -200,6 +176,30 @@ bchEcc.s: bchEcc.c.s
 bchEcc.c.s:
 	cd /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build && $(MAKE) -f libubertooth/src/CMakeFiles/ubertooth.dir/build.make libubertooth/src/CMakeFiles/ubertooth.dir/bchEcc.c.s
 .PHONY : bchEcc.c.s
+
+encAlg.o: encAlg.c.o
+.PHONY : encAlg.o
+
+# target to build an object file
+encAlg.c.o:
+	cd /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build && $(MAKE) -f libubertooth/src/CMakeFiles/ubertooth.dir/build.make libubertooth/src/CMakeFiles/ubertooth.dir/encAlg.c.o
+.PHONY : encAlg.c.o
+
+encAlg.i: encAlg.c.i
+.PHONY : encAlg.i
+
+# target to preprocess a source file
+encAlg.c.i:
+	cd /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build && $(MAKE) -f libubertooth/src/CMakeFiles/ubertooth.dir/build.make libubertooth/src/CMakeFiles/ubertooth.dir/encAlg.c.i
+.PHONY : encAlg.c.i
+
+encAlg.s: encAlg.c.s
+.PHONY : encAlg.s
+
+# target to generate assembly for a file
+encAlg.c.s:
+	cd /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build && $(MAKE) -f libubertooth/src/CMakeFiles/ubertooth.dir/build.make libubertooth/src/CMakeFiles/ubertooth.dir/encAlg.c.s
+.PHONY : encAlg.c.s
 
 procData.o: procData.c.o
 .PHONY : procData.o
@@ -334,12 +334,12 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... ubertooth"
-	@echo "... aesAlg.o"
-	@echo "... aesAlg.i"
-	@echo "... aesAlg.s"
 	@echo "... bchEcc.o"
 	@echo "... bchEcc.i"
 	@echo "... bchEcc.s"
+	@echo "... encAlg.o"
+	@echo "... encAlg.i"
+	@echo "... encAlg.s"
 	@echo "... procData.o"
 	@echo "... procData.i"
 	@echo "... procData.s"

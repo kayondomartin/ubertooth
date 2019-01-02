@@ -6,18 +6,6 @@
 
 #IncludeRegexTransform: 
 
-../libubertooth/src/aesAlg.h
-stdio.h
--
-stdlib.h
--
-openssl/aes.h
--
-string.h
--
-stdint.h
--
-
 ../libubertooth/src/bchEcc.h
 math.h
 -
@@ -122,6 +110,18 @@ limits.h
 windows.h
 -
 winsock.h
+-
+
+/usr/local/include/aesAlg.h
+stdio.h
+-
+stdlib.h
+-
+openssl/aes.h
+-
+string.h
+-
+stdint.h
 -
 
 /usr/local/include/btbb.h

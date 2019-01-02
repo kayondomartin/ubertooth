@@ -413,16 +413,16 @@ int cb_btle(ubertooth_t* ut, void* args)
 	u32 ts_diff = rx_ts - prev_ts;
 	prev_ts = rx->clk100ns;
 
-//	printf("systime=%u freq=%d addr=%08x delta_t=%.03f ms rssi=%d\n",
-//	       systime, rx->channel + 2402, lell_get_access_address(pkt),
-//	       ts_diff / 10000.0, rx->rssi_min - 54);
+	printf("systime=%u freq=%d addr=%08x delta_t=%.03f ms rssi=%d\n",
+	       systime, rx->channel + 2402, lell_get_access_address(pkt),
+	       ts_diff / 10000.0, rx->rssi_min - 54);
 
 	int len = (rx->data[5] & 0x3f) + 6 + 3;
 	if (len > 50) len = 50;
 
-//	for (i = 4; i < len; ++i)
-//		printf("%02x ", rx->data[i]);
-//	printf("\n");
+	for (i = 4; i < len; ++i)
+		printf("%02x ", rx->data[i]);
+	printf("\n");
 
 	//JWHUR test synchronization protocol
 	//When receive 'SYNC', stop ble scanning
@@ -431,21 +431,91 @@ int cb_btle(ubertooth_t* ut, void* args)
 		printf("SYNC received, AP Mac address: %02x:%02x:%02x:%02x:%02x:%02x\n", rx->data[11], rx->data[10], rx->data[9], rx->data[8], rx->data[7], rx->data[6]);
 	}
 
-	//When receive 'SYNC', stop ble scanning
-	if (rx->data[11] == 0xec && rx->data[10] == 0x55 && rx->data[9] == 0xf9 && rx->data[8] == 0x7c && rx->data[7] == 0xc9) {
-		int nPackets = (rx->data[23] << 24) + (rx->data[24] << 16) + (rx->data[25] << 8) + rx->data[26]; 
-		printf("%d %d\n", nPackets, rx->rssi_min-54);
-	}
-
-
-//	lell_print(pkt);
-//	printf("\n");
+	lell_print(pkt);
+	printf("\n");
 
 	lell_packet_unref(pkt);
 
 	fflush(stdout);
 	return sync;
 }
+
+int recv_PUB(ubertooth_t* ut, int target, int *nFrag, int *fNum, int *pLen, uint8_t *targetMac, uint8_t *frag)
+{
+	int PAYLOAD_LEN = 11;
+	int i, j, ret = 0;
+	
+	usb_pkt_rx usb = fifo_pop(ut->fifo);
+	usb_pkt_rx* rx = &usb;
+
+	int len = (rx->data[5] & 0x3f) + 6 + 3;
+	if (len > 50) len = 50;
+
+	if (rx->data[12] == 0x03 && rx->data[13] == 0x03 && rx->data[14] == 0xaa && rx->data[15] == 0xfe && rx->data[20] == 0x10 &&  rx->data[23] >= 0xaa) {
+		if (target == 0) {
+			for (i=0; i<6; i++) 
+				targetMac[i] = rx->data[11-i];
+			nFrag[0] = (int) rx->data[21];
+			fNum[0] = (int) (rx->data[23] - 0xaa);
+			pLen[0] = (int) (rx->data[16] - 0x07);
+
+			for (j=0; j<pLen[0]; j++)
+				frag[j] = rx->data[24+j];
+
+			ret = 1;
+		} else if (targetMac[0] == rx->data[11] && targetMac[1] == rx->data[10] && targetMac[2] == rx->data[9] && targetMac[3] == rx->data[8] && targetMac[4] == rx->data[7] && targetMac[5] == rx->data[6]) {
+			fNum[0] = (int) (rx->data[23] - 0xaa);
+			pLen[0] = (int) (rx->data[16] - 0x07);
+
+			for (j=0; j<pLen[0]; j++)
+				frag[j] = rx->data[24+j];
+
+			ret = 2;
+		}
+	}
+
+	fflush(stdout);
+	return ret;
+}
+
+int recv_PWD(ubertooth_t* ut, int target, int *nFrag, int *fNum, int *pLen, uint8_t *targetMac, uint8_t *frag)
+{
+	int PAYLOAD_LEN = 11;
+	int i, j, ret = 0;
+	
+	usb_pkt_rx usb = fifo_pop(ut->fifo);
+	usb_pkt_rx* rx = &usb;
+
+	int len = (rx->data[5] & 0x3f) + 6 + 3;
+	if (len > 50) len = 50;
+
+	if (rx->data[12] == 0x03 && rx->data[13] == 0x03 && rx->data[14] == 0xaa && rx->data[15] == 0xfe && rx->data[20] == 0x10 &&  rx->data[23] >= 0xaa) {
+		if (targetMac[0] == rx->data[11] && targetMac[1] == rx->data[10] && targetMac[2] == rx->data[9] && targetMac[3] == rx->data[8] && targetMac[4] == rx->data[7] && targetMac[5] == rx->data[6]) {
+			if (target == 0) {
+				nFrag[0] = (int) rx->data[21];
+				fNum[0] = (int) (rx->data[23] - 0xaa);
+				pLen[0] = (int) (rx->data[16] - 0x07);
+				
+				for (j=0; j<pLen[0]; j++) 
+					frag[j] = rx->data[24+j];
+				
+				ret = 1;
+			} else {
+				fNum[0] = (int) (rx->data[23] - 0xaa);
+				pLen[0] = (int) (rx->data[16] - 0x07);
+
+				for (j=0; j<pLen[0]; j++)
+					frag[j] = rx->data[24+j];
+
+				ret = 2;
+			}
+		}
+	}
+
+	fflush(stdout);
+	return ret;
+}
+
 int find_SYNC(ubertooth_t* ut, uint8_t *APMAC)
 {
 	int sync = 0;
@@ -461,10 +531,9 @@ int find_SYNC(ubertooth_t* ut, uint8_t *APMAC)
 	//JWHUR test synchronization protocol
 	//When receive 'OK', stop ble scanning
 	//Possibly OK must be encoded using shared key
-	if (rx->data[23] == 0xff && rx->data[24] == 0x53 && rx->data[25] == 0x59 && rx->data[26] == 0x4e && rx->data[27] == 0x43) {
-		sync = 1;
-		for (i=0; i<6; i++)
-			APMAC[i] = rx->data[11-i];
+	if (APMAC[0] == rx->data[11] && APMAC[1] == rx->data[10] && APMAC[2] == rx->data[9] && APMAC[3] == rx->data[8] && APMAC[4] == rx->data[7] && APMAC[5] == rx->data[6]) {
+		if (rx->data[23] == 0xff && rx->data[24] == 0x53 && rx->data[25] == 0x59 && rx->data[26] == 0x4e && rx->data[27] == 0x43)
+			sync = 1;
 	}
 
 	fflush(stdout);
@@ -521,13 +590,14 @@ void cb_btle_tracking(ubertooth_t* ut, void* args)
 		printf("%02x ", rx->data[i]);
 	printf("\n\n");
 	fflush(stdout);
-	} else if (rx->pkt_type == RSSI_TRACK) {
-		// Make rssi.dat file
+	} else if (rx->pkt_type == RSSI_TRACK) {	
+	/*	// Make rssi.dat file
 		output = fopen("rssi.dat", "a");
 		if (output == NULL) {
 			printf("rssi.dat open failed\n");
 			return;
 		}
+		*/
 		u32 rx_ts = rx->clk100ns;
 		if (rx_ts < prev_ts) rx_ts += 327600000;
 		printf("rssi samples : ");
@@ -543,8 +613,8 @@ void cb_btle_tracking(ubertooth_t* ut, void* args)
 	}
 }
 
-void rssi_sampling(ubertooth_t *ut, int *rssi, int offset) {
-	int max = 2540; // 127 ms samples = 127 * 20 = 2540
+void rssi_sampling(ubertooth_t *ut, int8_t *rssi, int offset) {
+	int max = 100000; // 127 ms samples = 127 * 20 = 2540
 	int i, len;
 	usb_pkt_rx usb = fifo_pop(ut->fifo);
 	usb_pkt_rx *rx = &usb;
@@ -575,11 +645,12 @@ void cb_btle_time(ubertooth_t *ut, void *args)
 	usb_pkt_rx usb = fifo_pop(ut->fifo);
 	usb_time_rx* rx = &usb;
 
+	/*
 	output = fopen("time.dat", "a");
 	if (output == NULL) {
 		printf("time.dat open failed\n");
 		return;
-	}
+	}*/
 
 	for (i = 0; i < 16; i++) {
 		ts = rx->time[i];

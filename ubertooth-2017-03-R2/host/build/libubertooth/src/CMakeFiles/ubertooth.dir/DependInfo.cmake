@@ -4,8 +4,8 @@ SET(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 SET(CMAKE_DEPENDS_CHECK_C
-  "/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/aesAlg.c" "/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/libubertooth/src/CMakeFiles/ubertooth.dir/aesAlg.c.o"
   "/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/bchEcc.c" "/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/libubertooth/src/CMakeFiles/ubertooth.dir/bchEcc.c.o"
+  "/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/encAlg.c" "/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/libubertooth/src/CMakeFiles/ubertooth.dir/encAlg.c.o"
   "/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/procData.c" "/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/libubertooth/src/CMakeFiles/ubertooth.dir/procData.c.o"
   "/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/ubertooth.c" "/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/libubertooth/src/CMakeFiles/ubertooth.dir/ubertooth.c.o"
   "/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/ubertooth_callback.c" "/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/libubertooth/src/CMakeFiles/ubertooth.dir/ubertooth_callback.c.o"
@@ -16,7 +16,7 @@ SET(CMAKE_C_COMPILER_ID "GNU")
 
 # Preprocessor definitions for this target.
 SET(CMAKE_TARGET_DEFINITIONS
-  "RELEASE=\"git-be85b85*\""
+  "RELEASE=\"git-22f1d06*\""
   "VERSION=\"1.0\""
   )
 

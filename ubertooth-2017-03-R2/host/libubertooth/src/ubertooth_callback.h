@@ -33,7 +33,7 @@ int cb_btle(ubertooth_t* ut, void* args);
 int find_OK(ubertooth_t* ut);
 int find_SYNC(ubertooth_t* ut, uint8_t* APMAC);
 void cb_btle_tracking(ubertooth_t* ut, void* args);
-void rssi_sampling(ubertooth_t *ut, int *rssi, int offset);
+void rssi_sampling(ubertooth_t *ut, int8_t *rssi, int offset);
 void time_sampling(ubertooth_t *ut, int *time, int offset);
 void time_sampling_last(ubertooth_t *ut, int *time, int offset);
 void cb_btle_time(ubertooth_t* ut, void* args);

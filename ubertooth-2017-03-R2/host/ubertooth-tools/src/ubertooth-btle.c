@@ -37,7 +37,7 @@
 
 #define BLOCK_SIZE 16
 #define FREAD_COUNT 4096
-
+#define FILE_MAX 1000
 
 int convert_mac_address(char *s, uint8_t *o) {
 	int i;
@@ -71,27 +71,32 @@ int convert_mac_address(char *s, uint8_t *o) {
 	return 1;
 }
 
-//JWHUR set advertising data
-int convert_data(char *s, uint8_t *o) {
-	int i, slen;
+//JWHUR get the data from input file
+int convert_data(char *filename, uint8_t *o) {
+	FILE *input;
+	int i, slen = 0, count;
 
-	slen = strlen(s);
-	if (slen % 2 == 1)
-		printf("Discard last word\n");
-	printf("data: ");
-	for (i=0; i < slen-1; i+=2) {
-		if (!isxdigit(s[i])) {
-			printf("Error: input data contains invalid character(s)\n");
-			return 0;
-		}
-		unsigned byte;
-		sscanf(&s[i], "%02x", &byte);
-		o[i/2] = byte;
-		printf("%02x ", o[i/2]);
+	input = fopen(filename, "r");
+	if (input == NULL) {
+		printf("open failed\n");
+		return 0;
 	}
-	
-	printf("\n");
-	return 1;
+
+	fseek(input, 0, SEEK_END);
+	slen = ftell(input);
+
+	char *buf = malloc(sizeof(char) * slen + 1);
+	memset(buf, 0, sizeof(char) * slen + 1);
+	fseek(input, 0, SEEK_SET);
+	count = fread(buf, slen, 1, input);
+
+	printf("size: %d\n", slen);
+	for (i=0; i<slen; i++) {
+		o[i] = (uint8_t) buf[i];
+	}
+
+	free(buf);
+	return slen+1;
 }
 
 int syncStart(char *APMAC, int do_adv_index, ubertooth_t *ut, int ubertooth_device, int *time, int *rssi) {
@@ -184,51 +189,28 @@ int syncStart(char *APMAC, int do_adv_index, ubertooth_t *ut, int ubertooth_devi
 
 	return dataLen;
 }
-	
-int dataTx(char *APMAC, int *bch, int rLen, char *encPwd, int txDur, ubertooth_t *ut, int ubertooth_device) {
-	int status, i, pwdLen, dlen;
-	uint32_t parity = 0x00000000;
-	uint8_t errCap = 0x00, *parityByte;
-	int *eccInt;
-	uint8_t mac_address[6] = {0, };
 
-	status = convert_mac_address(APMAC, mac_address);
+int dataTx(uint8_t *mac_addr, uint8_t *data, int dlen, int txDur, ubertooth_t *ut, int ubertooth_device) {
+	int status, i;
 
-	parityByte = (uint8_t *)&parity;
-
-	if (rLen == 0)
-		errCap = 0x00;
-	else if (rLen == 14)
-		errCap = 0x02;
-	else
-		errCap = 0x04;
-
-	eccInt = (int*)malloc(sizeof(int)*rLen);
-	for(i=0; i<rLen; i++) {
-		eccInt[i] = bch[127 - rLen + i];
-	}
-	for(i=0; i<rLen; i++) {
-		parity <<= 1;
-		parity |= eccInt[i];
-	}
-
-	pwdLen = strlen(encPwd);
-	dlen = 5 + pwdLen;
 	uint8_t *tot_data = (uint8_t*) malloc(sizeof(uint8_t) * (dlen + 6));
-	for(i=0; i<6; i++) tot_data[i] = mac_address[i];
-	tot_data[6] = errCap;
-	for(i=7; i< (7 + 4); i++) tot_data[i] = parityByte[3-i+7];
-	tot_data[11] = 0xcc; 
-	for(i=12; i<pwdLen+12; i++) tot_data[i] = (uint8_t)encPwd[i-12];
+	for(i=0; i<6; i++) tot_data[i] = mac_addr[i];
+	for(i=0; i<dlen; i++) tot_data[i+6] = data[i];
 
-	printf("Broadcast data: ");
-	for(i=0; i<pwdLen+11; i++) printf("%02x ", tot_data[i]);
+	printf("Mac address: ");
+	for(i=0; i<6; i++) printf("%02x ", mac_addr[i]);
+	printf("\nBroadcast data: ");
+	for(i=0; i<dlen; i++) printf("%02x", tot_data[i+6]);
 	printf("\n");
 	cmd_btle_slave(ut->devh, tot_data, UBERTOOTH_BTLE_SLAVE, dlen+6);
-	usleep(txDur * 1000);
+	usleep(txDur * 1000000);
 	ubertooth_stop(ut);
-	
+
+	usleep(100000);
+
 	free(ut);
+	ut = (ubertooth_t *) realloc(ut, sizeof(ubertooth_t));
+	memset(ut, 0, sizeof(ubertooth_t));
 	ut = ubertooth_init();
 	status = ubertooth_connect(ut, ubertooth_device);
 	if (status < 0) 
@@ -237,8 +219,7 @@ int dataTx(char *APMAC, int *bch, int rLen, char *encPwd, int txDur, ubertooth_t
 	status = ubertooth_check_api(ut);
 	if (status < 0)
 		return 1;
-	register_cleanup_handler(ut, 1);
-	free(eccInt);
+	register_cleanup_handler(ut, 1); 
 	free(tot_data);
 
 	return status;
@@ -291,7 +272,7 @@ int scanOK(int rxDur, ubertooth_t *ut, int ubertooth_device) {
 	return ok;
 }
 
-int listenSync(uint8_t *APMAC, int do_adv_index, ubertooth_t *ut, int ubertooth_device, int *time, int *rssi) {
+int listenSync(uint8_t *APMAC, int do_adv_index, ubertooth_t *ut, int ubertooth_device, int *time, int8_t *rssi) {
 	int status, sync = 0, rssiSampling = 0;
 	int ofsRssi = 0, ofsTime = 0, dataLen;
 	usb_pkt_rx rx;
@@ -367,14 +348,24 @@ int listenSync(uint8_t *APMAC, int do_adv_index, ubertooth_t *ut, int ubertooth_
 		if (start != 0) {	
 			clock_gettime(CLOCK_MONOTONIC, &tspec);
 			now = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
-			if (rssiSampling * (now - start) > 1000 || now - start > 3000)
-				break;
+			if (rssiSampling) {
+				if (now - start > 10000) 
+					break;
+			} else {
+				if (now - start > 2000)
+					break;
+			}
 		}					
 	}
+
 	dataLen = ofsRssi;
 	ubertooth_stop(ut);
 
+	usleep(100000);
+
 	free(ut);
+	ut = (ubertooth_t *) realloc(ut, sizeof(ubertooth_t));
+	memset(ut, 0, sizeof(ubertooth_t));
 	ut = ubertooth_init();
 	status = ubertooth_connect(ut, ubertooth_device);
 	if (status < 0)
@@ -385,6 +376,226 @@ int listenSync(uint8_t *APMAC, int do_adv_index, ubertooth_t *ut, int ubertooth_
 	register_cleanup_handler(ut, 1);
 
 	return dataLen;
+}
+
+int listenPubkey(uint8_t *APMAC, int do_adv_index, uint8_t *pubKey, int dur, ubertooth_t *ut, int ubertooth_device) {
+	int PAYLOAD_LEN = 11;
+	int status, keyRecv = 0, keyLen = 0, numF = 0;
+	int *fragRecv, nFrag[1], fNum[1], pLen[1];
+	uint8_t targetMac[6] = {0,};
+	int i, j, target = 0, same = 0;
+	usb_pkt_rx rx;
+	uint8_t *frag = (uint8_t *)malloc(sizeof(uint8_t)*PAYLOAD_LEN);
+	u16 channel = 2402;
+
+	status = cmd_set_jam_mode(ut->devh, JAM_NONE);	
+	cmd_set_modulation(ut->devh, MOD_BT_LOW_ENERGY);
+	if (do_adv_index == 37)
+		channel = 2402;
+	else if (do_adv_index == 38)
+		channel = 2426;
+	else
+		channel = 2480;
+	cmd_set_channel(ut->devh, channel);
+	cmd_btle_sniffing(ut->devh, 2);
+
+	struct timespec tspec;
+	uint64_t start = 0, now = 0;
+
+	clock_gettime(CLOCK_MONOTONIC, &tspec);
+	start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
+	now = start;
+
+	while (1) {
+		int r = cmd_poll(ut->devh, &rx);
+		if (r < 0) {
+			printf("USB Error\n");
+			break;
+		}
+		if (r == sizeof(usb_pkt_rx)) {
+			fifo_push(ut->fifo, &rx);
+			if (!keyRecv) {
+				if(!target) {
+					target = recv_PUB(ut, target, nFrag, fNum, pLen, targetMac, frag);
+					if (target == 1) {
+						numF = nFrag[0];
+						fragRecv = (int *) malloc(sizeof(int)*numF);
+						memset(fragRecv, 0, sizeof(int) * numF);
+						for (i=0; i<pLen[0]; i++) {
+							pubKey[PAYLOAD_LEN * fNum[0] + i] = frag[i];
+						}
+						fragRecv[fNum[0]] = pLen[0];
+					}
+				} else {
+					same = recv_PUB(ut, target, nFrag, fNum, pLen, targetMac, frag);
+					if (same == 2 && fragRecv[fNum[0]] == 0) {
+						fragRecv[fNum[0]] = pLen[0];
+						for (i=0; i<pLen[0]; i++) {
+							pubKey[PAYLOAD_LEN * fNum[0] + i] = frag[i];
+						}
+						fragRecv[fNum[0]] = pLen[0];
+					}
+				}
+			}
+
+			if (target) {
+				keyLen = 0;
+				keyRecv = 1;
+				for (i=0; i<numF; i++) {
+					if (fragRecv[i] == 0) {
+						keyLen = 0;
+						keyRecv = 0;
+						break;
+					}
+				keyLen += fragRecv[i];
+				}
+			}
+
+			if (keyRecv) {
+				printf("Public key received\n");
+				printf("targetMac: ");
+				for (i=0; i<6; i++)
+					printf("%02x ", targetMac[i]);
+				printf("\n");
+				printf("keyLen: %d\n", keyLen);
+				break;
+			}
+		}
+
+		usleep(500);
+		if (start != 0) {	
+			clock_gettime(CLOCK_MONOTONIC, &tspec);
+			now = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
+			if (now - start > dur * 1000)
+				break;
+		}					
+	}
+
+	ubertooth_stop(ut);
+	free(ut);
+	
+	ut = ubertooth_init();
+	status = ubertooth_connect(ut, ubertooth_device);
+	if (status < 0)
+		return 1;
+	status = ubertooth_check_api(ut);
+	if (status < 0)
+		return 1;
+	register_cleanup_handler(ut, 1);
+
+	for (i=0; i<6; i++)
+		APMAC[i] = targetMac[i];
+
+	if (target == 1)
+		free(fragRecv); 
+	free(frag);
+	return keyLen;
+}
+
+int listenPWD(uint8_t *APMAC, uint8_t *guestMac, int do_adv_index, uint8_t *pwd, int dur, ubertooth_t *ut, int ubertooth_device) {
+	int PAYLOAD_LEN = 11;
+	int status, pwdRecv = 0, pwdLen = 0, numF = 0;
+	int *fragRecv, nFrag[1], fNum[1], pLen[1];
+	uint8_t targetMac[6] = {0,};
+	int i, j, target = 0, same = 0;
+	usb_pkt_rx rx;
+	uint8_t *frag = (uint8_t *)malloc(sizeof(uint8_t)*PAYLOAD_LEN);
+	u16 channel = 2402;
+
+	status = cmd_set_jam_mode(ut->devh, JAM_NONE);	
+	cmd_set_modulation(ut->devh, MOD_BT_LOW_ENERGY);
+	if (do_adv_index == 37)
+		channel = 2402;
+	else if (do_adv_index == 38)
+		channel = 2426;
+	else
+		channel = 2480;
+	cmd_set_channel(ut->devh, channel);
+	cmd_btle_sniffing(ut->devh, 2);
+
+	struct timespec tspec;
+	uint64_t start = 0, now = 0;
+
+	clock_gettime(CLOCK_MONOTONIC, &tspec);
+	start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
+	now = start;
+
+	while (1) {
+		int r = cmd_poll(ut->devh, &rx);
+		if (r < 0) {
+			printf("USB Error\n");
+			break;
+		}
+		if (r == sizeof(usb_pkt_rx)) {
+			fifo_push(ut->fifo, &rx);
+			if(!target) {
+				target = recv_PWD(ut, target, nFrag, fNum, pLen, APMAC, frag);
+				if (target == 1) {
+					numF = nFrag[0];
+					fragRecv = (int *) malloc(sizeof(int)*numF);
+					memset(fragRecv, 0, sizeof(int) * numF);
+					for (i=0; i<pLen[0]; i++) 
+						pwd[PAYLOAD_LEN * fNum[0] + i] = frag[i];
+					fragRecv[fNum[0]] = pLen[0];
+				}
+			} else {
+				same = recv_PWD(ut, target, nFrag, fNum, pLen, APMAC, frag);
+				if (same == 2 && fragRecv[fNum[0]] == 0) {
+					fragRecv[fNum[0]] = pLen[0];
+					for (i=0; i<pLen[0]; i++) 
+						pwd[PAYLOAD_LEN * fNum[0] + i] = frag[i];
+					fragRecv[fNum[0]] = pLen[0];
+				}
+			}
+
+			if (target) {
+				pwdLen = 0;
+				pwdRecv = 1;
+				for (i=0; i<numF; i++) {
+					if (fragRecv[i] == 0) {
+						pwdLen = 0;
+						pwdRecv = 0;
+						break;
+					}
+				pwdLen += fragRecv[i];
+				}
+			}
+
+			if (pwdRecv) {
+				printf("Password received\n");
+				break;
+			}
+		}
+
+		usleep(500);
+		if (start != 0) {	
+			clock_gettime(CLOCK_MONOTONIC, &tspec);
+			now = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
+			if (now - start > dur * 1000)
+				break;
+		}					
+	}
+
+	ubertooth_stop(ut);
+	free(ut);
+	
+	ut = ubertooth_init();
+	status = ubertooth_connect(ut, ubertooth_device);
+	if (status < 0)
+		return 1;
+	status = ubertooth_check_api(ut);
+	if (status < 0)
+		return 1;
+	register_cleanup_handler(ut, 1);
+
+	for (i=0; i<6; i++)
+		APMAC[i] = targetMac[i];
+
+	if (target == 1)
+		free(fragRecv); 
+	free(frag);
+
+	return pwdLen;
 }
 
 static void usage(void)
@@ -437,8 +648,8 @@ int main(int argc, char *argv[])
 	int do_slave_mode, do_data_mode, do_sync_mode;
 	int do_host, do_guest;
 	// JWHUR set advertising data
+	uint8_t data[FILE_MAX];
 	int duration; // ms
-	uint8_t *data;
 	int dlen;
 	int do_target;
 	enum jam_modes jam_mode = JAM_NONE;
@@ -462,7 +673,7 @@ int main(int argc, char *argv[])
 	dlen = 0;
 	duration = 60000;
 
-	while ((opt=getopt(argc,argv,"a::r:hfoRpU:v::A:s:d:ST:l:t:x:H:G:c:o:q:jJiI")) != EOF) {
+	while ((opt=getopt(argc,argv,"a::r:hfoRpU:v::A:s:d:ST:l:t:x:H:Gc:o:q:jJiI")) != EOF) {
 		switch(opt) {
 		case 'a':
 			if (optarg == NULL) {
@@ -477,8 +688,10 @@ int main(int argc, char *argv[])
 			break;
 		case 'o':
 			do_cfo = 1;
+			break;
 		case 'R':
 			do_rssi = 1;
+			break;
 		case 'p':
 			do_promisc = 1;
 			break;
@@ -539,9 +752,7 @@ int main(int argc, char *argv[])
 			break;
 		//JWHUR set advertising data
 		case 'd':
-			dlen = strlen(optarg)/2;
-			data = (uint8_t*) malloc(sizeof(uint8_t) * dlen);
-			r = convert_data(optarg, data);
+			dlen = convert_data(optarg, data);
 			if (r == 0)
 				return;
 			do_data_mode = 1;
@@ -705,7 +916,7 @@ int main(int argc, char *argv[])
 			if (start != 0) {
 				clock_gettime(CLOCK_MONOTONIC, &tspec);
 				uint64_t now = (tspec.tv_sec) * 1000 + (tspec.tv_nsec)/1000000;
-				if (do_rssi*(now - start) > 60000 || now - start > duration)
+				if (do_rssi*(now - start) > 10000 || now - start > duration)
 					break;
 			}
 		}
@@ -751,7 +962,7 @@ int main(int argc, char *argv[])
 		if (do_data_mode) {
 			for(i=6; i< (dlen + 6); i++) tot_data[i] = data[i-6];
 			cmd_btle_slave(ut->devh, tot_data, UBERTOOTH_BTLE_SLAVE, dlen+6);
-//			usleep(5000000);
+//			usleep(500000);
 //			ubertooth_stop(ut);
 		} else if (do_sync_mode) {	
 			printf("\n%u:%u:%u:%u:%u:%u\n", mac_address[0], mac_address[1], mac_address[2], mac_address[3], mac_address[4], mac_address[5]);
@@ -806,7 +1017,7 @@ int main(int argc, char *argv[])
 				if (do_rssi == 1 && start != 0) {
 					clock_gettime(CLOCK_MONOTONIC, &tspec);
 					uint64_t now = (tspec.tv_sec) * 1000 + (tspec.tv_nsec)/1000000;
-					if (now - start > 60000)
+					if (now - start > 10000)
 						break;
 				}		
 				usleep(500);
@@ -865,7 +1076,6 @@ int main(int argc, char *argv[])
 			status = aesEncrypt(bch, APPWD, encPwd);
 			txDur = 50 + (rand()%10 - 10);
 			rxDur = 100 - txDur;
-			status = dataTx(APMAC, bch, rLen, encPwd, txDur, ut, ubertooth_device);
 			status = scanOK(rxDur, ut, ubertooth_device);
 			if (status == 1) {
 				printf("IoT WiFi connection success!\n");
@@ -879,27 +1089,106 @@ int main(int argc, char *argv[])
 	}
 
 	if (do_guest) {
-		int status, i, lenData, txDur;
-		int time[2540] = {0, }, rssi[2540] = {0, };
-		int *Barcode, *bch;
-		uint8_t APMAC[6] = {0, };
+		int status, i, lenData, txDur, keyLen = 0;
+		int time[100000] = {0, };
+		int8_t rssi[100000] = {0, };
+		int8_t *rssiMA = malloc(sizeof(int8_t) * 1000);
+//		uint8_t APMAC[6] = {0, }, recvPubkey[300] = {0, };
+		uint8_t guestMac[6] = {0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc}; // Need Fix
+		char pubKey[300] = {0, };
+		char BEGINPUBKEY[27] = "-----BEGIN PUBLIC KEY-----\n";
+		char ENDPUBKEY[26] = "\n-----END PUBLIC KEY-----\n";
 
-		Barcode = (int*) malloc(sizeof(int)*127);
-		bch = (int*) malloc(sizeof(int)*127);
+		/*
+		// Protocol 1, listen public key 
+		if (status == 1)
+			printf("Ubertooth init error!\n");
+		keyLen = listenPubkey(APMAC, do_adv_index, recvPubkey, 2, ut, ubertooth_device);
+
+		// Protocol 2, if public key received, advertise myself 
+		if (keyLen > 0) {
+			for(i=0; i<27; i++) pubKey[i] = BEGINPUBKEY[i];
+			for(i=27; i<27+keyLen; i++) pubKey[i] = (char)recvPubkey[i-27];
+			for(i=27+keyLen; i<27+keyLen+26; i++) pubKey[i-2] = ENDPUBKEY[i-keyLen-27];
+
+			printf("Public key:\n");
+			printf("%s\n", pubKey);
+
+			printf("AP MAC address: ");
+			for(i=0; i<6; i++)
+				printf("%02x ", APMAC[i]);
+			printf("\n");
+			
+			status = dataTx(guestMac, APMAC, 6, 2, ut, ubertooth_device);
+		} else {
+			printf("No public key received!\n");
+		}
+
+//		uint8_t APMAC[6] = {0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc};
+		// Protocol 3, after advertising, wait for the synchronizaton packet, and moving average filter the samples 
 		lenData = listenSync(APMAC, do_adv_index, ut, ubertooth_device, time, rssi);
-		printf("AP MAC address: ");
-		for(i=0; i<6; i++)
-			printf("%02x", APMAC[i]);
+		printf("lenData: %d\n", lenData);
+		rssiMA = procData(time, rssi, lenData);
 		
-		Barcode = procData(time, rssi, lenData);
-		
-		printf("\nBarcode: ");
-		for(i=0; i<127; i++)
-			printf("%d ", Barcode[i]);
+		for(i=0; i<1000; i++)
+			printf("%d ", rssiMA[i]);
 		printf("\n");
 
+		int8_t rssi0[100], rssi1[100], rssi2[100];
+		for(i=0; i<100; i++) {
+			rssi0[i] = rssiMA[i];
+			rssi1[i] = rssiMA[i+100];
+			rssi2[i] = rssiMA[i+200];
+		}
+		free(rssiMA);
+		
+		// Protocol 4, RSA encrypt the samples 
+		unsigned char encRssi0[128], encRssi1[128], encRssi2[128], encRssi[384];
+		int encLen;
 
+		encLen = public_encrypt(rssi0, 100, pubKey, encRssi0);
+		if (encLen == -1) {
+			printf("RSA encrypt failed!\n");
+			return 0;
+		}
+		encLen = public_encrypt(rssi0, 100, pubKey, encRssi1);
+		if (encLen == -1) {
+			printf("RSA encrypt failed!\n");
+			return 0;
+		}
+		encLen = public_encrypt(rssi0, 100, pubKey, encRssi2);
+		if (encLen == -1) {
+			printf("RSA encrypt failed!\n");
+			return 0;
+		}
+		printf("Encrypted len: %d\n", encLen);
+		
+		for(i=0; i<encLen; i++) {
+			encRssi[i] = encRssi0[i];
+			encRssi[i+encLen] = encRssi1[i];
+			encRssi[i+2*encLen] = encRssi2[i];
+		}
 
+		FILE *output;
+		output = fopen("test.ssl", "w");
+		for(i=0; i<3*encLen; i++) fprintf(output, "%c", encRssi[i]);
+		fclose(output);
+
+		// Protocol 5, broadcast the encrypted samples 
+		status = dataTx(guestMac, encRssi0, encLen, 2, ut, ubertooth_device);
+		usleep(10000);
+		status = dataTx(guestMac, encRssi1, encLen, 2, ut, ubertooth_device);
+		usleep(10000);
+		status = dataTx(guestMac, encRssi2, encLen, 2, ut, ubertooth_device);
+		usleep(10000);
+*/
+		// Protocol 6, listen for the encrypted password
+		uint8_t APMAC[6] = {0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc};
+		uint8_t pwd[300] = {0, };
+		int pwdLen;
+		pwdLen = listenPWD(APMAC, guestMac, do_adv_index, pwd, 10, ut, ubertooth_device); 
+		printf("pwdlen: %d\n", pwdLen);
+		printf("pwd: %s\n", (char *)pwd);
 	}
 
 	if (!(do_follow || do_promisc || do_get_aa || do_set_aa ||

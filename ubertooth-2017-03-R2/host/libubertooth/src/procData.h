@@ -3,12 +3,12 @@
 #include <math.h>
 #include <time.h>
 
-float kMeans_clustering(int *rssi, int *cls1, int *cls2, int lenData, float *mu);
-float kMeans(int *rssi, int lenData);
-float *maFilter(int *rssi, int lenData);
-int edgeDetect(int *time, int *rssi, int *eTime, int *eRssi, int lenData, float threshold, char *oFile);
+float kMeans_clustering(int8_t *rssi, int *cls1, int *cls2, int lenData, float *mu);
+float kMeans(int8_t *rssi, int lenData);
+int8_t *maFilter(int *sTime, int8_t *sRssi, int nSignal);
+int signalDetect(int *time, int8_t *rssi, int *sTime, int8_t *sRssi, int lenData, float threshold, char *oFile);
 int makeBarcode(int *eTime, int *eRssi, int nEdge, int *Barcode, char *oFile);
 int getData(char *tFile, char*rFile, int *time, int *rssi);
-int *procData(int *rTime, int *rssi, int lenData);
+int8_t *procData(int *rTime, int8_t *rssi, int lenData);
 int getAPInfo(char *APMAC, char *APSSID, char *APPWD);
 int getBCHdata(char *APMAC, uint8_t *data);

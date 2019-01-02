@@ -1100,7 +1100,7 @@ void le_transmit(u32 aa, u8 len, u8 *data, u16 ch)
 	int bit;
 	uint16_t jw_channel = 2402;
 	jw_channel = ch;
-	u8 txbuf[64];
+	u8 txbuf[64] = {0, };
 	u8 tx_len;
 	u8 byte;
 	u16 gio_save;
@@ -1184,8 +1184,8 @@ void le_transmit(u32 aa, u8 len, u8 *data, u16 ch)
 	cc2400_strobe(STX);
 
 	// put the packet into the FIFO
-	/*
-	for (i = 0; i < len; i += 16) {
+	
+/*	for (i = 0; i < len; i += 16) {
 		while (GIO6) ; // wait for the FIFO to drain (FIFO_FULL false)
 		tx_len = len - i;
 		if (tx_len >16)
@@ -1713,9 +1713,9 @@ void bt_le_sync_rssi(u8 active_mode)
 		while ((clkn & 0xffffff) < start_sync);
 	}
 
-	// rssi sampling for only 127 ms
+	// rssi sampling for only 3000 ms
 	uint32_t now = (clkn & 0xffffff);
-	uint32_t stop_at = now + 60000 * 10000 / 3125; // millis -> clkn ticks
+	uint32_t stop_at = now + 10000 * 10000 / 3125; // millis -> clkn ticks
 	int overflow = 0;
 	// handle clkn overflow
 	if (stop_at >= ((uint32_t)1<<28)) {
@@ -1739,7 +1739,7 @@ void bt_le_sync_rssi(u8 active_mode)
 	cc2400_rx_sync(rbit(le.access_address));
 
 	requested_channel = 1;
-	channel = 2412;
+	channel = 2462;
 	while (requested_mode == active_mode) {
 		if (requested_channel != 0) {
 			cc2400_strobe(SRFOFF);
@@ -1767,7 +1767,7 @@ void bt_le_sync_rssi(u8 active_mode)
 			if (47<i) time_buf4[i-48] = CLK100NS;
 			rssi_buf[i] = (u8)(cc2400_get(RSSI) >> 8);
 			//rssi_buf[i] = (u8)(cc2400_get_rev(FREQEST));
-			volatile u32 j = 12171; while (--j); // empty for loop ~= 70ns, 598 empty while loop ~= 41.8us, 14171 loop ~= 992us
+			volatile u32 j = 1314; while (--j); // empty for loop ~= 70ns, 598 empty while loop ~= 41.8us, 14171 loop ~= 992us, 1314 loop ~= 92us
 		}
 
 		RXLED_SET;
@@ -1879,7 +1879,7 @@ void bt_le_sync(u8 active_mode)
 			packet[i/4+1] = rbit(v) ^ whit[i/4];
 		}
 
-		unsigned len = (p[5] & 0x3f) + 2;
+		u8 len = (p[5] & 0x3f) + 2;
 		if (len > 39)
 			goto rx_flush;
 
@@ -1907,6 +1907,7 @@ void bt_le_sync(u8 active_mode)
 			packet[i/4+1] = rbit(v) ^ whit[i/4];
 		}
 
+		
 		if (le.crc_verify) {
 			u32 calc_crc = btle_crcgen_lut(le.crc_init_reversed, p + 4, len);
 			u32 wire_crc = (p[4+len+2] << 16)
@@ -2649,6 +2650,7 @@ void bt_slave_le() {
 	int i, j;
 	int num_adv_ind = 1;
 	int fin_adv_len = 0;
+	int plen = 11;
 	u8 **adv_ind;
 	u8 adv_ind_len;
 	u16 ch[] = {2402, 2426, 2480};
@@ -2663,22 +2665,21 @@ void bt_slave_le() {
 	for (i = 0; i < 6; i++)
 		slave_mac_address[i] = slave_mac_address_data[i];
 
-	// Standards said maximum advertising channel PDU length 39 bytes (adv payload 19 + 1 (preamble))
-	// There's a probem, actual maximum length 34 bytes (adv payload 14 + 1 (preamble)) in ubertooth
-	// Nexsus 5 smartphone can not receive BLE packet which has length over 31 bytes (adv payload 11 + 1 (preamble))
-	fin_adv_len = (dlen-6) % 11;
-	if (dlen >= 11 + 6) {
-		num_adv_ind = (dlen-6)/11 + 1;
-		fin_adv_len = (dlen-6) % 11;
+	// Standards said maximum advertising channel PDU length 39 bytes (adv payload 16 + 3 + 1 (preamble))
+	// There's a probem, actual maximum length 34 bytes (adv payload 11 + 3  + 1 (preamble)) in ubertooth
+	fin_adv_len = (dlen-6) % plen;
+	if (dlen >= plen + 6) {
+		num_adv_ind = (dlen-6)/plen + 1;
+		fin_adv_len = (dlen-6) % plen;
 		if (fin_adv_len == 0) {
-			fin_adv_len = 11;
+			fin_adv_len = plen;
 			num_adv_ind = num_adv_ind - 1;
 		}
 	}
 
 	adv_ind = (u8**) malloc(sizeof(u8*)*num_adv_ind);
 	for (i=0; i< num_adv_ind-1; i++) {
-		adv_ind[i] = (u8*) malloc(sizeof(u8)*34);
+		adv_ind[i] = (u8*) malloc(sizeof(u8)*(20 + plen + 3));
 	}
 	adv_ind[num_adv_ind-1] = (u8*) malloc(sizeof(u8)*(fin_adv_len + 1 + 3 + 4 + 4 + 3 + 6 + 2));
 
@@ -2688,70 +2689,51 @@ void bt_slave_le() {
 		adv_ind[i][17] = (u8) num_adv_ind;
 		adv_ind[i][19] = adv_overhead[19] + (u8) i;
 		if (i < num_adv_ind -1) {
-			for (j=0; j<11; j++) adv_ind[i][j+20] = slave_mac_address_data[6+11*i+j];
-			adv_ind_len = (u8) 31;
+			for (j=0; j<plen; j++) adv_ind[i][j+20] = slave_mac_address_data[6+plen*i+j];
+			u8 tot_len = (u8)(plen + 18);
+			u8 adv_len = (u8)(plen + 7);
+			adv_ind[i][1] = tot_len;
+			adv_ind[i][12] = adv_len;
+			adv_ind_len = (u8) (20 + plen);
 		} else {
 			u8 tot_len = (u8)(fin_adv_len + 18);
 			u8 adv_len = (u8)(fin_adv_len + 7);
-			for (j=0; j<fin_adv_len; j++) adv_ind[i][j+20] = slave_mac_address_data[6+11*i+j];
+			for (j=0; j<fin_adv_len; j++) adv_ind[i][j+20] = slave_mac_address_data[6+plen*i+j];
 			adv_ind[i][1] = tot_len;
 			adv_ind[i][12] = adv_len;
 			adv_ind_len = (u8) (fin_adv_len + 20);
 		}
 
-//		calc_crc = btle_calc_crc(le.crc_init_reversed, adv_ind[i], adv_ind_len);
-//		adv_ind_len = (int) adv_ind_len;
-//		adv_ind[i][adv_ind_len+0] = (calc_crc >> 0) & 0xff;
-//		adv_ind[i][adv_ind_len+1] = (calc_crc >> 8) & 0xff;
-//		adv_ind[i][adv_ind_len+2] = (calc_crc >> 16) & 0xff;
+		calc_crc = btle_calc_crc(le.crc_init_reversed, adv_ind[i], adv_ind_len);
+		adv_ind_len = (int) adv_ind_len;
+		adv_ind[i][adv_ind_len] = (calc_crc >> 0) & 0xff;
+		adv_ind[i][adv_ind_len+1] = (calc_crc >> 8) & 0xff;
+		adv_ind[i][adv_ind_len+2] = (calc_crc >> 16) & 0xff;
 	}
 
 	clkn_start();
-
-	// JWHUR BLE packet number
-	uint32_t nPackets = 0;
 
 	// spam advertising packets
 	while (requested_mode == MODE_BT_SLAVE_LE) {
 		if (requested_mode != mode) break;
 		ICER0 = ICER0_ICE_USB;
 		ICER0 = ICER0_ICE_DMA;
-//		for(i=0; i<3; i++) {
-		for(i=0; i<1; i++) {
+		for(i=0; i<3; i++) {
 			for(j=0; j<num_adv_ind; j++) {
-				adv_ind[j][19] = (u8) (nPackets >> 24 & 0xff);
-				adv_ind[j][20] = (u8) (nPackets >> 16 & 0xff);
-				adv_ind[j][21] = (u8) (nPackets >> 8 & 0xff);
-				adv_ind[j][22] = (u8) (nPackets & 0xff);
 				if (j < num_adv_ind -1) {
-//					adv_ind_len = (u8) (31 + 3);
-					adv_ind_len = (u8) 31;
-					calc_crc = btle_calc_crc(le.crc_init_reversed, adv_ind[j], adv_ind_len);
-					adv_ind[j][(int)adv_ind_len+0] = (calc_crc >> 0) & 0xff;
-					adv_ind[j][(int)adv_ind_len+1] = (calc_crc >> 8) & 0xff;
-					adv_ind[j][(int)adv_ind_len+2] = (calc_crc >> 16) & 0xff;
-//					le_transmit(0x8e89bed6, adv_ind_len, adv_ind[j], ch[i]);
-					le_transmit(0x8e89bed6, adv_ind_len + 3, adv_ind[j], ch[i]);
+					adv_ind_len = (u8) (20 + plen + 3);
+					le_transmit(0x8e89bed6, adv_ind_len, adv_ind[j], ch[i]);
 				} else {
-//					adv_ind_len = (u8) (fin_adv_len + 20 + 3);
-					adv_ind_len = (u8) (fin_adv_len + 20);
-					calc_crc = btle_calc_crc(le.crc_init_reversed, adv_ind[j], adv_ind_len);
-					adv_ind[j][(int)adv_ind_len+0] = (calc_crc >> 0) & 0xff;
-					adv_ind[j][(int)adv_ind_len+1] = (calc_crc >> 8) & 0xff;
-					adv_ind[j][(int)adv_ind_len+2] = (calc_crc >> 16) & 0xff;
-//					le_transmit(0x8e89bed6, adv_ind_len, adv_ind[j], ch[i]);
-					le_transmit(0x8e89bed6, adv_ind_len + 3, adv_ind[j], ch[i]);
+					adv_ind_len = (u8) (fin_adv_len + 20 + 3);
+					le_transmit(0x8e89bed6, adv_ind_len, adv_ind[j], ch[i]);
 				}
 				msleep(10);
 			}
-			//msleep(5);
+			msleep(5);
 		}
-		nPackets++;
-
 		ISER0 = ISER0_ISE_USB;
 		ISER0 = ISER0_ISE_DMA;
-//		msleep(10);
-
+		msleep(10);
 	}
 	free(slave_mac_address_data);	
 	free(adv_ind);
@@ -2763,7 +2745,6 @@ void bt_slave_le() {
 	cc2400_idle();
 	dio_ssp_stop ();
 	cs_trigger_disable();
-
 }
 
 void bt_sync_le() {

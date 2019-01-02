@@ -17,14 +17,14 @@ tr -s ' ' '\n'< rssi > rssi.dat
 rm rssi
 
 ./procData.out
-paste time.dat rssi.dat > exp0.dat
+paste time.dat rssi.dat > ./data/exp0_$1.dat
 rm time.dat rssi.dat log0
 mv signal.dat signal0.dat
 
 catTime=$(sed -n -e 's/^.*measurement : //p' log1)
 echo $catTime > time
 tr -s ' ' '\n'< time > time.dat
-#rm time
+rm time
 
 numLine=$(wc -l < "time.dat")
 
@@ -34,7 +34,7 @@ tr -s ' ' '\n'< rssi > rssi.dat
 rm rssi
 
 ./procData.out
-paste time.dat rssi.dat > exp1.dat
+paste time.dat rssi.dat > ./data/exp1_$1.dat
 rm time.dat rssi.dat
 mv signal.dat signal1.dat
 
