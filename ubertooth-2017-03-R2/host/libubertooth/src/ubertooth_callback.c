@@ -540,31 +540,27 @@ int find_SYNC(ubertooth_t* ut, uint8_t *APMAC)
 	return sync;
 }
 
-int find_OK(ubertooth_t* ut)
+int find_Guest(ubertooth_t* ut, uint8_t *APMAC, uint8_t **guestMac, int nGuest)
 {
-	int ok = 0;
 	int i;
 	usb_pkt_rx usb = fifo_pop(ut->fifo);
 	usb_pkt_rx* rx = &usb;
-	// u32 access_address = 0; // Build warning
 
 	int len = (rx->data[5] & 0x3f) + 6 + 3;
 	if (len > 50) len = 50;
 
-//	for (i = 4; i < len; ++i)
-//		printf("%02x ", rx->data[i]);
-//	printf("\n");
-
-	//JWHUR test synchronization protocol
-	//When receive 'OK', stop ble scanning
-	//Possibly OK must be encoded using shared key
-	if (rx->data[23] == 0xff && rx->data[24] == 0x4f && rx->data[25] == 0x4b) {
-		ok = 1;
-		printf("OK received, Associated IoT Mac address: %02x:%02x:%02x:%02x:%02x:%02x\n", rx->data[11], rx->data[10], rx->data[9], rx->data[8], rx->data[7], rx->data[6]);
+	if (rx->data[24] == APMAC[0] && rx->data[25] == APMAC[1] && rx->data[26] == APMAC[2] && rx->data[27] == APMAC[3] && rx->data[28] == APMAC[4] && rx->data[29] == APMAC[5]) {
+		for(i=0; i<nGuest; i++) {
+			if (guestMac[i][0] == rx->data[11] && guestMac[i][1] == rx->data[10] && guestMac[i][2] == rx->data[9] && guestMac[i][3] == rx->data[8] && guestMac[i][4] == rx->data[7] && guestMac[i][5] == rx->data[6])
+				return nGuest;
+		}
+		nGuest++;
+		for(i=0; i<6; i++)
+			guestMac[nGuest-1][i] = rx->data[11-i];
 	}
 
 	fflush(stdout);
-	return ok;
+	return nGuest;
 }
 
 

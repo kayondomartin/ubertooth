@@ -225,8 +225,12 @@ int dataTx(uint8_t *mac_addr, uint8_t *data, int dlen, int txDur, ubertooth_t *u
 	return status;
 }
 
-int scanOK(int rxDur, ubertooth_t *ut, int ubertooth_device) {
-	int status, ok = 0;
+int scanGuest(uint8_t *APMAC, uint8_t **guestMac, int maxGuest, int rxDur, ubertooth_t *ut, int ubertooth_device) {
+	int status, nGuest = 0, i;
+
+	for(i=0; i<maxGuest; i++)
+		guestMac[i] = (uint8_t *)malloc(sizeof(uint8_t)*6);
+
 	u16 channel = 2402;
 	usb_pkt_rx rx;
 
@@ -240,7 +244,7 @@ int scanOK(int rxDur, ubertooth_t *ut, int ubertooth_device) {
 	clock_gettime(CLOCK_MONOTONIC, &tspec);
 	start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
 	now = start;
-	while(now - start < rxDur) {
+	while(now - start < rxDur*1000) {
 		int r = cmd_poll(ut->devh, &rx);
 		if (r < 0) {
 			printf("USB Error\n");
@@ -248,8 +252,8 @@ int scanOK(int rxDur, ubertooth_t *ut, int ubertooth_device) {
 		}
 		if (r == sizeof(usb_pkt_rx)) {
 			fifo_push(ut->fifo, &rx);
-			ok = find_OK(ut);
-			if (ok == 1)
+			nGuest = find_Guest(ut, APMAC, guestMac, nGuest);
+			if (nGuest == maxGuest)
 				break;
 		}
 		usleep(500);
@@ -269,7 +273,7 @@ int scanOK(int rxDur, ubertooth_t *ut, int ubertooth_device) {
 		return status;
 	register_cleanup_handler(ut, 1);
 	
-	return ok;
+	return nGuest;
 }
 
 int listenSync(uint8_t *APMAC, int do_adv_index, ubertooth_t *ut, int ubertooth_device, int *time, int8_t *rssi) {
@@ -673,7 +677,7 @@ int main(int argc, char *argv[])
 	dlen = 0;
 	duration = 60000;
 
-	while ((opt=getopt(argc,argv,"a::r:hfoRpU:v::A:s:d:ST:l:t:x:H:Gc:o:q:jJiI")) != EOF) {
+	while ((opt=getopt(argc,argv,"a::r:hfoRpU:v::A:s:d:ST:l:t:x:H:G:c:o:q:jJiI")) != EOF) {
 		switch(opt) {
 		case 'a':
 			if (optarg == NULL) {
@@ -783,9 +787,19 @@ int main(int argc, char *argv[])
 //JWHUR BLE IoT connection
 		case 'H':
 			do_host = 1;
+			r = convert_mac_address(optarg, mac_address);
+			if (!r) {
+				usage();
+				return 1;
+			}
 			break;
 		case 'G':
 			do_guest = 1;
+			r = convert_mac_address(optarg, mac_address);
+			if (!r) {
+				usage();
+				return 1;
+			}
 			break;
 		case 'i':
 		case 'j':
@@ -1041,13 +1055,43 @@ int main(int argc, char *argv[])
 	}
 
 	if (do_host) {
-		int status, rLen, nCor, txDur, rxDur, i, lenData;
-		int *Barcode, *bch;
-		char encPwd[FREAD_COUNT + BLOCK_SIZE];
+		int status, txDur, rxDur, i, j, lenData, maxGuest = 10, nGuest=0;
+		unsigned char privateKey[1000] = {0,}, publicKey[1000] = {0,};
+		uint8_t txPubKey[1000] = {0,};
+		int privKeyLen, pubKeyLen;
 		char APSSID[100] = "", APPWD[100] = "", APMAC[17] = "";
+		uint8_t APmac[6] = {0,};
+		uint8_t **guestMac = (uint8_t **) malloc(sizeof(uint8_t *)*maxGuest);
 		struct timespec tspec;
 		uint64_t start, now;
 
+		// Get AP information
+		status = getAPInfo(APMAC, APSSID, APPWD);
+		printf("APSSID: %s, APMAC: %s, APPWD: %s\n", APSSID, APMAC, APPWD);
+		convert_mac_address(APMAC, APmac);
+		// rsa private, public key generation
+		status = createRsaKey(privateKey, publicKey);
+		privKeyLen = strlen(privateKey);
+		pubKeyLen = strlen(publicKey);
+		printf("privKeyLen: %d, pubKeyLen: %d\n", privKeyLen, pubKeyLen);
+		printf("Private key:\n%s\n", privateKey);
+		printf("Public key:\n%s\n", publicKey);
+
+		for(i=27; i<pubKeyLen-25; i++)
+			txPubKey[i-27] = publicKey[i];
+
+		printf("Tx public key:\n%s\n", (char *)txPubKey);
+
+		status = dataTx(APmac, txPubKey, pubKeyLen-53, 10, ut, ubertooth_device);
+
+		nGuest = scanGuest(APmac, guestMac, maxGuest, 10, ut, ubertooth_device); 
+		printf("nGuest: %d\nguestMac:\n", nGuest);
+		for(i=0; i<nGuest; i++) {
+			for(j=0; j<6; j++) printf("%02x ", guestMac[i][j]);
+			printf("\n");
+		}
+
+		/*
 		srand(time(NULL));
 		Barcode = malloc(sizeof(int)*127);
 		bch = malloc(sizeof(int)*127);
@@ -1084,8 +1128,9 @@ int main(int argc, char *argv[])
 			
 			clock_gettime(CLOCK_MONOTONIC, &tspec);
 			now = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
-
 		}
+		*/
+		
 	}
 
 	if (do_guest) {
@@ -1093,23 +1138,25 @@ int main(int argc, char *argv[])
 		int time[100000] = {0, };
 		int8_t rssi[100000] = {0, };
 		int8_t *rssiMA = malloc(sizeof(int8_t) * 1000);
-//		uint8_t APMAC[6] = {0, }, recvPubkey[300] = {0, };
-		uint8_t guestMac[6] = {0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc}; // Need Fix
+		uint8_t APMAC[6] = {0, }, recvPubkey[300] = {0, };
+		uint8_t guestMac[6] = {0, }; // Need Fix
 		char pubKey[300] = {0, };
 		char BEGINPUBKEY[27] = "-----BEGIN PUBLIC KEY-----\n";
 		char ENDPUBKEY[26] = "\n-----END PUBLIC KEY-----\n";
 
-		/*
+		for(i=0; i<6; i++)
+			guestMac[i] = mac_address[i];
+		
 		// Protocol 1, listen public key 
 		if (status == 1)
 			printf("Ubertooth init error!\n");
-		keyLen = listenPubkey(APMAC, do_adv_index, recvPubkey, 2, ut, ubertooth_device);
+		keyLen = listenPubkey(APMAC, do_adv_index, recvPubkey, 10, ut, ubertooth_device);
 
 		// Protocol 2, if public key received, advertise myself 
 		if (keyLen > 0) {
 			for(i=0; i<27; i++) pubKey[i] = BEGINPUBKEY[i];
 			for(i=27; i<27+keyLen; i++) pubKey[i] = (char)recvPubkey[i-27];
-			for(i=27+keyLen; i<27+keyLen+26; i++) pubKey[i-2] = ENDPUBKEY[i-keyLen-27];
+			for(i=27+keyLen; i<27+keyLen+26; i++) pubKey[i] = ENDPUBKEY[i-keyLen-27];
 
 			printf("Public key:\n");
 			printf("%s\n", pubKey);
@@ -1119,7 +1166,7 @@ int main(int argc, char *argv[])
 				printf("%02x ", APMAC[i]);
 			printf("\n");
 			
-			status = dataTx(guestMac, APMAC, 6, 2, ut, ubertooth_device);
+			status = dataTx(guestMac, APMAC, 6, 10, ut, ubertooth_device);
 		} else {
 			printf("No public key received!\n");
 		}
@@ -1181,14 +1228,15 @@ int main(int argc, char *argv[])
 		usleep(10000);
 		status = dataTx(guestMac, encRssi2, encLen, 2, ut, ubertooth_device);
 		usleep(10000);
-*/
+
 		// Protocol 6, listen for the encrypted password
-		uint8_t APMAC[6] = {0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc};
 		uint8_t pwd[300] = {0, };
 		int pwdLen;
 		pwdLen = listenPWD(APMAC, guestMac, do_adv_index, pwd, 10, ut, ubertooth_device); 
 		printf("pwdlen: %d\n", pwdLen);
 		printf("pwd: %s\n", (char *)pwd);
+
+		// Protocol 7, decrypt the password and connect to the WiFi AP
 	}
 
 	if (!(do_follow || do_promisc || do_get_aa || do_set_aa ||
