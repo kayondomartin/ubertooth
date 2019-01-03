@@ -516,6 +516,52 @@ int recv_PWD(ubertooth_t* ut, int target, int *nFrag, int *fNum, int *pLen, uint
 	return ret;
 }
 
+int recv_DATA(ubertooth_t* ut, int target, int *nFrag, int *fNum, int *pLen, uint8_t **guestMac, int *statGuest, int nGuest, uint8_t *frag)
+{
+	int PAYLOAD_LEN = 11;
+	int i, j, ret = -1;
+	
+	usb_pkt_rx usb = fifo_pop(ut->fifo);
+	usb_pkt_rx* rx = &usb;
+
+	int len = (rx->data[5] & 0x3f) + 6 + 3;
+	if (len > 50) len = 50;
+
+	if (rx->data[12] == 0x03 && rx->data[13] == 0x03 && rx->data[14] == 0xaa && rx->data[15] == 0xfe && rx->data[20] == 0x10 &&  rx->data[23] >= 0xaa) {
+		for (i=0; i<nGuest; i++) {
+			if (guestMac[i][0] == rx->data[11] && guestMac[i][1] == rx->data[10] && guestMac[i][2] == rx->data[9] && guestMac[i][3] == rx->data[8] && guestMac[i][4] == rx->data[7] && guestMac[i][5] == rx->data[6]) {
+				ret = i;
+				break;
+			}
+		}
+		
+		if (ret == -1)
+			return ret;
+
+		if (statGuest[ret] == 0) {
+			nFrag[0] = (int) rx->data[21];
+			fNum[0] = (int) (rx->data[23] - 0xaa);
+			pLen[0] = (int) (rx->data[16] - 0x07);
+		
+			for (j=0; j<pLen[0]; j++) 
+				frag[j] = rx->data[24+j];
+		} else if (statGuest[ret] == 1) {
+			nFrag[0] = (int) rx->data[21];
+			fNum[0] = (int) (rx->data[23] - 0xaa);
+			pLen[0] = (int) (rx->data[16] - 0x07);
+
+			for (j=0; j<pLen[0]; j++)
+				frag[j] = rx->data[24+j];
+		} else if (statGuest[ret] == -1) {
+			printf("Not registered guest!\n");
+			return -1;
+		}
+	}
+
+	fflush(stdout);
+	return ret;
+}
+
 int find_SYNC(ubertooth_t* ut, uint8_t *APMAC)
 {
 	int sync = 0;
@@ -549,7 +595,7 @@ int find_Guest(ubertooth_t* ut, uint8_t *APMAC, uint8_t **guestMac, int nGuest)
 	int len = (rx->data[5] & 0x3f) + 6 + 3;
 	if (len > 50) len = 50;
 
-	if (rx->data[24] == APMAC[0] && rx->data[25] == APMAC[1] && rx->data[26] == APMAC[2] && rx->data[27] == APMAC[3] && rx->data[28] == APMAC[4] && rx->data[29] == APMAC[5]) {
+	if (rx->data[14] == 0xaa && rx->data[15] == 0xfe && rx->data[20] == 0x10 && rx->data[23] >= 0xaa && rx->data[24] == APMAC[0] && rx->data[25] == APMAC[1] && rx->data[26] == APMAC[2] && rx->data[27] == APMAC[3] && rx->data[28] == APMAC[4] && rx->data[29] == APMAC[5]) {
 		for(i=0; i<nGuest; i++) {
 			if (guestMac[i][0] == rx->data[11] && guestMac[i][1] == rx->data[10] && guestMac[i][2] == rx->data[9] && guestMac[i][3] == rx->data[8] && guestMac[i][4] == rx->data[7] && guestMac[i][5] == rx->data[6])
 				return nGuest;
@@ -587,13 +633,6 @@ void cb_btle_tracking(ubertooth_t* ut, void* args)
 	printf("\n\n");
 	fflush(stdout);
 	} else if (rx->pkt_type == RSSI_TRACK) {	
-	/*	// Make rssi.dat file
-		output = fopen("rssi.dat", "a");
-		if (output == NULL) {
-			printf("rssi.dat open failed\n");
-			return;
-		}
-		*/
 		u32 rx_ts = rx->clk100ns;
 		if (rx_ts < prev_ts) rx_ts += 327600000;
 		printf("rssi samples : ");
@@ -601,9 +640,7 @@ void cb_btle_tracking(ubertooth_t* ut, void* args)
 		{
 			rssi = (int8_t)(rx->data[i] - 54);
 			printf("%d ", rssi);
-			fprintf(output, "%d\n", rssi);
 		}
-		fclose(output);
 		printf("\n\n");
 		fflush(stdout);
 	}
@@ -626,7 +663,7 @@ void rssi_sampling(ubertooth_t *ut, int8_t *rssi, int offset) {
 		}
 		fflush(stdout);
 	} else {
-		printf("USB packet type Error\n");
+		printf("USB packet type Error, type: %d\n", rx->pkt_type);
 		return;
 	}
 }
@@ -641,19 +678,10 @@ void cb_btle_time(ubertooth_t *ut, void *args)
 	usb_pkt_rx usb = fifo_pop(ut->fifo);
 	usb_time_rx* rx = &usb;
 
-	/*
-	output = fopen("time.dat", "a");
-	if (output == NULL) {
-		printf("time.dat open failed\n");
-		return;
-	}*/
-
 	for (i = 0; i < 16; i++) {
 		ts = rx->time[i];
 		printf("%ld ", (long)ts);
-		fprintf(output, "%ld\n", (long) ts);
 	}
-	fclose(output);
 	fflush(stdout);
 }	
 
@@ -668,18 +696,10 @@ void cb_btle_time_last(ubertooth_t *ut, void *args)
 	usb_pkt_rx usb = fifo_pop(ut->fifo);
 	usb_time_rx* rx = &usb;
 
-	output = fopen("time.dat", "a");
-	if (output == NULL) {
-		printf("time.dat open failed\n");
-		return;
-	}
-
 	for (i = 0; i < 2; i++) {
 		ts = rx->time[i];
 		printf("%ld ", (long)ts);
-		fprintf(output, "%ld\n", (long) ts);
 	}
-	fclose(output);
 	printf("\n\n");
 	fflush(stdout);
 }	
