@@ -164,7 +164,7 @@ int syncStart(uint8_t *APMAC, int do_adv_index, ubertooth_t *ut, int ubertooth_d
 		if (start != 0) {
 			clock_gettime(CLOCK_MONOTONIC, &tspec);
 			uint64_t now = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
-			if (now - start > 10000)
+			if (now - start > 3000)
 				break;
 		}
 		usleep(500);
@@ -193,6 +193,7 @@ int dataTx(uint8_t *mac_addr, uint8_t *data, int dlen, int txDur, ubertooth_t *u
 	int status, i;
 
 	uint8_t *tot_data = (uint8_t*) malloc(sizeof(uint8_t) * (dlen + 6));
+	uint8_t *tot_data_bulk1, *tot_data_bulk2;
 	for(i=0; i<6; i++) tot_data[i] = mac_addr[i];
 	for(i=0; i<dlen; i++) tot_data[i+6] = data[i];
 
@@ -202,6 +203,7 @@ int dataTx(uint8_t *mac_addr, uint8_t *data, int dlen, int txDur, ubertooth_t *u
 //	for(i=0; i<dlen; i++) printf("%02x", tot_data[i+6]);
 	printf("\n");
 	cmd_btle_slave(ut->devh, tot_data, UBERTOOTH_BTLE_SLAVE, dlen+6);
+			
 	usleep(txDur * 1000000);
 	ubertooth_stop(ut);
 
@@ -209,7 +211,6 @@ int dataTx(uint8_t *mac_addr, uint8_t *data, int dlen, int txDur, ubertooth_t *u
 
 	free(ut);
 	ut = (ubertooth_t *) realloc(ut, sizeof(ubertooth_t));
-	memset(ut, 0, sizeof(ubertooth_t));
 	ut = ubertooth_init();
 	status = ubertooth_connect(ut, ubertooth_device);
 	if (status < 0) 
@@ -357,7 +358,7 @@ int listenSync(uint8_t *APMAC, int do_adv_index, ubertooth_t *ut, int ubertooth_
 			clock_gettime(CLOCK_MONOTONIC, &tspec);
 			now = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
 			if (rssiSampling) {
-				if (now - start > 10000) 
+				if (now - start > 3000) 
 					break;
 			} else {
 				if (now - start > 10000)
@@ -1161,18 +1162,30 @@ int main(int argc, char *argv[])
 
 	if (do_host) {
 		int status, txDur, rxDur, i, j, lenData, maxGuest = 10, nGuest=0;
-		int time[10000] = {0, };
-		int8_t rssi[10000] = {0, };
-		int8_t *rssiMA = malloc(sizeof(int8_t) * 1000);
+		int time[3000] = {0, };
+		int8_t rssi[3000] = {0, }, hostRssi0[100], hostRssi1[100], hostRssi2[100];
+		int8_t *rssiMA = malloc(sizeof(int8_t) * 300);
 		unsigned char privateKey[1000] = {0,}, publicKey[1000] = {0,};
 		uint8_t txPubKey[1000] = {0,};
 		int privKeyLen, pubKeyLen, nRecv = 0, encLen = 128; // 1024 rsa public key encrypted data
 		char APSSID[100] = "", APPWD[100] = "", APMAC[17] = "";
 		uint8_t APmac[6] = {0,};
 		uint8_t **guestMac = (uint8_t **) malloc(sizeof(uint8_t *)*maxGuest);
-		unsigned char **guestData = (unsigned char **) malloc(sizeof(unsigned char *)*maxGuest);
-		int *statGuest = (int *) malloc(sizeof(int)*maxGuest); // status of received data from the guests, 0: never received, 1: incomplete, 2: complete
-		memset(statGuest, -1, sizeof(int)*maxGuest);
+		unsigned char **guestData0 = (unsigned char **) malloc(sizeof(unsigned char *)*maxGuest);
+		unsigned char **guestData1 = (unsigned char **) malloc(sizeof(unsigned char *)*maxGuest);
+		unsigned char **guestData2 = (unsigned char **) malloc(sizeof(unsigned char *)*maxGuest);
+		int *statGuest0 = (int *) malloc(sizeof(int)*maxGuest); // status of received data from the guests, 0: never received, 1: incomplete, 2: complete
+		int *statGuest1 = (int *) malloc(sizeof(int)*maxGuest); 
+		int *statGuest2 = (int *) malloc(sizeof(int)*maxGuest);
+		int8_t **guestRssi0 = (int8_t **) malloc(sizeof(int8_t *)*maxGuest);
+		int8_t **guestRssi1 = (int8_t **) malloc(sizeof(int8_t *)*maxGuest);
+		int8_t **guestRssi2 = (int8_t **) malloc(sizeof(int8_t *)*maxGuest);
+		float corr0, corr1, corr2;
+
+		memset(statGuest0, -1, sizeof(int)*maxGuest);
+		memset(statGuest1, -1, sizeof(int)*maxGuest);
+		memset(statGuest2, -1, sizeof(int)*maxGuest);
+
 		struct timespec tspec;
 		uint64_t start, now;
 
@@ -1191,18 +1204,29 @@ int main(int argc, char *argv[])
 		for(i=27; i<pubKeyLen-25; i++)
 			txPubKey[i-27] = publicKey[i];
 
+		printf("********** Start Public Key Transmission **********\n");
 		printf("Tx public key:\n%s\n", (char *)txPubKey);
 
-		status = dataTx(APmac, txPubKey, pubKeyLen-53, 10, ut, ubertooth_device);
+		status = dataTx(APmac, txPubKey, pubKeyLen-53, 5, ut, ubertooth_device);
 
-		nGuest = scanGuest(APmac, guestMac, maxGuest, 10, ut, ubertooth_device); 
+		nGuest = scanGuest(APmac, guestMac, maxGuest, 5, ut, ubertooth_device); 
 
 		printf("nGuest: %d\nguestMac:\n", nGuest);
 		for(i=0; i<nGuest; i++) {
 			for(j=0; j<6; j++) printf("%02x ", guestMac[i][j]);
 			printf("\n");
-			guestData[i] = (unsigned char *) malloc(sizeof(unsigned char)*encLen);
-			statGuest[i] = 0;
+			guestData0[i] = (unsigned char *) malloc(sizeof(unsigned char)*encLen);		//Data buffer for first data
+			guestData1[i] = (unsigned char *) malloc(sizeof(unsigned char)*encLen);		//Data buffer for second data
+			guestData2[i] = (unsigned char *) malloc(sizeof(unsigned char)*encLen);		//Data buffer for third data
+			statGuest0[i] = 0;	// Status of data buffer
+			statGuest1[i] = 0;
+			statGuest2[i] = 0;
+			guestRssi0[i] = (int8_t *) malloc(sizeof(int8_t)*100);
+			guestRssi1[i] = (int8_t *) malloc(sizeof(int8_t)*100);
+			guestRssi2[i] = (int8_t *) malloc(sizeof(int8_t)*100);
+			memset(guestRssi0[i], 0, sizeof(int8_t)*100);
+			memset(guestRssi1[i], 0, sizeof(int8_t)*100);
+			memset(guestRssi2[i], 0, sizeof(int8_t)*100);
 		}
 
 		lenData = syncStart(APmac, do_adv_index, ut, ubertooth_device, time, rssi);
@@ -1210,74 +1234,76 @@ int main(int argc, char *argv[])
 		rssiMA = procData(time, rssi, lenData);
 
 		printf("rssiMA:\n");
-		for(i=0; i<1000; i++)
+		for(i=0; i<300; i++)
 			printf("%d ", rssiMA[i]);
+		for(i=0; i<100; i++) {
+			hostRssi0[i] = rssiMA[i];
+			hostRssi1[i] = rssiMA[i+100];
+			hostRssi2[i] = rssiMA[i+200];
+		}
 		printf("\n");
 		
-		nRecv = listenData(guestMac, nGuest, statGuest, do_adv_index, guestData, 2, ut, ubertooth_device);
+		nRecv = listenData(guestMac, nGuest, statGuest0, do_adv_index, guestData0, 5, ut, ubertooth_device);
+		usleep(1000000);
+		nRecv = listenData(guestMac, nGuest, statGuest1, do_adv_index, guestData1, 5, ut, ubertooth_device);
+		usleep(1000000);
+		nRecv = listenData(guestMac, nGuest, statGuest2, do_adv_index, guestData2, 5, ut, ubertooth_device);
+		usleep(1000000);
 
 		printf("%d Data successfully received from the guests:\n", nRecv);
 		for(i=0; i<nGuest; i++) {
-			if (statGuest[i] == 2) {
-				for(j=0; j<6; j++) printf("%02x ", guestMac[i][j]);
-				printf("\nReceived data:\n");
-				for(j=0; j<encLen; j++) printf("%02x ", guestData[i][j]);
+			printf("Guest mac address: ");
+			for(j=0; j<6; j++) printf("%02x ", guestMac[i][j]);
+			printf("\nReceived data:\n");
+			if (statGuest0[i] == 2) {
+				printf("first:\n");
+				for(j=0; j<encLen; j++) printf("%02x ", guestData0[i][j]);
 				printf("\n");
+				lenData = private_decrypt(guestData0[i], encLen, privateKey, guestRssi0[i]);
+				corr0 = getCorr(hostRssi0, guestRssi0[i], 100);
 			}
+			if (statGuest1[i] == 2) {
+				printf("second:\n");
+				for(j=0; j<encLen; j++) printf("%02x ", guestData1[i][j]);
+				printf("\n");
+				lenData = private_decrypt(guestData1[i], encLen, privateKey, guestRssi1[i]);
+				corr1 = getCorr(hostRssi1, guestRssi1[i], 100);
+			}
+			if (statGuest2[i] == 2) {
+				printf("third:\n");
+				for(j=0; j<encLen; j++) printf("%02x ", guestData2[i][j]);
+				printf("\n");
+				lenData = private_decrypt(guestData2[i], encLen, privateKey, guestRssi2[i]);
+				corr2 = getCorr(hostRssi2, guestRssi2[i], 100);
+			}
+			printf("\nDecrypted data:\n");
+			for(j=0; j<100; j++) printf("%d ", guestRssi0[i][j]);
+			for(j=0; j<100; j++) printf("%d ", guestRssi1[i][j]);
+			for(j=0; j<100; j++) printf("%d ", guestRssi2[i][j]);
+			printf("\n");
+			printf("********** Correlation **********\n");
+			printf("%f %f %f\n", corr0, corr1, corr2);
 		}
+
+		FILE *output;
+		output = fopen("rssi.txt", "w");
+		for(i=0; i<100; i++) fprintf(output, "%d %d\n", hostRssi0[i], guestRssi0[i]);
+		for(i=0; i<100; i++) fprintf(output, "%d %d\n", hostRssi1[i], guestRssi1[i]);
+		for(i=0; i<100; i++) fprintf(output, "%d %d\n", hostRssi2[i], guestRssi2[i]);
+		fclose(output);
 
 		free(rssiMA);
 		free(guestMac);
-		free(guestData);
-		free(statGuest);
-
-		/*
-		srand(time(NULL));
-		Barcode = malloc(sizeof(int)*127);
-		bch = malloc(sizeof(int)*127);
-
-		status = getAPInfo(APMAC, APSSID, APPWD);
-		printf("APSSID: %s, APMAC: %s, APPWD: %s\n", APSSID, APMAC, APPWD);
-		clock_gettime(CLOCK_MONOTONIC, &tspec);
-		start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
-		now = start;
-		while (now - start < 3000) {
-			int time[2540] = {0, }, rssi[2540] = {0, };
-			lenData = syncStart(APMAC, do_adv_index, ut, ubertooth_device, time, rssi);
-			Barcode = procData(time, rssi, lenData);
-			printf("\nBarcode: ");
-			for(i=0; i<127; i++)
-				printf("%d ", Barcode[i]);
-			printf("\n");
-
-			nCor = 0;
-			rLen = makeBCH(Barcode, bch);
-			printf("\nBCH enc.: ");
-			for(i=0; i<127; i++)
-				printf("%d ", bch[i]);
-			printf("\n");
-
-			status = aesEncrypt(bch, APPWD, encPwd);
-			txDur = 50 + (rand()%10 - 10);
-			rxDur = 100 - txDur;
-			status = scanOK(rxDur, ut, ubertooth_device);
-			if (status == 1) {
-				printf("IoT WiFi connection success!\n");
-				break;	// IoT WiFi connection finish
-			}
-			
-			clock_gettime(CLOCK_MONOTONIC, &tspec);
-			now = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
-		}
-		*/
-		
+		free(guestData0); free(guestData1); free(guestData2);
+		free(statGuest0); free(statGuest1); free(statGuest2);
+		free(guestRssi0); free(guestRssi1); free(guestRssi2);
 	}
 
 	if (do_guest) {
 		int status, i, lenData, txDur, keyLen = 0;
-		int time[100000] = {0, };
-		int8_t rssi[100000] = {0, };
-		int8_t *rssiMA = malloc(sizeof(int8_t) * 1000);
+		int time[30000] = {0, };
+		int8_t rssi[30000] = {0, };
+		int8_t *rssiMA = malloc(sizeof(int8_t) * 300);
 		uint8_t APMAC[6] = {0, }, recvPubkey[300] = {0, };
 		uint8_t guestMac[6] = {0, }; // Need Fix
 		char pubKey[300] = {0, };
@@ -1290,7 +1316,7 @@ int main(int argc, char *argv[])
 		// Protocol 1, listen public key 
 		if (status == 1)
 			printf("Ubertooth init error!\n");
-		keyLen = listenPubkey(APMAC, do_adv_index, recvPubkey, 10, ut, ubertooth_device);
+		keyLen = listenPubkey(APMAC, do_adv_index, recvPubkey, 5, ut, ubertooth_device);
 
 		// Protocol 2, if public key received, advertise myself 
 		if (keyLen > 0) {
@@ -1306,9 +1332,11 @@ int main(int argc, char *argv[])
 				printf("%02x ", APMAC[i]);
 			printf("\n");
 			
-			status = dataTx(guestMac, APMAC, 6, 10, ut, ubertooth_device);
+			printf("********** Start Guest Mac Address Advertising **********\n");
+			status = dataTx(guestMac, APMAC, 6, 5, ut, ubertooth_device);
 		} else {
 			printf("No public key received!\n");
+			return 0;
 		}
 
 		// Protocol 3, after advertising, wait for the synchronizaton packet, and moving average filter the samples 
@@ -1316,7 +1344,7 @@ int main(int argc, char *argv[])
 		printf("lenData: %d\n", lenData);
 		rssiMA = procData(time, rssi, lenData);
 		
-		for(i=0; i<1000; i++)
+		for(i=0; i<300; i++)
 			printf("%d ", rssiMA[i]);
 		printf("\n");
 
@@ -1337,12 +1365,12 @@ int main(int argc, char *argv[])
 			printf("RSA encrypt failed!\n");
 			return 0;
 		}
-		encLen = public_encrypt(rssi0, 100, pubKey, encRssi1);
+		encLen = public_encrypt(rssi1, 100, pubKey, encRssi1);
 		if (encLen != 128) {
 			printf("RSA encrypt failed!\n");
 			return 0;
 		}
-		encLen = public_encrypt(rssi0, 100, pubKey, encRssi2);
+		encLen = public_encrypt(rssi2, 100, pubKey, encRssi2);
 		if (encLen != 128) {
 			printf("RSA encrypt failed!\n");
 			return 0;
@@ -1355,11 +1383,6 @@ int main(int argc, char *argv[])
 			encRssi[i+2*encLen] = encRssi2[i];
 		}
 
-		FILE *output;
-		output = fopen("test.ssl", "w");
-		for(i=0; i<3*encLen; i++) fprintf(output, "%c", encRssi[i]);
-		fclose(output);
-
 		printf("********* RSA Encrypted Data *********\n");
 		printf("First:\n");
 		for(i=0; i<encLen; i++) printf("%02x ", encRssi0[i]);
@@ -1371,12 +1394,13 @@ int main(int argc, char *argv[])
 
 
 		// Protocol 5, broadcast the encrypted samples 
-		status = dataTx(guestMac, encRssi0, encLen, 2, ut, ubertooth_device);
-		usleep(10000);
-		status = dataTx(guestMac, encRssi1, encLen, 2, ut, ubertooth_device);
-		usleep(10000);
-		status = dataTx(guestMac, encRssi2, encLen, 2, ut, ubertooth_device);
-		usleep(10000);
+		printf("********** Start RSA Encrypted Data Transmission **********\n");
+		status = dataTx(guestMac, encRssi0, encLen, 5, ut, ubertooth_device);
+		usleep(1000000);
+		status = dataTx(guestMac, encRssi1, encLen, 5, ut, ubertooth_device);
+		usleep(1000000);
+		status = dataTx(guestMac, encRssi2, encLen, 5, ut, ubertooth_device);
+		usleep(1000000);
 		
 		// Protocol 6, listen for the encrypted password
 		uint8_t pwd[300] = {0, };

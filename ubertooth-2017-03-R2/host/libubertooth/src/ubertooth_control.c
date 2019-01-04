@@ -19,6 +19,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include <stdlib.h>
 #include <string.h>
 #include <btbb.h>
 #include "ubertooth_control.h"
@@ -930,14 +931,29 @@ int cmd_read_register(struct libusb_device_handle* devh, u8 reg)
 
 int cmd_btle_slave(struct libusb_device_handle* devh, u8 *mac_address, int mode, int len)
 {
-	int r;
+	int r, i;
 	int req;
+	u8 *mac_address_bulk1, *mac_address_bulk2;
 
 	req = mode;
 	if (mode == UBERTOOTH_BTLE_SYNC) 
 		r = libusb_control_transfer(devh, CTRL_OUT, req, 0, 0, mac_address, 6, 1000);
-	else 
-		r = libusb_control_transfer(devh, CTRL_OUT, req, 0, 0, mac_address, len, 1000);
+	else {
+		if (len <= 250) 
+			r = libusb_control_transfer(devh, CTRL_OUT, req, 0, 0, mac_address, len, 1000);
+		else {
+			mac_address_bulk1 = (u8 *) malloc(sizeof(u8) * 250);
+			mac_address_bulk2 = (u8 *) malloc(sizeof(u8) * (len-250));
+			for (i=0; i<250; i++) mac_address_bulk1[i] = mac_address[i];
+			for(i=0; i<len-250; i++) mac_address_bulk2[i] = mac_address[i+250];
+
+			req = UBERTOOTH_BTLE_SLAVE_BULK1;
+			r = libusb_control_transfer(devh, CTRL_OUT, req, 0, 0, mac_address_bulk1, 250, 1000);
+			req = UBERTOOTH_BTLE_SLAVE_BULK2;
+			usleep(1000000);
+			r = libusb_control_transfer(devh, CTRL_OUT, req, 0, 0, mac_address_bulk2, len-250, 1000);
+		}
+	}
 	
 	if (r < 0) {
 		if (r == LIBUSB_ERROR_PIPE) {
@@ -946,6 +962,11 @@ int cmd_btle_slave(struct libusb_device_handle* devh, u8 *mac_address, int mode,
 			show_libusb_error(r);
 		}
 		return r;
+	}
+
+	if (len > 250) {
+	free(mac_address_bulk1);
+	free(mac_address_bulk2);
 	}
 
 	return 0;

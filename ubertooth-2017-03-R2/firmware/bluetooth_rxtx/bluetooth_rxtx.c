@@ -76,6 +76,7 @@ generic_tx_packet tx_pkt;
 
 /* le stuff */
 int dlen = 0;
+int dlen_bulk1 = 0;
 uint8_t *slave_mac_address_data;
 uint8_t slave_mac_address[6] = { 0, };
 
@@ -678,8 +679,23 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 		break;
 
 	case UBERTOOTH_BTLE_SLAVE:
+		// FIXME, If slave_mac_address_data has already been memory allocated, it has to be freed
 		slave_mac_address_data = (uint8_t*) malloc(sizeof(uint8_t)*dlen);
 		memcpy(slave_mac_address_data, data, dlen);
+		requested_mode = MODE_BT_SLAVE_LE;
+		break;
+
+	case UBERTOOTH_BTLE_SLAVE_BULK1:
+		slave_mac_address_data = (uint8_t*) malloc(sizeof(uint8_t)*390); // Transmit 3 RSA public key encrypted data (128 byte) + mac address (6 byte)
+		memcpy(slave_mac_address_data, data, dlen);
+		dlen_bulk1 = dlen;
+		requested_mode = MODE_WAIT_BULK;
+		break;
+
+	case UBERTOOTH_BTLE_SLAVE_BULK2:
+//		memcpy(slave_mac_address_data + dlen_bulk1, data, dlen);
+		for(i=0; i<dlen; i++) slave_mac_address_data[dlen_bulk1 + i] = data[i];
+		dlen = 390;
 		requested_mode = MODE_BT_SLAVE_LE;
 		break;
 
@@ -841,6 +857,7 @@ void DMA_IRQHandler()
 	   || mode == MODE_BT_RSSI_LE
 	   || mode == MODE_BT_PROMISC_LE
 	   || mode == MODE_BT_SLAVE_LE
+	   || mode == MODE_WAIT_BULK
 	   || mode == MODE_BT_SYNC_LE
 	   || mode == MODE_RX_GENERIC)
 	{
@@ -1715,7 +1732,7 @@ void bt_le_sync_rssi(u8 active_mode)
 
 	// rssi sampling for only 3000 ms
 	uint32_t now = (clkn & 0xffffff);
-	uint32_t stop_at = now + 10000 * 10000 / 3125; // millis -> clkn ticks
+	uint32_t stop_at = now + 3000 * 10000 / 3125; // millis -> clkn ticks
 	int overflow = 0;
 	// handle clkn overflow
 	if (stop_at >= ((uint32_t)1<<28)) {
@@ -3063,6 +3080,8 @@ int main()
 				case MODE_BT_SLAVE_LE:
 					mode = MODE_BT_SLAVE_LE;
 					bt_slave_le();
+					break;
+				case MODE_WAIT_BULK:
 					break;
 				case MODE_BT_SYNC_LE:
 					mode = MODE_BT_SYNC_LE;

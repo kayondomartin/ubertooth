@@ -301,7 +301,7 @@ ubertooth-tools_BINARY_DIR:STATIC=/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R
 ubertooth-tools_SOURCE_DIR:STATIC=/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools
 
 //Dependencies for the target
-ubertooth_LIB_DEPENDS:STATIC=general;/usr/lib/x86_64-linux-gnu/libusb-1.0.so;general;/usr/local/lib/libbtbb.so;general;crypto;
+ubertooth_LIB_DEPENDS:STATIC=general;/usr/lib/x86_64-linux-gnu/libusb-1.0.so;general;/usr/local/lib/libbtbb.so;general;m;general;crypto;
 
 //Value Computed by CMake
 ubertooth_all_BINARY_DIR:STATIC=/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build

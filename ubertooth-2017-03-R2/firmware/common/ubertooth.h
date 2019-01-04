@@ -53,6 +53,7 @@ enum operating_modes {
 	MODE_BT_CFO_LE = 17,
 	MODE_BT_RSSI_LE = 18,
 	MODE_BT_SYNC_LE = 19,
+	MODE_WAIT_BULK = 20,
 };
 
 /* hardware identification number */

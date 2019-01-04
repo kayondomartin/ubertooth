@@ -344,5 +344,29 @@ int getBCHdata(char *APMAC, uint8_t *data) {
 	return 1;
 }
 
+float getCorr(int8_t *rssi0, int8_t *rssi1, int lenData) {
+	int i;
+	float norm0 = 0, norm1 = 0, corr = 0;
+	float avg0 = 0, avg1 = 0;
 
+	for(i=0; i<lenData; i++) {
+		avg0 += (float) rssi0[i];
+		avg1 += (float) rssi1[i];
+	}
+	avg0 /= (float)lenData;
+	avg1 /= (float)lenData;
+
+	for(i=0; i<lenData; i++) {
+		corr += ((float)rssi0[i] - avg0) * ((float)rssi1[i] - avg1);
+		norm0 += ((float)rssi0[i] - avg0) * ((float)rssi0[i] - avg0);
+		norm1 += ((float)rssi1[i] - avg1) * ((float)rssi1[i] - avg1);
+	}
+	norm0 = sqrt(norm0);
+	norm1 = sqrt(norm1);
+	corr /= norm0 * norm1;
+
+	return corr;
+}
+
+	
 
