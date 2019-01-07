@@ -11,5 +11,6 @@ int makeBarcode(int *eTime, int *eRssi, int nEdge, int *Barcode, char *oFile);
 int getData(char *tFile, char*rFile, int *time, int *rssi);
 int8_t *procData(int *rTime, int8_t *rssi, int lenData);
 int getAPInfo(char *APMAC, char *APSSID, char *APPWD);
+int startAPTx();
 int getBCHdata(char *APMAC, uint8_t *data);
 float getCorr(int8_t *rssi0, int8_t *rssi1, int lenData);

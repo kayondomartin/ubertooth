@@ -76,24 +76,24 @@ int8_t *maFilter(int *sTime, int8_t *sRssi, int nSignal) {
 	// Moving average filtering
 	FILE *output;
 	int i, j, index;
-	int8_t *rssiMA = malloc(sizeof(int8_t)*1000);
-	float *Samples = malloc(sizeof(float)*1000);
-	float *nSample = malloc(sizeof(float)*1000);
+	int8_t *rssiMA = malloc(sizeof(int8_t)*300);
+	float *Samples = malloc(sizeof(float)*300);
+	float *nSample = malloc(sizeof(float)*300);
 	
-	memset(rssiMA, 0, sizeof(int8_t)*1000);
-	memset(Samples, 0, sizeof(float)*1000);
-	memset(nSample, 0, sizeof(float)*1000);
+	memset(rssiMA, 0, sizeof(int8_t)*300);
+	memset(Samples, 0, sizeof(float)*300);
+	memset(nSample, 0, sizeof(float)*300);
 
 	// Make a 10 ms  moving averaged samples of 3 seconds, which equals 300 bytes
 	for (i=0; i<nSignal; i++) {
-		if (sTime[i] < 10000e4) {
+		if (sTime[i] < 3000e4) {
 			index = sTime[i] / 10e4;
 			Samples[index] += sRssi[i];
 			nSample[index]++;
 		}
 	}
 
-	for (i=0; i<1000; i++) {
+	for (i=0; i<300; i++) {
 		if (nSample[i] == 0) {
 			for (j=0; j<i; j++) {
 				if (nSample[j] != 0)
@@ -106,7 +106,7 @@ int8_t *maFilter(int *sTime, int8_t *sRssi, int nSignal) {
 	}
 
 	// Save Moving averaged data to rssiMA.dat
-	output = fopen("rssiMA.dat", "w");
+/*	output = fopen("rssiMA.dat", "w");
 	if (output == NULL)	{
 		printf("open failed\n");
 		return 0;
@@ -116,8 +116,8 @@ int8_t *maFilter(int *sTime, int8_t *sRssi, int nSignal) {
 		fprintf(output, "%d\n", rssiMA[i]);
 	}
 	fclose(output);	
-
-	free(nSample); free(Samples);
+*/
+	free(nSample); free(Samples); 
 	return rssiMA;
 }
 
@@ -235,13 +235,7 @@ int8_t *procData(int *rTime, int8_t *rssi, int lenData) {
 	int8_t *sRssi = malloc(sizeof(int8_t)*lenData);
 	int *sTime = malloc(sizeof(int)*lenData);
 	nSignal = signalDetect(rTime, rssi, sTime, sRssi, lenData, thr,"signal.dat");
-/*
-	int *Barcode;
-	Barcode = malloc(sizeof(int)*127);
-	for(i=0; i<127; i++)
-		Barcode[i] = 0;
-	int r = makeBarcode(eTime, eRssi, nEdge, Barcode, "Barcode.dat");
-*/
+	
 	int8_t *rssiMA = malloc(sizeof(int8_t) * 300);
 	rssiMA = maFilter(sTime, sRssi, nSignal);
 
@@ -292,6 +286,12 @@ int getAPInfo(char *APMAC, char *APSSID, char *APPWD) {
 	pclose(apSSID); pclose(apPWD); pclose(apMAC);
 }
 
+int startAPTx() {
+	system("nohup ssh mwnl@192.168.1.218 'iperf -c 224.0.0.5 -u -b 1000M -t 10' > foo.out 2> foo.err < /dev/null &");
+	system("rm foo.err; rm foo.out");
+	return 0;
+}
+	
 
 int getBCHdata(char *APMAC, uint8_t *data) {
 	FILE *dataFile;

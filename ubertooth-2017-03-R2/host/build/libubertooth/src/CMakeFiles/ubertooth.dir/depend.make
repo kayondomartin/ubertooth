@@ -5,7 +5,7 @@ libubertooth/src/CMakeFiles/ubertooth.dir/bchEcc.c.o: ../libubertooth/src/bchEcc
 libubertooth/src/CMakeFiles/ubertooth.dir/bchEcc.c.o: ../libubertooth/src/bchEcc.h
 
 libubertooth/src/CMakeFiles/ubertooth.dir/encAlg.c.o: ../libubertooth/src/encAlg.c
-libubertooth/src/CMakeFiles/ubertooth.dir/encAlg.c.o: /usr/local/include/aesAlg.h
+libubertooth/src/CMakeFiles/ubertooth.dir/encAlg.c.o: ../libubertooth/src/encAlg.h
 
 libubertooth/src/CMakeFiles/ubertooth.dir/procData.c.o: ../libubertooth/src/procData.c
 libubertooth/src/CMakeFiles/ubertooth.dir/procData.c.o: ../libubertooth/src/procData.h

@@ -16,6 +16,20 @@ stdlib.h
 time.h
 -
 
+../libubertooth/src/encAlg.h
+stdio.h
+-
+stdlib.h
+-
+openssl/aes.h
+-
+openssl/rsa.h
+-
+string.h
+-
+stdint.h
+-
+
 ../libubertooth/src/procData.h
 stdio.h
 -
@@ -93,8 +107,8 @@ procData.h
 /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/procData.h
 bchEcc.h
 /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/bchEcc.h
-aesAlg.h
-/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/aesAlg.h
+encAlg.h
+/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/encAlg.h
 
 /usr/include/libusb-1.0/libusb.h
 stdint.h
@@ -110,18 +124,6 @@ limits.h
 windows.h
 -
 winsock.h
--
-
-/usr/local/include/aesAlg.h
-stdio.h
--
-stdlib.h
--
-openssl/aes.h
--
-string.h
--
-stdint.h
 -
 
 /usr/local/include/btbb.h

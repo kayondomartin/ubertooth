@@ -3,6 +3,7 @@
 
 ubertooth-tools/src/CMakeFiles/ubertooth-btle.dir/ubertooth-btle.c.o
  ../libubertooth/src/bchEcc.h
+ ../libubertooth/src/encAlg.h
  ../libubertooth/src/procData.h
  ../libubertooth/src/ubertooth.h
  ../libubertooth/src/ubertooth_callback.h
@@ -11,5 +12,4 @@ ubertooth-tools/src/CMakeFiles/ubertooth-btle.dir/ubertooth-btle.c.o
  ../libubertooth/src/ubertooth_interface.h
  /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/ubertooth-btle.c
  /usr/include/libusb-1.0/libusb.h
- /usr/local/include/aesAlg.h
  /usr/local/include/btbb.h
