@@ -1732,7 +1732,7 @@ void bt_le_sync_rssi(u8 active_mode)
 
 	// rssi sampling for only 3000 ms
 	uint32_t now = (clkn & 0xffffff);
-	uint32_t stop_at = now + 3000 * 10000 / 3125; // millis -> clkn ticks
+	uint32_t stop_at = now + 10000 * 10000 / 3125; // millis -> clkn ticks
 	int overflow = 0;
 	// handle clkn overflow
 	if (stop_at >= ((uint32_t)1<<28)) {
@@ -1756,7 +1756,7 @@ void bt_le_sync_rssi(u8 active_mode)
 	cc2400_rx_sync(rbit(le.access_address));
 
 	requested_channel = 1;
-	channel = 2462;
+	channel = 2412;
 	while (requested_mode == active_mode) {
 		if (requested_channel != 0) {
 			cc2400_strobe(SRFOFF);

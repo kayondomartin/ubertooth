@@ -6047,8 +6047,8 @@ void bt_le_sync_rssi(u8 active_mode)
     5d40:	f7fe fb9c 	bl	447c <cc2400_rx_sync>
 
 	requested_channel = 1;
-	channel = 2462;
-    5d44:	f640 139e 	movw	r3, #2462	; 0x99e
+	channel = 2412;
+    5d44:	f640 136c 	movw	r3, #2412	; 0x96c
 	dma_init_le();
 	dio_ssp_start();
 
@@ -6061,14 +6061,14 @@ void bt_le_sync_rssi(u8 active_mode)
 
 	// rssi sampling for only 3000 ms
 	uint32_t now = (clkn & 0xffffff);
-	uint32_t stop_at = now + 3000 * 10000 / 3125; // millis -> clkn ticks
-    5d4c:	f50a 5a16 	add.w	sl, sl, #9600	; 0x2580
+	uint32_t stop_at = now + 10000 * 10000 / 3125; // millis -> clkn ticks
+    5d4c:	f50a 4afa 	add.w	sl, sl, #32000	; 0x7d00
 	dio_ssp_start();
 
 	cc2400_rx_sync(rbit(le.access_address));
 
 	requested_channel = 1;
-	channel = 2462;
+	channel = 2412;
     5d50:	8033      	strh	r3, [r6, #0]
 	while (requested_mode == active_mode) {
     5d52:	e0ab      	b.n	5eac <bt_le_sync_rssi+0x1e8>
@@ -6086,7 +6086,7 @@ void bt_le_sync_rssi(u8 active_mode)
 	cc2400_rx_sync(rbit(le.access_address));
 
 	requested_channel = 1;
-	channel = 2462;
+	channel = 2412;
 	while (requested_mode == active_mode) {
 		if (requested_channel != 0) {
     5d60:	4b63      	ldr	r3, [pc, #396]	; (5ef0 <bt_le_sync_rssi+0x22c>)
@@ -6275,7 +6275,7 @@ void bt_le_sync_rssi(u8 active_mode)
 	cc2400_rx_sync(rbit(le.access_address));
 
 	requested_channel = 1;
-	channel = 2462;
+	channel = 2412;
 	while (requested_mode == active_mode) {
     5eac:	7ca3      	ldrb	r3, [r4, #18]
     5eae:	42bb      	cmp	r3, r7
@@ -19963,8 +19963,8 @@ BOOL USBHandleStandardRequest(TSetupPacket	*pSetup, int *piLen, U8 **ppbData)
     a03f:	72656275 746f6f74 30322068 302d3731     ubertooth 2017-0
     a04f:	32522d33 776d2820 6d406c6e 2d6c6e77     3-R2 (mwnl@mwnl-
     a05f:	6f6e656c 20296f76 39313032 3130202e     lenovo) 2019. 01
-    a06f:	3430202e ea28202e 202988b8 323a3931     . 04. (...) 19:2
-    a07f:	36343a32 54534b20 bcb24000                       2:46 KST.
+    a06f:	3131202e ea28202e 202988b8 343a3232     . 11. (...) 22:4
+    a07f:	35313a38 54534b20 bcb24000                       8:15 KST.
 
 0000a088 <whitening_word>:
     a088:	c3bcb240 5f4a371f 9a9cf685 44c5d6c1     @....7J_.......D

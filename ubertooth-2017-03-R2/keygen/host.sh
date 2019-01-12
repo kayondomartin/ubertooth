@@ -21,22 +21,22 @@ paste time.dat rssi.dat > ./data/exp0_$1.dat
 rm time.dat rssi.dat log0
 mv signal.dat signal0.dat
 
-catTime=$(sed -n -e 's/^.*measurement : //p' log1)
-echo $catTime > time
-tr -s ' ' '\n'< time > time.dat
-rm time
+#catTime=$(sed -n -e 's/^.*measurement : //p' log1)
+#echo $catTime > time
+#tr -s ' ' '\n'< time > time.dat
+#rm time
 
-numLine=$(wc -l < "time.dat")
+#numLine=$(wc -l < "time.dat")
 
-catRssi=$(sed -n -e 's/^.*samples : //p' log1)
-echo $catRssi > rssi
-tr -s ' ' '\n'< rssi > rssi.dat
-rm rssi
+#catRssi=$(sed -n -e 's/^.*samples : //p' log1)
+#echo $catRssi > rssi
+#tr -s ' ' '\n'< rssi > rssi.dat
+#rm rssi
 
-./procData.out
-paste time.dat rssi.dat > ./data/exp1_$1.dat
-rm time.dat rssi.dat
-mv signal.dat signal1.dat
+#./procData.out
+#paste time.dat rssi.dat > ./data/exp1_$1.dat
+#rm time.dat rssi.dat
+#mv signal.dat signal1.dat
 
 #cmp -l Barcode0.dat Barcode1.dat > diff.dat
 
