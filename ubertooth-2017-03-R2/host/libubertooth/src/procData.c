@@ -234,7 +234,7 @@ int8_t *procData(int *rTime, int8_t *rssi, int lenData) {
 
 	int8_t *sRssi = malloc(sizeof(int8_t)*lenData);
 	int *sTime = malloc(sizeof(int)*lenData);
-	nSignal = signalDetect(rTime, rssi, sTime, sRssi, lenData, thr,"signal.dat");
+	nSignal = signalDetect(rTime, rssi, sTime, sRssi, lenData, -82,"signal.dat");
 	
 	int8_t *rssiMA = malloc(sizeof(int8_t) * 300);
 	rssiMA = maFilter(sTime, sRssi, nSignal);

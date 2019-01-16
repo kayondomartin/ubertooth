@@ -609,6 +609,23 @@ int find_Guest(ubertooth_t* ut, uint8_t *APMAC, uint8_t **guestMac, int nGuest)
 	return nGuest;
 }
 
+int recv_ACK(ubertooth_t *ut, uint8_t *guestMac) {
+	int i, target = 0;
+	usb_pkt_rx usb = fifo_pop(ut->fifo);
+	usb_pkt_rx* rx = &usb;
+
+	int len = (rx->data[5] & 0x3f) + 6 + 3;
+	if (len > 50) len = 50;
+
+	if (rx->data[14] == 0xaa && rx->data[15] == 0xfe && rx->data[20] == 0x10 && rx->data[23] >= 0xaa && rx->data[11] == guestMac[0] && rx->data[10] == guestMac[1] && rx->data[9] == guestMac[2] && rx->data[8] == guestMac[3] && rx->data[7] == guestMac[4] && rx->data[6] == guestMac[5]) {
+		if (rx->data[24] == 0x41 && rx->data[25] == 0x43 && rx->data[26] == 0x4b) 
+			target = 1;
+	}
+
+	fflush(stdout);
+	return target;
+}
+
 
 //JWHUR cb_btle_tracking
 void cb_btle_tracking(ubertooth_t* ut, void* args)

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#ubertooth-btle -s ec:55:f9:7c:c9:ff -S -U 0 >& log0
+ubertooth-btle -s ec:55:f9:7c:c9:ff -S -U 0 >& log0
 #scp mwnl1@192.168.70.201:~/JWHUR/ubertooth/ubertooth-2017-03-R2/exp/log1 ./
 #scp mwnl1@192.168.86.24:~/JWHUR/ubertooth/ubertooth-2017-03-R2/exp/log1 ./
 
