@@ -1,4 +1,4 @@
-#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
 
 #IncludeRegexScan: ^.*$
 
@@ -44,11 +44,11 @@ ubertooth_control.h
 stdint.h
 -
 
-/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/ubertooth-ego.c
+/home/martin/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/ubertooth-ego.c
 ubertooth.h
-/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/ubertooth.h
+/home/martin/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/ubertooth.h
 ubertooth_callback.h
-/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/ubertooth_callback.h
+/home/martin/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/ubertooth_callback.h
 ctype.h
 -
 err.h

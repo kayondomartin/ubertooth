@@ -1,4 +1,4 @@
-#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
 
 #IncludeRegexScan: ^.*$
 
@@ -78,7 +78,7 @@ ubertooth_control.h
 stdint.h
 -
 
-/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/ubertooth-btle.c
+/home/martin/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/ubertooth-btle.c
 ctype.h
 -
 err.h
@@ -100,15 +100,15 @@ time.h
 stdint.h
 -
 ubertooth.h
-/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/ubertooth.h
+/home/martin/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/ubertooth.h
 ubertooth_callback.h
-/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/ubertooth_callback.h
+/home/martin/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/ubertooth_callback.h
 procData.h
-/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/procData.h
+/home/martin/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/procData.h
 bchEcc.h
-/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/bchEcc.h
+/home/martin/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/bchEcc.h
 encAlg.h
-/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/encAlg.h
+/home/martin/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/encAlg.h
 
 /usr/include/libusb-1.0/libusb.h
 stdint.h

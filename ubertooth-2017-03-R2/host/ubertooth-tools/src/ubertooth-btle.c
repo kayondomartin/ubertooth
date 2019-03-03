@@ -204,7 +204,7 @@ int dataTx(uint8_t *mac_addr, uint8_t *data, int dlen, float txDur, ubertooth_t 
 	printf("\n");
 	cmd_btle_slave(ut->devh, tot_data, UBERTOOTH_BTLE_SLAVE, dlen+6);
 			
-	usleep(txDur * 1000000);
+	usleep(txDur * 10000000);
 	ubertooth_stop(ut);
 
 	usleep(100000);
@@ -246,7 +246,7 @@ int scanGuest(uint8_t *APMAC, uint8_t **guestMac, int maxGuest, float rxDur, ube
 	clock_gettime(CLOCK_MONOTONIC, &tspec);
 	start = (tspec.tv_sec)*1000 + (tspec.tv_nsec)/1000000;
 	now = start;
-	while(now - start < rxDur*1000) {
+	while(now - start < rxDur*10000) {
 		int r = cmd_poll(ut->devh, &rx);
 		if (r < 0) {
 			printf("USB Error\n");
@@ -608,7 +608,7 @@ int listenPWD(uint8_t *APMAC, uint8_t *guestMac, int do_adv_index, uint8_t *pwd,
 	return pwdLen;
 }
 
-int listenData(uint8_t **guestMac, int nGuest, int *statGuest, int do_adv_index, unsigned char **guestData, float dur, ubertooth_t *ut, int ubertooth_device) {
+int listenData(uint8_t *APMAC, int nGuest, int *statGuest, int do_adv_index, unsigned char **guestData, float dur, ubertooth_t *ut, int ubertooth_device) {
 
 	printf("********** Start Listening Data**********\n");
 	int PAYLOAD_LEN = 11;
@@ -647,7 +647,7 @@ int listenData(uint8_t **guestMac, int nGuest, int *statGuest, int do_adv_index,
 		}
 		if (r == sizeof(usb_pkt_rx)) {
 			fifo_push(ut->fifo, &rx);
-			target = recv_DATA(ut, target, nFrag, fNum, pLen, guestMac, statGuest, nGuest, frag);
+			target = recv_DATA(ut, target, nFrag, fNum, pLen, APMAC, statGuest, nGuest, frag);
 			if (target >= 0) {
 				if (statGuest[target] == 0) {
 					numF = nFrag[0];
@@ -1279,9 +1279,9 @@ int main(int argc, char *argv[])
 		printf("********** Start Public Key Transmission **********\n");
 //		printf("Tx public key:\n%s\n", (char *)txPubKey);
 
-		status = dataTx(APmac, txPubKey, pubKeyLen-53, 1.5, ut, ubertooth_device);
+		status = dataTx(mac_address, txPubKey, pubKeyLen-53, 1.5, ut, ubertooth_device);
 
-		nGuest = scanGuest(APmac, guestMac, maxGuest, 1.5, ut, ubertooth_device); 
+		nGuest = scanGuest(mac_address, guestMac, maxGuest, 1.5, ut, ubertooth_device);
 		
 		if (nGuest == 0) {
 			printf("No guest!\n");
@@ -1294,6 +1294,7 @@ int main(int argc, char *argv[])
 		}
 
 		printf("nGuest: %d\nguestMac:\n", nGuest);
+
 		for(i=0; i<nGuest; i++) {
 			for(j=0; j<6; j++) printf("%02x ", guestMac[i][j]);
 			printf("\n");
@@ -1310,12 +1311,16 @@ int main(int argc, char *argv[])
 			memset(guestRssi1[i], 0, sizeof(int8_t)*100);
 			memset(guestRssi2[i], 0, sizeof(int8_t)*100);
 		}
-		
+
+
+
+		/*
+
 //		status = startAPTx();
 
-		lenData = syncStart(APmac, do_adv_index, ut, ubertooth_device, time, rssi);
+		//lenData = syncStart(APmac, do_adv_index, ut, ubertooth_device, time, rssi);
 //`		printf("lenData: %d\n", lenData);
-		rssiMA = procData(time, rssi, lenData);
+		//rssiMA = procData(time, rssi, lenData);
 
 		printf("rssiMA:\n");
 		for(i=0; i<300; i++)
@@ -1326,8 +1331,9 @@ int main(int argc, char *argv[])
 			hostRssi2[i] = rssiMA[i+200];
 		}
 		printf("\n");
-		
-		nRecv = listenData(guestMac, nGuest, statGuest0, do_adv_index, guestData0, 1.2, ut, ubertooth_device);
+		*/
+		printf("Here! \n");
+		nRecv = listenData(mac_address, nGuest, statGuest0, do_adv_index, guestData0, 1.2, ut, ubertooth_device);
 		if (nRecv == 0) {
 			printf("No data received!\n");
 			clock_gettime(CLOCK_MONOTONIC, &tspec);

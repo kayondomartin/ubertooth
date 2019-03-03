@@ -1,4 +1,4 @@
-#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
 
 #IncludeRegexScan: ^.*$
 
@@ -38,9 +38,9 @@ ubertooth_control.h
 stdint.h
 -
 
-/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/dfu.h
+/home/martin/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/dfu.h
 
-/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/ubertooth-dfu.c
+/home/martin/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/ubertooth-dfu.c
 getopt.h
 -
 stdio.h
@@ -52,9 +52,9 @@ stdlib.h
 unistd.h
 -
 ubertooth.h
-/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/ubertooth.h
+/home/martin/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/ubertooth.h
 dfu.h
-/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/dfu.h
+/home/martin/ubertooth/ubertooth-2017-03-R2/host/ubertooth-tools/src/dfu.h
 
 /usr/include/libusb-1.0/libusb.h
 stdint.h

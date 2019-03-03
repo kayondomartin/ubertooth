@@ -1,81 +1,88 @@
-# Install script for directory: /home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src
+# Install script for directory: /home/martin/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src
 
 # Set the install prefix
-IF(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  SET(CMAKE_INSTALL_PREFIX "/usr/local")
-ENDIF(NOT DEFINED CMAKE_INSTALL_PREFIX)
-STRING(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
+if(NOT DEFINED CMAKE_INSTALL_PREFIX)
+  set(CMAKE_INSTALL_PREFIX "/usr/local")
+endif()
+string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
 # Set the install configuration name.
-IF(NOT DEFINED CMAKE_INSTALL_CONFIG_NAME)
-  IF(BUILD_TYPE)
-    STRING(REGEX REPLACE "^[^A-Za-z0-9_]+" ""
+if(NOT DEFINED CMAKE_INSTALL_CONFIG_NAME)
+  if(BUILD_TYPE)
+    string(REGEX REPLACE "^[^A-Za-z0-9_]+" ""
            CMAKE_INSTALL_CONFIG_NAME "${BUILD_TYPE}")
-  ELSE(BUILD_TYPE)
-    SET(CMAKE_INSTALL_CONFIG_NAME "")
-  ENDIF(BUILD_TYPE)
-  MESSAGE(STATUS "Install configuration: \"${CMAKE_INSTALL_CONFIG_NAME}\"")
-ENDIF(NOT DEFINED CMAKE_INSTALL_CONFIG_NAME)
+  else()
+    set(CMAKE_INSTALL_CONFIG_NAME "")
+  endif()
+  message(STATUS "Install configuration: \"${CMAKE_INSTALL_CONFIG_NAME}\"")
+endif()
 
 # Set the component getting installed.
-IF(NOT CMAKE_INSTALL_COMPONENT)
-  IF(COMPONENT)
-    MESSAGE(STATUS "Install component: \"${COMPONENT}\"")
-    SET(CMAKE_INSTALL_COMPONENT "${COMPONENT}")
-  ELSE(COMPONENT)
-    SET(CMAKE_INSTALL_COMPONENT)
-  ENDIF(COMPONENT)
-ENDIF(NOT CMAKE_INSTALL_COMPONENT)
+if(NOT CMAKE_INSTALL_COMPONENT)
+  if(COMPONENT)
+    message(STATUS "Install component: \"${COMPONENT}\"")
+    set(CMAKE_INSTALL_COMPONENT "${COMPONENT}")
+  else()
+    set(CMAKE_INSTALL_COMPONENT)
+  endif()
+endif()
 
 # Install shared libraries without execute permission?
-IF(NOT DEFINED CMAKE_INSTALL_SO_NO_EXE)
-  SET(CMAKE_INSTALL_SO_NO_EXE "1")
-ENDIF(NOT DEFINED CMAKE_INSTALL_SO_NO_EXE)
+if(NOT DEFINED CMAKE_INSTALL_SO_NO_EXE)
+  set(CMAKE_INSTALL_SO_NO_EXE "1")
+endif()
 
-IF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "sharedlibs")
-  FOREACH(file
+# Is this installation the result of a crosscompile?
+if(NOT DEFINED CMAKE_CROSSCOMPILING)
+  set(CMAKE_CROSSCOMPILING "FALSE")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xsharedlibsx" OR NOT CMAKE_INSTALL_COMPONENT)
+  foreach(file
       "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libubertooth.so.1.0"
       "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libubertooth.so.1"
       "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libubertooth.so"
       )
-    IF(EXISTS "${file}" AND
+    if(EXISTS "${file}" AND
        NOT IS_SYMLINK "${file}")
-      FILE(RPATH_CHECK
+      file(RPATH_CHECK
            FILE "${file}"
            RPATH "")
-    ENDIF()
-  ENDFOREACH()
-  FILE(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE SHARED_LIBRARY FILES
-    "/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/libubertooth/src/libubertooth.so.1.0"
-    "/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/libubertooth/src/libubertooth.so.1"
-    "/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/build/libubertooth/src/libubertooth.so"
+    endif()
+  endforeach()
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE SHARED_LIBRARY FILES
+    "/home/martin/ubertooth/ubertooth-2017-03-R2/host/build/libubertooth/src/libubertooth.so.1.0"
+    "/home/martin/ubertooth/ubertooth-2017-03-R2/host/build/libubertooth/src/libubertooth.so.1"
+    "/home/martin/ubertooth/ubertooth-2017-03-R2/host/build/libubertooth/src/libubertooth.so"
     )
-  FOREACH(file
+  foreach(file
       "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libubertooth.so.1.0"
       "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libubertooth.so.1"
       "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libubertooth.so"
       )
-    IF(EXISTS "${file}" AND
+    if(EXISTS "${file}" AND
        NOT IS_SYMLINK "${file}")
-      FILE(RPATH_REMOVE
-           FILE "${file}")
-      IF(CMAKE_INSTALL_DO_STRIP)
-        EXECUTE_PROCESS(COMMAND "/usr/bin/strip" "${file}")
-      ENDIF(CMAKE_INSTALL_DO_STRIP)
-    ENDIF()
-  ENDFOREACH()
-ENDIF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "sharedlibs")
+      file(RPATH_CHANGE
+           FILE "${file}"
+           OLD_RPATH "/usr/local/lib:"
+           NEW_RPATH "")
+      if(CMAKE_INSTALL_DO_STRIP)
+        execute_process(COMMAND "/usr/bin/strip" "${file}")
+      endif()
+    endif()
+  endforeach()
+endif()
 
-IF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "headers")
-  FILE(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE FILE FILES
-    "/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/ubertooth.h"
-    "/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/ubertooth_callback.h"
-    "/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/ubertooth_control.h"
-    "/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/ubertooth_fifo.h"
-    "/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/ubertooth_interface.h"
-    "/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/procData.h"
-    "/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/bchEcc.h"
-    "/home/mwnl/JWHUR/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/encAlg.h"
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xheadersx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE FILE FILES
+    "/home/martin/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/ubertooth.h"
+    "/home/martin/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/ubertooth_callback.h"
+    "/home/martin/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/ubertooth_control.h"
+    "/home/martin/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/ubertooth_fifo.h"
+    "/home/martin/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/ubertooth_interface.h"
+    "/home/martin/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/procData.h"
+    "/home/martin/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/bchEcc.h"
+    "/home/martin/ubertooth/ubertooth-2017-03-R2/host/libubertooth/src/encAlg.h"
     )
-ENDIF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "headers")
+endif()
 

@@ -1,4 +1,4 @@
-FILE(REMOVE_RECURSE
+file(REMOVE_RECURSE
   "CMakeFiles/ubertooth-debug.dir/ubertooth-debug.c.o"
   "CMakeFiles/ubertooth-debug.dir/cc2400.c.o"
   "CMakeFiles/ubertooth-debug.dir/arglist.c.o"
@@ -7,6 +7,6 @@ FILE(REMOVE_RECURSE
 )
 
 # Per-language clean rules from dependency scanning.
-FOREACH(lang C)
-  INCLUDE(CMakeFiles/ubertooth-debug.dir/cmake_clean_${lang}.cmake OPTIONAL)
-ENDFOREACH(lang)
+foreach(lang C)
+  include(CMakeFiles/ubertooth-debug.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

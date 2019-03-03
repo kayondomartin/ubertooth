@@ -516,7 +516,7 @@ int recv_PWD(ubertooth_t* ut, int target, int *nFrag, int *fNum, int *pLen, uint
 	return ret;
 }
 
-int recv_DATA(ubertooth_t* ut, int target, int *nFrag, int *fNum, int *pLen, uint8_t **guestMac, int *statGuest, int nGuest, uint8_t *frag)
+int recv_DATA(ubertooth_t* ut, int target, int *nFrag, int *fNum, int *pLen, uint8_t* APMAC, int *statGuest, int nGuest, uint8_t *frag)
 {
 	int PAYLOAD_LEN = 11;
 	int i, j, ret = -1;
@@ -527,9 +527,10 @@ int recv_DATA(ubertooth_t* ut, int target, int *nFrag, int *fNum, int *pLen, uin
 	int len = (rx->data[5] & 0x3f) + 6 + 3;
 	if (len > 50) len = 50;
 
-	if (rx->data[12] == 0x03 && rx->data[13] == 0x03 && rx->data[14] == 0xaa && rx->data[15] == 0xfe && rx->data[20] == 0x10 &&  rx->data[23] >= 0xaa) {
+
+	if (rx->data[12] == 0x03 && rx->data[13] == 0x03 && rx->data[14] == 0xaa && rx->data[15] == 0xfe && rx->data[20] == 0x10 &&  rx->data[18] >= 0xaa && rx->data[23] == 0xda && rx->data[22] == 0x02) {
 		for (i=0; i<nGuest; i++) {
-			if (guestMac[i][0] == rx->data[11] && guestMac[i][1] == rx->data[10] && guestMac[i][2] == rx->data[9] && guestMac[i][3] == rx->data[8] && guestMac[i][4] == rx->data[7] && guestMac[i][5] == rx->data[6]) {
+			if (APMAC[0] == rx->data[26] && APMAC[5] == rx->data[25]) {
 				ret = i;
 				break;
 			}
@@ -538,20 +539,13 @@ int recv_DATA(ubertooth_t* ut, int target, int *nFrag, int *fNum, int *pLen, uin
 		if (ret == -1)
 			return ret;
 
-		if (statGuest[ret] == 0) {
+		if (statGuest[ret] == 0 || statGuest == 1) {
 			nFrag[0] = (int) rx->data[21];
-			fNum[0] = (int) (rx->data[23] - 0xaa);
+			fNum[0] = (int) (rx->data[24]);
 			pLen[0] = (int) (rx->data[16] - 0x07);
 		
 			for (j=0; j<pLen[0]; j++) 
-				frag[j] = rx->data[24+j];
-		} else if (statGuest[ret] == 1) {
-			nFrag[0] = (int) rx->data[21];
-			fNum[0] = (int) (rx->data[23] - 0xaa);
-			pLen[0] = (int) (rx->data[16] - 0x07);
-
-			for (j=0; j<pLen[0]; j++)
-				frag[j] = rx->data[24+j];
+				frag[j] = rx->data[27+j];
 		} else if (statGuest[ret] == -1) {
 			printf("Not registered guest!\n");
 			return -1;
@@ -595,7 +589,15 @@ int find_Guest(ubertooth_t* ut, uint8_t *APMAC, uint8_t **guestMac, int nGuest)
 	int len = (rx->data[5] & 0x3f) + 6 + 3;
 	if (len > 50) len = 50;
 
-	if (rx->data[14] == 0xaa && rx->data[15] == 0xfe && rx->data[20] == 0x10 && rx->data[23] >= 0xaa && rx->data[24] == APMAC[0] && rx->data[25] == APMAC[1] && rx->data[26] == APMAC[2] && rx->data[27] == APMAC[3] && rx->data[28] == APMAC[4] && rx->data[29] == APMAC[5]) {
+
+	printf("Data: \n");
+    for(i=0;i<len;i++){
+        printf("%x ",rx->data[i]);
+    }
+    printf("\n");
+
+
+	if (rx->data[14] == 0xaa && rx->data[15] == 0xfe && rx->data[20] == 0x10 && rx->data[18] >= 0xaa && rx->data[23] == 0xca && rx->data[27] == APMAC[0] && rx->data[28] == APMAC[1] && rx->data[29] == APMAC[2] && rx->data[30] == APMAC[3] && rx->data[31] == APMAC[4] && rx->data[32] == APMAC[5]) {
 		for(i=0; i<nGuest; i++) {
 			if (guestMac[i][0] == rx->data[11] && guestMac[i][1] == rx->data[10] && guestMac[i][2] == rx->data[9] && guestMac[i][3] == rx->data[8] && guestMac[i][4] == rx->data[7] && guestMac[i][5] == rx->data[6])
 				return nGuest;
